@@ -1,0 +1,26 @@
+# ==============================================================================
+# Check Point 5 - Monitoramento Global de Vinherias (FIWARE + STH-Comet + ESP32)
+# Dependencias do Dashboard Dinamico Web (Python / Dash / Plotly / MQTT Wokwi)
+# Instalacao: pip install -r requirements.txt
+# ==============================================================================
+
+# Framework web reativo para construcao do Dashboard analitico e gerenciamento IoT
+dash>=2.18.0
+
+# Componentes visuais Bootstrap para layout responsivo e tema escuro/vinheria
+dash-bootstrap-components>=1.6.0
+
+# Biblioteca grafica para renderizacao dinamica das series temporais do STH-Comet
+plotly>=5.24.0
+
+# Cliente HTTP para comunicacao com as APIs FIWARE:
+# - STH-Comet (Porta 8666 - Historico de Temperatura, Umidade e Luminosidade)
+# - IoT Agent MQTT (Porta 4041 - Cadastro e Gerenciamento de IoT Devices)
+# - Orion Context Broker (Porta 1026 - Leitura em Tempo Real e Comandos Remotos)
+requests>=2.32.0
+
+# Cliente MQTT de baixa latencia para integracao em Tempo Real com o Wokwi (Ultralight 2.0)
+paho-mqtt>=2.1.0
+
+# Suite de testes automatizados (TDD - Unitarios e Integracao)
+pytest>=8.3.0

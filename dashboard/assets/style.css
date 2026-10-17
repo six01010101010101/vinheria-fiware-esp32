@@ -1,0 +1,71 @@
+/* ==========================================================================
+   Estilos Profissionais e Limpos - Monitoramento Global de Vinherias (CP5)
+   Foco em legibilidade, divisao clara de secoes e animacao real do LED Azul
+   ========================================================================== */
+
+body {
+    background-color: #0f141c !important;
+    color: #e6edf3 !important;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.clean-card {
+    background-color: #161d27 !important;
+    border: 1px solid #263244 !important;
+    border-radius: 10px !important;
+}
+
+.section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #9bb0c9;
+    margin-bottom: 0.85rem;
+    border-bottom: 1px solid #232e3f;
+    padding-bottom: 0.45rem;
+}
+
+/* Indicador do LED Azul do ESP32 (Desligado vs Piscando Remotamente) */
+.led-indicator {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    vertical-align: middle;
+    margin-right: 10px;
+}
+
+.led-blue-off {
+    background-color: #253042;
+    border: 2px solid #38465e;
+}
+
+@keyframes pulseBlueLed {
+    0% {
+        background-color: #0088ff;
+        box-shadow: 0 0 4px #0088ff, 0 0 12px #00a2ff;
+        transform: scale(1);
+    }
+    50% {
+        background-color: #002b5e;
+        box-shadow: none;
+        transform: scale(0.92);
+    }
+    100% {
+        background-color: #0088ff;
+        box-shadow: 0 0 8px #0088ff, 0 0 20px #00c3ff;
+        transform: scale(1);
+    }
+}
+
+.led-blue-blinking {
+    border: 2px solid #80d4ff;
+    animation: pulseBlueLed 0.65s infinite ease-in-out;
+}
+
+.kpi-value {
+    font-size: 1.95rem;
+    font-weight: 700;
+    line-height: 1.2;
+}

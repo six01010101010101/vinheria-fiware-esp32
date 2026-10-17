@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "author": "Equipe Monitoramento Global de Vinherias - Check Point 5",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-esp32-devkit-v1",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-dht22",
+      "id": "dht1",
+      "top": -45,
+      "left": -150,
+      "attrs": { "temperature": "15.5", "humidity": "68.0" }
+    },
+    {
+      "type": "wokwi-photoresistor-sensor",
+      "id": "ldr1",
+      "top": 120,
+      "left": -190,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_blue",
+      "top": -30,
+      "left": 160,
+      "attrs": { "color": "blue", "label": "LED Azul Remoto" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": 40,
+      "left": 150,
+      "attrs": { "value": "220" }
+    },
+    {
+      "type": "wokwi-buzzer",
+      "id": "bz1",
+      "top": 95,
+      "left": 160,
+      "attrs": { "volume": "0.5", "label": "Buzzer Alerta" }
+    }
+  ],
+  "connections": [
+    [ "esp:TX0", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX0", "$serialMonitor:TX", "", [] ],
+    [ "dht1:VCC", "esp:3V3", "red", [ "v0" ] ],
+    [ "dht1:GND", "esp:GND.1", "black", [ "v0" ] ],
+    [ "dht1:SDA", "esp:D15", "green", [ "v0" ] ],
+    [ "ldr1:VCC", "esp:3V3", "red", [ "h0" ] ],
+    [ "ldr1:GND", "esp:GND.1", "black", [ "h0" ] ],
+    [ "ldr1:AO", "esp:D34", "orange", [ "h0" ] ],
+    [ "esp:D2", "r1:1", "blue", [ "h0" ] ],
+    [ "r1:2", "led_blue:A", "blue", [ "v0" ] ],
+    [ "led_blue:C", "esp:GND.2", "black", [ "v0" ] ],
+    [ "bz1:1", "esp:GND.2", "black", [ "v0" ] ],
+    [ "bz1:2", "esp:D4", "purple", [ "v0" ] ]
+  ],
+  "dependencies": {}
+}
