@@ -75,7 +75,7 @@ ANOMALY_SOUND_DESCRIPTIONS: Dict[str, Dict[str, str]] = {
 # Presets Automáticos de Triggers por Tipo de Vinho (Diferencial - 10% da Nota)
 WINE_PRESETS: Dict[str, Dict[str, Any]] = {
     "tinto": {
-        "name": "🍷 Vinho Tinto Encorpado",
+        "name": "Vinho Tinto Encorpado",
         "description": "Faixa ideal para maturação de tintos (Cabernet, Malbec, Tannat).",
         "temp_min": 14.0,
         "temp_max": 18.0,
@@ -85,7 +85,7 @@ WINE_PRESETS: Dict[str, Dict[str, Any]] = {
         "lum_max": 25.0,
     },
     "branco": {
-        "name": "🥂 Vinho Branco & Rosé",
+        "name": "Vinho Branco & Rosé",
         "description": "Refrigeração controlada para preservação de acidez e aromas florais.",
         "temp_min": 8.0,
         "temp_max": 12.0,
@@ -95,7 +95,7 @@ WINE_PRESETS: Dict[str, Dict[str, Any]] = {
         "lum_max": 20.0,
     },
     "espumante": {
-        "name": "🍾 Espumante & Champagne",
+        "name": "Espumante & Champagne",
         "description": "Baixa temperatura e alta proteção luminosa para preservar o perlage.",
         "temp_min": 6.0,
         "temp_max": 9.0,
@@ -105,7 +105,7 @@ WINE_PRESETS: Dict[str, Dict[str, Any]] = {
         "lum_max": 15.0,
     },
     "envelhecimento": {
-        "name": "🏺 Cave de Envelhecimento (Guarda)",
+        "name": "Cave de Envelhecimento (Guarda)",
         "description": "Estabilidade térmica rigorosa e escuridão para proteção da rolha.",
         "temp_min": 12.0,
         "temp_max": 15.0,

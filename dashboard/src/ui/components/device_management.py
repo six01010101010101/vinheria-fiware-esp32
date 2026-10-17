@@ -19,12 +19,12 @@ from src.ui.components.wokwi_hub_panel import SCENARIO_PRESETS
 
 
 def _input_col(
-    label: str, comp_id: str, val: object, md: int = 3, inp_type: str = "text", step: float = 1.0
+    label: object, comp_id: str, val: object, md: int = 3, inp_type: str = "text", step: float = 1.0
 ) -> dbc.Col:
     """Auxiliar reutilizável para colunas de input limpas e alinhadas."""
     return dbc.Col(
         [
-            dbc.Label(label, className="small text-muted mb-1"),
+            dbc.Label(label, className="small text-muted mb-1 d-flex align-items-center"),
             dbc.Input(id=comp_id, type=inp_type, value=val, step=step, size="sm"),
         ],
         md=md,
@@ -34,7 +34,17 @@ def _input_col(
 def render_device_management() -> html.Div:
     """Renderiza os dois painéis inferiores: Operação em Tempo Real e Gestão de Devices FIWARE."""
     scenario_options = [
-        {"label": str(meta["label"]), "value": key} for key, meta in SCENARIO_PRESETS.items()
+        {
+            "label": html.Span(
+                [
+                    html.Img(src=str(meta["icon"]), className="custom-icon-sm") if meta.get("icon") else None,
+                    html.Span(str(meta["label"])),
+                ],
+                className="d-inline-flex align-items-center",
+            ),
+            "value": key,
+        }
+        for key, meta in SCENARIO_PRESETS.items()
     ]
 
     return html.Div(
@@ -66,9 +76,9 @@ def render_device_management() -> html.Div:
                                     ),
                                     dbc.Row(
                                         [
-                                            _input_col("🌡️ Temp. Base (°C)", "sim-temp-input", 15.5, md=3, inp_type="number", step=0.5),
-                                            _input_col("💧 Umid. Base (%)", "sim-hum-input", 68.0, md=3, inp_type="number", step=1.0),
-                                            _input_col("☀️ Lum. Base (%)", "sim-lum-input", 12.0, md=3, inp_type="number", step=1.0),
+                                            _input_col([html.Img(src="/assets/icons/temperature.png", className="custom-icon-sm"), "Temp. Base (°C)"], "sim-temp-input", 15.5, md=3, inp_type="number", step=0.5),
+                                            _input_col([html.Img(src="/assets/icons/humidity.png", className="custom-icon-sm"), "Umid. Base (%)"], "sim-hum-input", 68.0, md=3, inp_type="number", step=1.0),
+                                            _input_col([html.Img(src="/assets/icons/luminosity.png", className="custom-icon-sm"), "Lum. Base (%)"], "sim-lum-input", 12.0, md=3, inp_type="number", step=1.0),
                                             dbc.Col(
                                                 [
                                                     dbc.Label("Sincronizar", className="small text-muted mb-1 d-block"),

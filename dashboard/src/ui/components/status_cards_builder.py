@@ -114,8 +114,10 @@ def build_remote_alert_banner(
     )
 
 
-def _single_kpi_col(title: str, value: Optional[float], unit: str, min_lim: float, max_lim: float, color_cls: str) -> dbc.Col:
-    """Constrói um cartão KPI individual indicando claramente se está dentro do Trigger."""
+def _single_kpi_col(
+    icon_src: str, title: str, value: Optional[float], unit: str, min_lim: float, max_lim: float, color_cls: str
+) -> dbc.Col:
+    """Constrói um cartão KPI individual com ícone customizado indicando se está dentro do Trigger."""
     val_str = f"{value:.1f} {unit}" if value is not None else f"-- {unit}"
     is_out = value is not None and (value < min_lim or value > max_lim)
     status_badge = dbc.Badge("⚠️ Fora do Trigger" if is_out else "✅ Normal", color="danger" if is_out else "success", className="px-2 py-1")
@@ -124,7 +126,16 @@ def _single_kpi_col(title: str, value: Optional[float], unit: str, min_lim: floa
         dbc.Card(
             dbc.CardBody(
                 [
-                    html.Div([html.Span(title, className="text-muted small fw-semibold"), status_badge], className="d-flex justify-content-between align-items-center mb-2"),
+                    html.Div(
+                        [
+                            html.Span(
+                                [html.Img(src=icon_src, className="custom-icon"), html.Span(title)],
+                                className="text-muted small fw-semibold d-flex align-items-center",
+                            ),
+                            status_badge,
+                        ],
+                        className="d-flex justify-content-between align-items-center mb-2",
+                    ),
                     html.Div(val_str, className=f"kpi-value {color_cls} mb-1"),
                     html.Small(f"Trigger definido: {min_lim:.1f}{unit} a {max_lim:.1f}{unit}", className="text-muted"),
                 ]
@@ -139,9 +150,9 @@ def build_kpi_cards(snapshot: SensorSnapshot, triggers: TriggerConfig) -> dbc.Ro
     """Constrói os 3 cartões de leitura instantânea comparados aos Triggers ativos."""
     return dbc.Row(
         [
-            _single_kpi_col("🌡️ TEMPERATURA (DHT)", snapshot.temperature, "°C", triggers.temp_min, triggers.temp_max, "text-danger"),
-            _single_kpi_col("💧 UMIDADE RELATIVA (DHT)", snapshot.humidity, "%", triggers.hum_min, triggers.hum_max, "text-info"),
-            _single_kpi_col("☀️ LUMINOSIDADE (LDR)", snapshot.luminosity, "%", triggers.lum_min, triggers.lum_max, "text-warning"),
+            _single_kpi_col("/assets/icons/temperature.png", "TEMPERATURA (DHT)", snapshot.temperature, "°C", triggers.temp_min, triggers.temp_max, "text-danger"),
+            _single_kpi_col("/assets/icons/humidity.png", "UMIDADE RELATIVA (DHT)", snapshot.humidity, "%", triggers.hum_min, triggers.hum_max, "text-info"),
+            _single_kpi_col("/assets/icons/luminosity.png", "LUMINOSIDADE (LDR)", snapshot.luminosity, "%", triggers.lum_min, triggers.lum_max, "text-warning"),
         ]
     )
 

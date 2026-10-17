@@ -9,12 +9,15 @@ from src.config.settings import WINE_PRESETS
 
 
 def _build_trigger_input_group(
-    label: str, min_id: str, max_id: str, min_val: float, max_val: float, step: float
+    icon_src: str, label: str, min_id: str, max_id: str, min_val: float, max_val: float, step: float
 ) -> dbc.Col:
-    """Constrói um grupo limpo de inputs Mínimo e Máximo para cada Trigger."""
+    """Constrói um grupo limpo de inputs Mínimo e Máximo para cada Trigger com ícone customizado."""
     return dbc.Col(
         [
-            dbc.Label(label, className="small fw-bold text-light mb-1"),
+            dbc.Label(
+                [html.Img(src=icon_src, className="custom-icon"), html.Span(label)],
+                className="small fw-bold text-light mb-1 d-flex align-items-center",
+            ),
             dbc.InputGroup(
                 [
                     dbc.InputGroupText("Mín"),
@@ -36,7 +39,7 @@ def render_header_and_triggers() -> html.Div:
 
     return html.Div(
         [
-            # Cabeçalho Principal Limpo e Direto
+            # Cabeçalho Principal Limpo e Direto com Ícone Customizado de Taça de Vinho
             dbc.Card(
                 dbc.CardBody(
                     dbc.Row(
@@ -44,8 +47,11 @@ def render_header_and_triggers() -> html.Div:
                             dbc.Col(
                                 [
                                     html.H4(
-                                        "🍷 Monitoramento Global de Vinherias — FIWARE & ESP32",
-                                        className="mb-1 fw-bold text-white",
+                                        [
+                                            html.Img(src="/assets/icons/wine.png", className="custom-icon-lg"),
+                                            html.Span("Monitoramento Global de Vinherias — FIWARE & ESP32"),
+                                        ],
+                                        className="mb-1 fw-bold text-white d-flex align-items-center",
                                     ),
                                     html.Div(
                                         "Check Point 5 • Controle de Temperatura, Umidade e Luminosidade com Alerta Remoto (LED Azul + Buzzer)",
@@ -81,8 +87,11 @@ def render_header_and_triggers() -> html.Div:
                                 dbc.Col(
                                     [
                                         dbc.Label(
-                                            "🍷 Preset por Tipo de Vinho",
-                                            className="small fw-bold text-warning mb-1",
+                                            [
+                                                html.Img(src="/assets/icons/wine.png", className="custom-icon"),
+                                                html.Span("Preset por Tipo de Vinho"),
+                                            ],
+                                            className="small fw-bold text-warning mb-1 d-flex align-items-center",
                                         ),
                                         dcc.Dropdown(
                                             id="dropdown-wine-preset",
@@ -100,7 +109,8 @@ def render_header_and_triggers() -> html.Div:
                                     md=3,
                                 ),
                                 _build_trigger_input_group(
-                                    "🌡️ Temperatura (°C)",
+                                    "/assets/icons/temperature.png",
+                                    "Temperatura (°C)",
                                     "trigger-temp-min",
                                     "trigger-temp-max",
                                     default_preset["temp_min"],
@@ -108,7 +118,8 @@ def render_header_and_triggers() -> html.Div:
                                     0.5,
                                 ),
                                 _build_trigger_input_group(
-                                    "💧 Umidade Relativa (%)",
+                                    "/assets/icons/humidity.png",
+                                    "Umidade Relativa (%)",
                                     "trigger-hum-min",
                                     "trigger-hum-max",
                                     default_preset["hum_min"],
@@ -116,7 +127,8 @@ def render_header_and_triggers() -> html.Div:
                                     1.0,
                                 ),
                                 _build_trigger_input_group(
-                                    "☀️ Luminosidade (%)",
+                                    "/assets/icons/luminosity.png",
+                                    "Luminosidade (%)",
                                     "trigger-lum-min",
                                     "trigger-lum-max",
                                     default_preset["lum_min"],
