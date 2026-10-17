@@ -4,6 +4,7 @@
   "editor": "wokwi",
   "parts": [
     { "type": "wokwi-esp32-devkit-v1", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-lcd2004", "id": "lcd1", "top": -190, "left": -45, "attrs": { "pins": "i2c", "background": "green", "color": "black" } },
     { "type": "wokwi-dht22", "id": "dht1", "top": -45, "left": -150, "attrs": { "temperature": "15.5", "humidity": "68.0" } },
     { "type": "wokwi-photoresistor-sensor", "id": "ldr1", "top": 120, "left": -190, "attrs": {} },
     { "type": "wokwi-led", "id": "led_green", "top": -55, "left": 145, "attrs": { "color": "green", "label": "LED Verde (OK)" } },
@@ -17,6 +18,10 @@
   "connections": [
     [ "esp:TX0", "$serialMonitor:RX", "", [] ],
     [ "esp:RX0", "$serialMonitor:TX", "", [] ],
+    [ "lcd1:GND", "esp:GND.2", "black", [ "h0" ] ],
+    [ "lcd1:VCC", "esp:VIN", "red", [ "h0" ] ],
+    [ "lcd1:SDA", "esp:D21", "green", [ "h0" ] ],
+    [ "lcd1:SCL", "esp:D22", "yellow", [ "h0" ] ],
     [ "dht1:VCC", "esp:3V3", "red", [ "v0" ] ],
     [ "dht1:GND", "esp:GND.1", "black", [ "v0" ] ],
     [ "dht1:SDA", "esp:D15", "green", [ "v0" ] ],
