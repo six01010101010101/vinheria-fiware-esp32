@@ -190,3 +190,10 @@ body {
     white-space: pre !important;
     margin: 0 !important;
 }
+
+.chart-panel-box {
+    background: linear-gradient(180deg, #101620 0%, #0b1017 100%);
+    border: 1px solid #253346;
+    border-radius: 8px;
+}
+
