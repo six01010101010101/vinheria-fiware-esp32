@@ -79,3 +79,22 @@ class AnomalyEvaluation:
     led_status_text: str
     buzzer_pattern_text: str
     badge_color: str
+
+
+@dataclass(frozen=True)
+class RealVineyardTelemetry:
+    """Telemetria meteorológica e solar verídica em tempo real de uma vinícola real do mundo."""
+
+    vineyard_id: str
+    name: str
+    region: str
+    country: str
+    latitude: float
+    longitude: float
+    temperature: float
+    humidity: float
+    luminosity: float
+    solar_wm2: float
+    is_day: bool
+    local_time: str
+

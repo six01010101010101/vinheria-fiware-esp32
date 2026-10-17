@@ -1,7 +1,7 @@
 """
 Callbacks reativos do Dashboard Dash Otimizados em Tempo Real (1s).
-Conecta Presets, Triggers, Gerenciamento de Devices e Telemetria Automática Wokwi MQTT
-aos serviços de domínio (TriggerAlertService e DeviceManagerService).
+Conecta Vinícolas Reais do Mundo (Open-Meteo Satélite), Presets, Triggers,
+Gerenciamento de Devices e Telemetria Automática Wokwi MQTT aos serviços de domínio.
 """
 
 from datetime import datetime
@@ -11,10 +11,13 @@ import dash_bootstrap_components as dbc
 from dash import Dash, Input, Output, State, ctx
 from src.config.settings import DEFAULT_FIWARE_HOST, DEFAULT_WOKWI_BROKER, WINE_PRESETS
 from src.models.iot_models import SensorSnapshot, TimeSeriesPoint, TriggerConfig
+from src.repositories.real_vineyards_repository import REAL_VINEYARDS
+from src.repositories.wokwi_mqtt_repository import WokwiMqttRepository
 from src.services.device_manager_service import DeviceManagerService
 from src.services.trigger_alert_service import TriggerAlertService
 from src.ui.components.charts_and_status import build_sensor_figure
 from src.ui.components.hardware_plaque import build_green_hardware_plaque
+from src.ui.components.real_vineyards_panel import build_real_vineyards_grid
 from src.ui.components.status_cards_builder import (
     build_devices_table,
     build_kpi_cards,
@@ -77,7 +80,6 @@ def register_dashboard_callbacks(app: Dash) -> None:
         """Gerencia o cadastro, listagem e exclusão de IoT Devices no IoT Agent (4041)."""
         clean_host = (host or DEFAULT_FIWARE_HOST).strip()
         banner = None
-
         if ctx.triggered_id == "btn-register-device":
             ok, msg = DeviceManagerService.register_new_device(
                 host=clean_host, device_id=device_id, entity_name=entity_name, entity_type=entity_type, api_key=api_key
@@ -86,7 +88,6 @@ def register_dashboard_callbacks(app: Dash) -> None:
         elif ctx.triggered_id == "btn-delete-device":
             ok, msg = DeviceManagerService.remove_device(host=clean_host, device_id=device_id)
             banner = dbc.Alert(msg, color="info" if ok else "warning", dismissable=True)
-
         return banner, build_devices_table(DeviceManagerService.list_registered_devices(host=clean_host))
 
     @app.callback(
@@ -97,7 +98,9 @@ def register_dashboard_callbacks(app: Dash) -> None:
         Output("graph-luminosity", "figure"),
         Output("store-local-history", "data"),
         Output("wokwi-live-status-bar", "children"),
+        Output("real-vineyards-global-grid", "children"),
         Input("interval-auto-refresh", "n_intervals"),
+        Input("dropdown-real-vineyard", "value"),
         Input("trigger-temp-min", "value"),
         Input("trigger-temp-max", "value"),
         Input("trigger-hum-min", "value"),
@@ -120,12 +123,12 @@ def register_dashboard_callbacks(app: Dash) -> None:
         State("store-local-history", "data"),
     )
     def update_monitoring_and_alerts(
-        n_intervals: int, t_min: float, t_max: float, h_min: float, h_max: float, l_min: float, l_max: float,
-        source_mode: str, sim_temp: float, sim_hum: float, sim_lum: float, _pub_clicks: int,
-        scenario_mode: str, wokwi_broker: str, device_id: str, api_key: str, host: str,
+        n_intervals: int, real_vineyard_id: str, t_min: float, t_max: float, h_min: float, h_max: float,
+        l_min: float, l_max: float, source_mode: str, sim_temp: float, sim_hum: float, sim_lum: float,
+        _pub_clicks: int, scenario_mode: str, wokwi_broker: str, device_id: str, api_key: str, host: str,
         entity_id: str, entity_type: str, last_n: int, local_store: Dict[str, List[Dict[str, Any]]],
-    ) -> Tuple[Any, Any, Any, Any, Any, Dict[str, List[Dict[str, Any]]], Any]:
-        """Atualiza telemetria em Tempo Real (Wokwi #478106752109243393 / STH-Comet 8666) e dispara alertas ao ESP32."""
+    ) -> Tuple[Any, Any, Any, Any, Any, Dict[str, List[Dict[str, Any]]], Any, Any]:
+        """Atualiza telemetria em Tempo Real (Vinícolas Reais / Wokwi / STH-Comet 8666) e dispara alertas ao ESP32."""
         clean_host = (host or DEFAULT_FIWARE_HOST).strip()
         clean_broker = (wokwi_broker or DEFAULT_WOKWI_BROKER).strip()
         clean_entity = (entity_id or "urn:ngsi-ld:Vine:001").strip()
@@ -139,18 +142,13 @@ def register_dashboard_callbacks(app: Dash) -> None:
 
         tick = int(n_intervals or 0)
         wave = math.sin(tick * 0.55)
-        base_t = max(-40.0, min(80.0, float(sim_temp if sim_temp is not None else 15.5)))
-        base_h = max(0.0, min(100.0, float(sim_hum if sim_hum is not None else 68.0)))
-        base_l = max(0.0, min(100.0, float(sim_lum if sim_lum is not None else 12.0)))
-
-        cur_t = round(base_t + wave * 0.2, 1)
-        cur_h = round(base_h + math.cos(tick * 0.45) * 0.5, 1)
-        cur_l = round(max(0.0, min(100.0, base_l + wave * 0.4)), 1)
+        cur_t = round(max(-40.0, min(80.0, float(sim_temp if sim_temp is not None else 15.5))) + wave * 0.2, 1)
+        cur_h = round(max(0.0, min(100.0, float(sim_hum if sim_hum is not None else 68.0))) + math.cos(tick * 0.45) * 0.5, 1)
+        cur_l = round(max(0.0, min(100.0, float(sim_lum if sim_lum is not None else 12.0) + wave * 0.4)), 1)
 
         wokwi_series, wokwi_snap, wokwi_meta = DeviceManagerService.get_wokwi_realtime_data(
             broker_host=clean_broker, device_id=device_id, api_key=api_key, last_n=n_samples
         )
-
         now_str = datetime.now().strftime("%H:%M:%S")
         store = local_store or {"temperature": [], "humidity": [], "luminosity": []}
 
@@ -161,6 +159,20 @@ def register_dashboard_callbacks(app: Dash) -> None:
             active_snapshot = fiware_snap
             temp_pts, hum_pts, lum_pts = sth_series.temperature, sth_series.humidity, sth_series.luminosity
             source_label = f"STH-Comet ({clean_host}:8666)"
+        elif real_vineyard_id in REAL_VINEYARDS:
+            v_series, v_snap, v_info = DeviceManagerService.get_real_vineyard_data(real_vineyard_id, last_n=n_samples)
+            if v_snap is not None and v_info is not None:
+                active_snapshot = v_snap
+                temp_pts, hum_pts, lum_pts = v_series.temperature, v_series.humidity, v_series.luminosity
+                source_label = f"🌍 {v_info.name} ({v_info.region} - {v_info.country})"
+                if ctx.triggered_id == "dropdown-real-vineyard" or (tick % 15 == 0 and v_snap.temperature is not None):
+                    WokwiMqttRepository.get_instance().publish_test_telemetry(
+                        float(v_snap.temperature or 16.0), float(v_snap.humidity or 65.0), float(v_snap.luminosity or 15.0)
+                    )
+            else:
+                active_snapshot = SensorSnapshot(cur_t, cur_h, cur_l, now_str)
+                temp_pts, hum_pts, lum_pts = wokwi_series.temperature, wokwi_series.humidity, wokwi_series.luminosity
+                source_label = "Wokwi #478106752109243393 Ao Vivo"
         elif scenario_mode == "wokwi_live" and wokwi_snap is not None:
             active_snapshot = wokwi_snap
             temp_pts, hum_pts, lum_pts = wokwi_series.temperature, wokwi_series.humidity, wokwi_series.luminosity
@@ -177,18 +189,15 @@ def register_dashboard_callbacks(app: Dash) -> None:
 
         is_user_action = ctx.triggered_id != "interval-auto-refresh"
         evaluation, _, dispatch_msg = TriggerAlertService.evaluate_and_dispatch_remote_alert(
-            host=clean_host,
-            entity_id=clean_entity,
-            snapshot=active_snapshot,
-            triggers=triggers,
-            use_fiware_http=(source_mode == "sth"),
-            force=is_user_action,
+            host=clean_host, entity_id=clean_entity, snapshot=active_snapshot,
+            triggers=triggers, use_fiware_http=(source_mode == "sth"), force=is_user_action,
         )
 
         banner = build_green_hardware_plaque(active_snapshot, triggers, evaluation, dispatch_msg, source_label)
         kpis = build_kpi_cards(active_snapshot, triggers)
         fig_t = build_sensor_figure("Temperatura", "°C", temp_pts, triggers.temp_min, triggers.temp_max, "#ff7875")
         fig_h = build_sensor_figure("Umidade Relativa", "%", hum_pts, triggers.hum_min, triggers.hum_max, "#40a9ff")
-        fig_l = build_sensor_figure("Luminosidade (LDR)", "%", lum_pts, triggers.lum_min, triggers.lum_max, "#ffd666")
+        fig_l = build_sensor_figure("Luminosidade (LDR / Solar)", "%", lum_pts, triggers.lum_min, triggers.lum_max, "#ffd666")
+        vine_grid = build_real_vineyards_grid(DeviceManagerService.get_all_real_vineyards_overview(), real_vineyard_id, triggers)
 
-        return banner, kpis, fig_t, fig_h, fig_l, store, build_wokwi_status_bar(wokwi_meta)
+        return banner, kpis, fig_t, fig_h, fig_l, store, build_wokwi_status_bar(wokwi_meta), vine_grid

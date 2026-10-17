@@ -10,10 +10,12 @@ from src.config.settings import DEFAULT_API_KEY, DEFAULT_DEVICE_ID, DEFAULT_WOKW
 from src.models.iot_models import (
     DeviceProvisionSpec,
     HistoricalSeries,
+    RealVineyardTelemetry,
     RegisteredDeviceInfo,
     SensorSnapshot,
 )
 from src.repositories.fiware_iot_repository import FiwareIotRepository
+from src.repositories.real_vineyards_repository import RealVineyardsRepository
 from src.repositories.sth_comet_repository import SthCometRepository
 from src.repositories.supabase_repository import SupabaseRepository
 from src.repositories.wokwi_mqtt_repository import WokwiMqttRepository
@@ -75,6 +77,21 @@ class DeviceManagerService:
         wokwi_repo = WokwiMqttRepository.get_instance()
         wokwi_repo.ensure_connected(broker_host=broker_host, device_id=device_id, api_key=api_key)
         return wokwi_repo.get_realtime_series_and_snapshot(last_n=last_n)
+
+    @staticmethod
+    def get_real_vineyard_data(
+        vineyard_id: str,
+        last_n: int = 24,
+    ) -> Tuple[HistoricalSeries, Optional[SensorSnapshot], Optional[RealVineyardTelemetry]]:
+        """Busca dados meteorológicos e solares reais (Open-Meteo) da vinícola selecionada."""
+        repo = RealVineyardsRepository.get_instance()
+        return repo.fetch_vineyard_telemetry(vineyard_id=vineyard_id, last_n=last_n)
+
+    @staticmethod
+    def get_all_real_vineyards_overview() -> List[RealVineyardTelemetry]:
+        """Retorna o painel global ao vivo das 9 vinícolas reais do mundo."""
+        repo = RealVineyardsRepository.get_instance()
+        return repo.fetch_all_vineyards_overview()
 
     @staticmethod
     def get_historical_and_latest_data(

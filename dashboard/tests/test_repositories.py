@@ -149,3 +149,44 @@ def test_rest_api_status_and_telemetry_endpoints() -> None:
     res_ok = client.post("/api/v1/telemetry", json={"temperature": 24.5, "humidity": 68.0, "luminosity": 12.0})
     assert res_ok.status_code == 200
     assert res_ok.get_json()["command_code"] == "temp"
+
+
+@patch("src.repositories.real_vineyards_repository.requests.get")
+def test_real_vineyards_radiation_and_fetch(mock_get: MagicMock) -> None:
+    """Valida a conversão de radiação solar (W/m²) em Luminosidade (%) e a busca de vinícola real."""
+    from src.repositories.real_vineyards_repository import (
+        RealVineyardsRepository,
+        radiation_to_luminosity_pct,
+    )
+
+    assert radiation_to_luminosity_pct(812.0) == 81.2
+    assert radiation_to_luminosity_pct(1450.0) == 100.0
+    assert radiation_to_luminosity_pct(0.0) == 0.0
+
+    mock_resp = MagicMock()
+    mock_resp.json.return_value = {
+        "current": {
+            "time": "2026-10-17T13:15",
+            "temperature_2m": 16.6,
+            "relative_humidity_2m": 49.0,
+            "shortwave_radiation": 812.0,
+            "is_day": 1,
+        },
+        "hourly": {
+            "time": ["2026-10-17T12:00", "2026-10-17T13:00"],
+            "temperature_2m": [15.8, 16.4],
+            "relative_humidity_2m": [52.0, 50.0],
+            "shortwave_radiation": [740.0, 800.0],
+        },
+    }
+    mock_get.return_value = mock_resp
+
+    repo = RealVineyardsRepository()
+    series, snap, info = repo.fetch_vineyard_telemetry("miolo_br", last_n=10)
+    assert snap is not None
+    assert snap.temperature == 16.6
+    assert snap.humidity == 49.0
+    assert snap.luminosity == 81.2
+    assert info is not None and info.name == "Vinícola Miolo"
+    assert len(series.temperature) == 2
+

@@ -19,6 +19,7 @@ from src.config.settings import (
     WOKWI_PROJECT_URL,
 )
 from src.models.iot_models import SensorSnapshot, TimeSeriesPoint, TriggerConfig
+from src.repositories.real_vineyards_repository import RealVineyardsRepository
 from src.repositories.supabase_repository import SupabaseRepository
 from src.repositories.wokwi_mqtt_repository import WokwiMqttRepository
 from src.services.trigger_alert_service import TriggerAlertService
@@ -46,6 +47,7 @@ def register_api_routes(server: Flask) -> None:
                 "links": {
                     "dashboard_local": "http://127.0.0.1:8050",
                     "api_status": "http://127.0.0.1:8050/api/v1/status",
+                    "api_real_vineyards": "http://127.0.0.1:8050/api/v1/vineyards",
                     "wokwi_simulation": WOKWI_PROJECT_URL,
                     "github_repository": GITHUB_REPO_URL,
                     "supabase_cloud": supa.project_url or "https://slqozouuqzxwmfswyroo.supabase.co",
@@ -79,13 +81,37 @@ def register_api_routes(server: Flask) -> None:
             }
         )
 
+    @server.route("/api/v1/vineyards", methods=["GET"])
+    def get_real_vineyards():  # type: ignore[no-untyped-def]
+        """Retorna a telemetria meteorológica e solar verídica em tempo real das 9 vinícolas reais."""
+        items = RealVineyardsRepository.get_instance().fetch_all_vineyards_overview()
+        return jsonify(
+            {
+                "source": "Open-Meteo Satellite & Weather Stations (Real-Time)",
+                "count": len(items),
+                "vineyards": [
+                    {
+                        "vineyard_id": v.vineyard_id,
+                        "name": v.name,
+                        "region": v.region,
+                        "country": v.country,
+                        "latitude": v.latitude,
+                        "longitude": v.longitude,
+                        "temperature_c": v.temperature,
+                        "humidity_pct": v.humidity,
+                        "luminosity_pct": v.luminosity,
+                        "solar_radiation_wm2": v.solar_wm2,
+                        "is_day": v.is_day,
+                        "local_time": v.local_time,
+                    }
+                    for v in items
+                ],
+            }
+        )
+
     @server.route("/api/v1/telemetry", methods=["POST"])
     def ingest_hardware_telemetry():  # type: ignore[no-untyped-def]
-        """
-        Recebe telemetria direta via HTTP POST do ESP32 Físico ou Wokwi
-        (JSON {'temperature': 15.5, 'humidity': 68.0, 'luminosity': 12.0})
-        e devolve imediatamente o comando de alerta ativo para o LED Azul e Buzzer.
-        """
+        """Recebe telemetria direta via HTTP POST do ESP32 Físico ou Wokwi e devolve o alerta ativo."""
         data = request.get_json(silent=True) or {}
         try:
             temp = float(data.get("temperature", data.get("t", 15.5)))
@@ -143,3 +169,4 @@ def register_api_routes(server: Flask) -> None:
         wokwi_repo.ensure_connected()
         ok, msg = wokwi_repo.publish_alert_command(cmd, force=True)
         return jsonify({"ok": ok, "command": cmd, "topic": f"/{DEFAULT_API_KEY}/{DEFAULT_DEVICE_ID}/cmd", "detail": msg})
+

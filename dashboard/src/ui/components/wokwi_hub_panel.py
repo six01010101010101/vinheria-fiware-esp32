@@ -69,6 +69,7 @@ def register_wokwi_hub_callbacks(app: Dash) -> None:
         Output("sim-hum-input", "value"),
         Output("sim-lum-input", "value"),
         Output("radio-wokwi-scenario", "value"),
+        Output("dropdown-real-vineyard", "value"),
         Input("radio-wokwi-scenario", "value"),
         Input("btn-publish-mqtt-test", "n_clicks"),
         State("sim-temp-input", "value"),
@@ -78,7 +79,7 @@ def register_wokwi_hub_callbacks(app: Dash) -> None:
     )
     def apply_wokwi_scenario(
         scenario_key: str, _pub_clicks: int, cur_t: float, cur_h: float, cur_l: float
-    ) -> Tuple[object, object, object, object]:
+    ) -> Tuple[object, object, object, object, object]:
         """Aplica cenários ou publica valores manuais garantindo sincronia com o Wokwi."""
         wokwi_repo = WokwiMqttRepository.get_instance()
 
@@ -88,13 +89,13 @@ def register_wokwi_hub_callbacks(app: Dash) -> None:
             l_v = float(cur_l if cur_l is not None else 12.0)
             wokwi_repo.publish_test_telemetry(t_v, h_v, l_v)
             next_mode = "custom" if scenario_key == "wokwi_live" else no_update
-            return no_update, no_update, no_update, next_mode
+            return no_update, no_update, no_update, next_mode, "wokwi_only"
 
         preset = SCENARIO_PRESETS.get(scenario_key, SCENARIO_PRESETS["wokwi_live"])
         if preset["temp"] is None:
             if scenario_key == "wokwi_live":
                 wokwi_repo.publish_alert_command("normal", force=True)
-            return no_update, no_update, no_update, no_update
+            return no_update, no_update, no_update, no_update, "wokwi_only"
 
         t_val = float(preset["temp"])  # type: ignore[arg-type]
         h_val = float(preset["hum"])   # type: ignore[arg-type]
@@ -102,4 +103,5 @@ def register_wokwi_hub_callbacks(app: Dash) -> None:
 
         wokwi_repo.publish_test_telemetry(t_val, h_val, l_val)
         wokwi_repo.publish_alert_command(scenario_key, force=True)
-        return t_val, h_val, l_val, no_update
+        return t_val, h_val, l_val, no_update, "wokwi_only"
+
