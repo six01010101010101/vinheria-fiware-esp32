@@ -4,7 +4,7 @@
   "editor": "wokwi",
   "parts": [
     { "type": "wokwi-esp32-devkit-v1", "id": "esp", "top": 0, "left": 0, "attrs": {} },
-    { "type": "wokwi-lcd2004", "id": "lcd1", "top": -190, "left": -45, "attrs": { "pins": "i2c", "background": "green", "color": "black" } },
+    { "type": "wokwi-lcd1602", "id": "lcd1", "top": -165, "left": -40, "attrs": { "pins": "i2c", "background": "green", "color": "black" } },
     { "type": "wokwi-dht22", "id": "dht1", "top": -45, "left": -150, "attrs": { "temperature": "15.5", "humidity": "68.0" } },
     { "type": "wokwi-photoresistor-sensor", "id": "ldr1", "top": 120, "left": -190, "attrs": {} },
     { "type": "wokwi-led", "id": "led_green", "top": -55, "left": 145, "attrs": { "color": "green", "label": "LED Verde (OK)" } },

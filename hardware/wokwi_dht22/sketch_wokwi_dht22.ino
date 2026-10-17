@@ -1,6 +1,6 @@
 /*
  * CHECK POINT 5 - MONITORAMENTO GLOBAL DE VINHERIAS (WOKWI ESP32 - ZERO LIBS)
- * Hardware: ESP32 + Telinha Verde LCD 20x4 I2C (SDA 21 / SCL 22) + DHT22 (15) + LDR (34)
+ * Hardware Barril 3D: ESP32 + Tampa_Display_LCD16x2 (SDA 21/SCL 22) + DHT22 (15) + LDR (34)
  * Atuadores: LED Verde OK (GPIO 5) | LED Vermelho Alerta (GPIO 18) | LED Azul Remoto (GPIO 2) + Buzzer (4)
  */
 
@@ -17,11 +17,11 @@ const char* TOPIC_SUBSCRIBE_CMD  = "/TEF/vine001/cmd";
 const char* TOPIC_PUBLISH_CMDEXE = "/TEF/vine001/cmdexe";
 
 #define PIN_LED_BLUE  2   // LED Azul: Pisca remotamente pelo Front-end em anomalia
-#define PIN_BUZZER    4   // Buzzer: Assinatura sonora distinta para cada anomalia
+#define PIN_BUZZER    4   // Buzzer (7 Furos da Tampa): Assinatura sonora por anomalia
 #define PIN_LED_GREEN 5   // LED Verde: Aceso fixo quando a Adega esta em Operacao Normal (OK)
-#define PIN_DHT       15  // Sensor DHT-22 (Temperatura e Umidade)
+#define PIN_DHT       15  // Sensor DHT-22 (6 Furos da Tampa - Temperatura e Umidade)
 #define PIN_LED_RED   18  // LED Vermelho: Acende indicando estado critico / anomalia ativa
-#define PIN_LDR       34  // Sensor LDR (Luminosidade 0-100%)
+#define PIN_LDR       34  // Sensor LDR (Furo Optico da Tampa - Luminosidade 0-100%)
 #define LCD_ADDR      0x27
 
 WiFiClient espClient;
@@ -43,17 +43,16 @@ void lcdInit() {
   uint8_t initSeq[6] = {0x33, 0x32, 0x28, 0x0C, 0x06, 0x01};
   for (int i = 0; i < 6; i++) { lcdSend(initSeq[i], 0); delay(2); }
 }
-void lcdPrintRow(uint8_t row, String txt) {
-  uint8_t offsets[4] = {0x80, 0xC0, 0x94, 0xD4};
-  lcdSend(offsets[row & 3], 0);
-  while (txt.length() < 20) txt += " ";
-  for (int i = 0; i < 20; i++) lcdSend((uint8_t)txt[i], 1);
+void lcdPrintRow16(uint8_t row, String txt) {
+  lcdSend((row == 0) ? 0x80 : 0xC0, 0);
+  while (txt.length() < 16) txt += " ";
+  for (int i = 0; i < 16; i++) lcdSend((uint8_t)txt[i], 1);
 }
 void updateGreenScreen() {
-  lcdPrintRow(0, "VINHERIA AGNELLO IoT");
-  lcdPrintRow(1, "TEMP:" + String(validTemp, 1) + "C UMID:" + String(validHum, 0) + "%");
-  lcdPrintRow(2, "LUMI:" + String(validLum, 0) + "% CMD:" + currentAlertMode);
-  lcdPrintRow(3, (currentAlertMode == "normal") ? "STATUS: NORMAL [OK]" : "ALERTA! AZUL PISCA!");
+  String r0 = "T:" + String(validTemp, 1) + "C U:" + String(validHum, 0) + "% L:" + String(validLum, 0) + "%";
+  String r1 = (currentAlertMode == "normal") ? "STATUS:ADEGA OK " : ("ALERTA:" + currentAlertMode + " [!]");
+  lcdPrintRow16(0, r0);
+  lcdPrintRow16(1, r1);
 }
 
 bool readDht22Safe(float &outTemp, float &outHum) {
