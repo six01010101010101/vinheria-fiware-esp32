@@ -7,6 +7,14 @@ __pycache__/
 venv/
 env/
 
+# Variaveis de Ambiente e Segredos (NUNCA versionar tokens)
+.env
+.env.local
+
+# Binarios locais do Wokwi CLI / Build
+wokwi-cli.exe
+build/
+
 # IDE / OS
 .vscode/
 .idea/

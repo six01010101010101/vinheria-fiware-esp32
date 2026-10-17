@@ -1,0 +1,63 @@
+# ==============================================================================
+# GitHub Actions CI - Testes Automatizados (Pytest) + Compilacao ESP32 + Wokwi CI
+# ==============================================================================
+name: Vinheria CP5 - Wokwi IoT & Dashboard CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  dashboard-tests:
+    name: Testes Automatizados do Dashboard (Pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do Repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar Dependencias (requirements.txt)
+        run: pip install -r dashboard/requirements.txt
+
+      - name: Executar Suite TDD (Pytest)
+        working-directory: dashboard
+        run: pytest tests -v
+
+  wokwi-esp32-simulation:
+    name: Compilar ESP32 & Simular no Wokwi CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do Repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Arduino CLI e Compilar Firmware ESP32
+        uses: arduino/compile-sketches@v1
+        with:
+          sketch-paths: |
+            - sketch.ino
+          platforms: |
+            - name: esp32:esp32
+              source-url: https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+          libraries: |
+            - name: PubSubClient
+            - name: DHT sensor library
+            - name: Adafruit Unified Sensor
+          fqbn: esp32:esp32:esp32
+          cli-compile-flags: |
+            - --build-path=./build
+
+      - name: Executar Simulacao Wokwi CLI (DHT22 + LDR + Buzzer + LED Azul)
+        if: ${{ env.WOKWI_TOKEN_PRESENT == 'true' }}
+        env:
+          WOKWI_TOKEN_PRESENT: ${{ secrets.WOKWI_CLI_TOKEN != '' }}
+        uses: wokwi/wokwi-cli-action@v1
+        with:
+          token: ${{ secrets.WOKWI_CLI_TOKEN }}
+          timeout: 15000
+          expect-text: "[WiFi] Conectado"

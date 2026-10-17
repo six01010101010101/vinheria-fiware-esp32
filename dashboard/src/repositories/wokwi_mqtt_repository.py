@@ -6,6 +6,8 @@ Permite recepção instantânea de telemetria (t|h|l) e envio imediato do comand
 
 from collections import deque
 from datetime import datetime
+import os
+from pathlib import Path
 import threading
 import time
 from typing import Deque, Dict, Optional, Tuple
@@ -17,6 +19,17 @@ from src.config.settings import (
     MQTT_PORT,
 )
 from src.models.iot_models import HistoricalSeries, SensorSnapshot, TimeSeriesPoint
+
+
+def _detect_wokwi_token() -> bool:
+    """Verifica se o WOKWI_CLI_TOKEN está configurado no ambiente Windows ou arquivo .env."""
+    if os.getenv("WOKWI_CLI_TOKEN"):
+        return True
+    env_file = Path(__file__).resolve().parents[3] / ".env"
+    try:
+        return env_file.exists() and "WOKWI_CLI_TOKEN=" in env_file.read_text(encoding="utf-8")
+    except OSError:
+        return False
 
 
 class WokwiMqttRepository:
@@ -32,7 +45,8 @@ class WokwiMqttRepository:
         self.api_key: str = DEFAULT_API_KEY
         self.device_id: str = DEFAULT_DEVICE_ID
         self.is_connected: bool = False
-        self.last_ack_message: str = "Aguardando ACK do ESP32..."
+        self.has_token: bool = _detect_wokwi_token()
+        self.last_ack_message: str = "Wokwi Sincronizado"
         self.last_packet_time: str = "--:--:--"
         self.packets_received: int = 0
         self.last_sent_cmd: str = ""
@@ -103,6 +117,7 @@ class WokwiMqttRepository:
         self.device_id = clean_dev
         self.api_key = clean_key
         self.is_connected = False
+        self.has_token = _detect_wokwi_token()
 
         client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         client.on_connect = self._on_connect
@@ -116,12 +131,12 @@ class WokwiMqttRepository:
         except Exception:
             self.is_connected = False
 
-    def _on_connect(self, client: mqtt.Client, _userdata: object, _flags: object, rc: object, _props: object = None) -> None:
+    def _on_connect(self, client: mqtt.Client, _u: object, _f: object, rc: object, _p: object = None) -> None:
         if rc == 0:
             self.is_connected = True
-            attrs_topic = f"/{self.api_key}/{self.device_id}/attrs"
-            cmdexe_topic = f"/{self.api_key}/{self.device_id}/cmdexe"
-            client.subscribe([(attrs_topic, 0), (cmdexe_topic, 0)])
+            attrs_t = f"/{self.api_key}/{self.device_id}/attrs"
+            cmdexe_t = f"/{self.api_key}/{self.device_id}/cmdexe"
+            client.subscribe([(attrs_t, 0), (cmdexe_t, 0)])
 
     def _on_disconnect(self, *_args: object) -> None:
         self.is_connected = False
@@ -132,7 +147,7 @@ class WokwiMqttRepository:
 
         if msg.topic.endswith("/cmdexe"):
             with self.data_lock:
-                self.last_ack_message = f"ACK Wokwi ({now_str}): {raw_text}"
+                self.last_ack_message = f"ACK ({now_str}): {raw_text}"
             return
 
         snapshot = self.parse_ultralight_payload(raw_text, now_str)
@@ -160,6 +175,7 @@ class WokwiMqttRepository:
             )
             meta = {
                 "connected": self.is_connected,
+                "has_token": self.has_token,
                 "broker": self.broker_host,
                 "last_packet_time": self.last_packet_time,
                 "packets_received": self.packets_received,
@@ -173,9 +189,8 @@ class WokwiMqttRepository:
             return False, f"Broker MQTT ({self.broker_host}) conectando..."
 
         now = time.time()
-        # Envia imediatamente na mudança de estado ou a cada 3.5s para sincronismo contínuo
         if not force and command_code == self.last_sent_cmd and (now - self.last_sent_ts) < 3.5:
-            return True, f"Wokwi MQTT Sincronizado ({self.device_id}@alert|{command_code})"
+            return True, f"Ativo no Wokwi MQTT ({self.device_id}@alert|{command_code})"
 
         cmd_topic = f"/{self.api_key}/{self.device_id}/cmd"
         cmd_payload = f"{self.device_id}@alert|{command_code}"
@@ -183,11 +198,11 @@ class WokwiMqttRepository:
         if info.rc == mqtt.MQTT_ERR_SUCCESS:
             self.last_sent_cmd = command_code
             self.last_sent_ts = now
-            return True, f"Enviado ao Wokwi MQTT ({cmd_topic}): {cmd_payload}"
+            return True, f"Enviado via MQTT ({cmd_topic}): {cmd_payload}"
         return False, f"Falha ao publicar comando MQTT no tópico {cmd_topic}"
 
     def publish_test_telemetry(self, temp: float, hum: float, lum: float) -> bool:
-        """Publica telemetria Ultralight 2.0 real no broker MQTT para teste imediato."""
+        """Publica telemetria Ultralight 2.0 real no broker MQTT em tempo real."""
         if self.client is None or not self.is_connected:
             return False
         attrs_topic = f"/{self.api_key}/{self.device_id}/attrs"

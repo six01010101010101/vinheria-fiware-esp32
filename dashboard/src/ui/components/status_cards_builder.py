@@ -14,18 +14,24 @@ from src.models.iot_models import AnomalyEvaluation, RegisteredDeviceInfo, Senso
 def build_wokwi_status_bar(meta: Dict[str, object]) -> html.Div:
     """Exibe indicadores discretos e objetivos da conexão MQTT/Wokwi em tempo real."""
     connected = bool(meta.get("connected", False))
+    has_token = bool(meta.get("has_token", False))
     packets = int(meta.get("packets_received", 0))
     last_time = str(meta.get("last_packet_time", "--:--:--"))
 
     return html.Div(
         [
             dbc.Badge(
+                "🔑 Wokwi CLI Token Ativo" if has_token else "🔑 Wokwi Token Pendente",
+                color="info" if has_token else "secondary",
+                className="p-2 me-2",
+            ),
+            dbc.Badge(
                 "🟢 Wokwi / MQTT Tempo Real Ativo" if connected else "🟡 Conectando ao Broker MQTT...",
                 color="success" if connected else "secondary",
                 className="p-2 me-2",
             ),
             dbc.Badge(
-                f"📡 Leituras Recebidas: {packets} ({last_time})",
+                f"📡 Leituras: {packets} ({last_time})",
                 color="dark",
                 className="p-2 border border-secondary",
             ),
