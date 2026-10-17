@@ -1,6 +1,6 @@
 /*
  * CHECK POINT 5 - MONITORAMENTO GLOBAL DE VINHERIAS (WOKWI ESP32 - ZERO LIBS)
- * Hardware Barril 3D: ESP32 + Tampa_Display_LCD16x2 (SDA 21/SCL 22) + DHT22 (15) + LDR (34)
+ * Hardware Barril 3D: ESP32 + Tela Verde LCD 16x2 I2C (SDA 21/SCL 22) + DHT22 (15) + LDR (34)
  * Atuadores: LED Verde OK (GPIO 5) | LED Vermelho Alerta (GPIO 18) | LED Azul Remoto (GPIO 2) + Buzzer (4)
  */
 
@@ -32,16 +32,34 @@ float pubTemp = -999.0f, pubHum = -999.0f, pubLum = -999.0f;
 bool ledState = false;
 int soundStep = 0;
 
-void lcdSend(uint8_t val, uint8_t mode) {
-  uint8_t hi = (val & 0xF0) | mode | 0x08, lo = ((val << 4) & 0xF0) | mode | 0x08;
+// --- Driver Nativo I2C PCF8574 + HD44780 para a Tela Verde LCD 16x2 (Zero Bibliotecas) ---
+void lcdExpanderWrite(uint8_t data) {
   Wire.beginTransmission(LCD_ADDR);
-  Wire.write(hi | 0x04); Wire.write(hi); Wire.write(lo | 0x04); Wire.write(lo);
+  Wire.write(data | 0x08); // Bit 3 (0x08) = Backlight Verde Aceso
   Wire.endTransmission();
 }
+void lcdWrite4Bits(uint8_t val) {
+  lcdExpanderWrite(val);
+  lcdExpanderWrite(val | 0x04); // Pulso ENABLE HIGH
+  delayMicroseconds(2);
+  lcdExpanderWrite(val & ~0x04); // Pulso ENABLE LOW
+  delayMicroseconds(50);
+}
+void lcdSend(uint8_t val, uint8_t mode) {
+  lcdWrite4Bits((val & 0xF0) | mode);
+  lcdWrite4Bits(((val << 4) & 0xF0) | mode);
+}
 void lcdInit() {
-  Wire.begin(21, 22); delay(20);
-  uint8_t initSeq[6] = {0x33, 0x32, 0x28, 0x0C, 0x06, 0x01};
-  for (int i = 0; i < 6; i++) { lcdSend(initSeq[i], 0); delay(2); }
+  Wire.begin(21, 22);
+  delay(50);
+  lcdExpanderWrite(0x00);
+  delay(20);
+  lcdWrite4Bits(0x30); delayMicroseconds(4500);
+  lcdWrite4Bits(0x30); delayMicroseconds(4500);
+  lcdWrite4Bits(0x30); delayMicroseconds(150);
+  lcdWrite4Bits(0x20); delayMicroseconds(150);
+  lcdSend(0x28, 0); lcdSend(0x0C, 0); lcdSend(0x06, 0); lcdSend(0x01, 0);
+  delay(3);
 }
 void lcdPrintRow16(uint8_t row, String txt) {
   lcdSend((row == 0) ? 0x80 : 0xC0, 0);
@@ -49,8 +67,8 @@ void lcdPrintRow16(uint8_t row, String txt) {
   for (int i = 0; i < 16; i++) lcdSend((uint8_t)txt[i], 1);
 }
 void updateGreenScreen() {
-  String r0 = "T:" + String(validTemp, 1) + "C U:" + String(validHum, 0) + "% L:" + String(validLum, 0) + "%";
-  String r1 = (currentAlertMode == "normal") ? "STATUS:ADEGA OK " : ("ALERTA:" + currentAlertMode + " [!]");
+  String r0 = "T:" + String(validTemp, 1) + "C U:" + String(validHum, 0) + "%";
+  String r1 = "L:" + String(validLum, 0) + "% " + ((currentAlertMode == "normal") ? "ADEGA:OK" : ("ALR:" + currentAlertMode));
   lcdPrintRow16(0, r0);
   lcdPrintRow16(1, r1);
 }
