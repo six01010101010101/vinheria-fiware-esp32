@@ -13,6 +13,7 @@ from src.config.settings import (
     DEFAULT_FIWARE_HOST,
     DEFAULT_LAST_N,
     DEFAULT_WOKWI_BROKER,
+    WOKWI_PROJECT_URL,
 )
 from src.ui.components.wokwi_hub_panel import SCENARIO_PRESETS
 
@@ -46,8 +47,16 @@ def render_device_management() -> html.Div:
                             dbc.CardBody(
                                 [
                                     html.Div(
-                                        "4. Operação em Tempo Real & Cenários Wokwi (MQTT :1883)",
-                                        className="section-title",
+                                        [
+                                            html.Span("4. Operação em Tempo Real & Cenários Wokwi (MQTT :1883)"),
+                                            html.A(
+                                                "🔗 Wokwi #478106752109243393",
+                                                href=WOKWI_PROJECT_URL,
+                                                target="_blank",
+                                                className="text-info text-decoration-none small ms-2",
+                                            ),
+                                        ],
+                                        className="section-title d-flex justify-content-between align-items-center",
                                     ),
                                     dbc.RadioItems(
                                         id="radio-wokwi-scenario",

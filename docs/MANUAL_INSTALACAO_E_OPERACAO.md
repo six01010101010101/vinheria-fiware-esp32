@@ -40,15 +40,10 @@ Este documento detalha o procedimento passo a passo para montagem física em lab
 ---
 
 ### 1.3 Como Executar a Simulação no Wokwi (DHT-22 + LDR + Buzzer)
-1. Acesse [https://wokwi.com/projects/new/esp32](https://wokwi.com/projects/new/esp32).
-2. Na aba `sketch.ino`, cole o conteúdo do arquivo [`hardware/wokwi_dht22/sketch_wokwi_dht22.ino`](../hardware/wokwi_dht22/sketch_wokwi_dht22.ino).
-3. Na aba `diagram.json`, cole o conteúdo do arquivo [`hardware/wokwi_dht22/diagram.json`](../hardware/wokwi_dht22/diagram.json).
-4. Na aba **Library Manager** (ou `libraries.txt`), adicione:
-   - `PubSubClient`
-   - `DHT sensor library`
-   - `Adafruit Unified Sensor`
-5. Altere a constante `MQTT_BROKER` na linha 16 do código `.ino` para o IP público da sua máquina virtual FIWARE.
-6. Clique em **Start the Simulation** (ícone Play verde) e salve o projeto (**Save -> Share**) para copiar o link de entrega do Microsoft Forms.
+1. Acesse o projeto oficial no Wokwi: **[https://wokwi.com/projects/478106752109243393](https://wokwi.com/projects/478106752109243393)**.
+2. Na aba `sketch.ino`, está configurado o código [`sketch.ino`](../sketch.ino) (compilação nativa sem dependência de bibliotecas externas).
+3. Na aba `diagram.json`, está configurado o circuito completo [`diagram.json`](../diagram.json).
+4. Clique em **Start the Simulation** (ícone Play verde) para iniciar a transmissão em tempo real para o Dashboard.
 
 ---
 
