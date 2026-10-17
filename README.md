@@ -114,65 +114,57 @@ Todas as vezes que um parâmetro sai da faixa de triggers configurada no Front-e
 
 ## 🏆 4. Diferenciais Implementados (10% da Nota)
 
-1. **Presets Enológicos Inteligentes por Tipo de Vinho**: Seleção com 1 clique que recalibra automaticamente os Triggers Mín/Máx ideais para **Vinho Tinto** (`14–18°C`), **Vinho Branco & Rosé** (`8–12°C`), **Espumante & Champagne** (`6–9°C`) e **Cave de Envelhecimento** (`12–15°C`, luminosidade `< 10%`).
-2. **Índice de Saúde da Adega (Score 0–100%)**: Algoritmo em tempo real que calcula a qualidade de conservação da safra com base nos desvios térmicos, higrométricos e luminosos.
-3. **Bancada de Teste Ao Vivo Integrada**: Permite simular variações imediatas dos sensores diretamente na interface para validar o disparo remoto de comandos FIWARE e as curvas dos gráficos durante apresentações.
-4. **Arquitetura Modular com Testes Automatizados (TDD)**: Código estruturado em camadas (`config`, `models`, `repositories`, `services`, `ui`) coberto por 9 testes automatizados com `pytest`.
+1. **Telemetria Verídica em Tempo Real de 9 Vinícolas Reais do Mundo (Satélite & Estações Open-Meteo)**: Monitoramento ao vivo de Temperatura (`°C`), Umidade Relativa (`%`), Luminosidade Solar (`%` e `W/m²`) e Ponto de Orvalho (*Magnus-Tetens*) de **Vinícola Miolo (RS)**, **Villa Francioni (SC)**, **Vinícola Guaspari (SP)**, **Bodega Catena Zapata (Argentina)**, **Viña Concha y Toro (Chile)**, **Château Margaux (França)**, **Marchesi Antinori (Itália)**, **Quinta do Crasto (Portugal)** e **Opus One (EUA)**.
+2. **Protótipo 3D Físico (`Corpo_Barril.STL` + `Tampa_Display_LCD16x2.STL`) + Telinha Verde LCD 16x2 (`66×26mm`)**: Integração visual e física do recorte retangular da tampa com display LCD 16x2 I2C (`SDA 21 / SCL 22`) e **3 LEDs (`Verde GPIO 5`, `Vermelho GPIO 18`, `Azul Remoto GPIO 2`) + Buzzer (`GPIO 4`)**.
+3. **Presets Enológicos Inteligentes & Gráficos SCADA**: Seleção com 1 clique para **Vinho Tinto**, **Branco & Rosé**, **Espumante** e **Cave de Envelhecimento**, com gráficos Plotly contendo zona ideal sombreada, marcadores diamante em anomalias e linha de média.
+4. **Integração de API Plug-and-Play Bidirecional (`Wokwi ↔ Site ↔ Supabase Cloud`)**: Qualquer pessoa que baixar a pasta e abrir o Wokwi tem comunicação em tempo real nos dois sentidos, sem precisar configurar `.env`, coberto por **13 testes automatizados (`pytest`)**.
 
 ---
 
 ## 📂 5. Estrutura Modular do Projeto
 
 ```text
+├── INICIAR_PROJETO.bat                 # Inicializador de 1 clique (abre Site + Wokwi já sincronizados)
+├── sketch.ino                          # Firmware ESP32 Zero-Libs (DHT22 + LDR + LCD 16x2 I2C + 3 LEDs + Buzzer)
+├── diagram.json                        # Circuito Wokwi completo (ESP32 + LCD 16x2 Verde + 3 LEDs + Sensores)
+├── supabase_schema.sql                 # Schema PostgreSQL otimizado (Índices B-Tree, RLS e View Analítica)
 ├── hardware/
-│   ├── wokwi_dht22/
-│   │   ├── sketch_wokwi_dht22.ino      # Código ESP32 para simulação Wokwi (DHT-22 + LDR + Buzzer + LED)
-│   │   ├── diagram.json                # Circuito completo pronto para importar no Wokwi
-│   │   └── libraries.txt               # Bibliotecas do projeto Wokwi
-│   └── handson_dht11/
-│       └── sketch_handson_dht11.ino    # Código ESP32 calibrado para bancada física (DHT-11 + LDR + Buzzer)
+│   ├── wokwi_dht22/                    # Projeto completo para o Simulador Wokwi (DHT-22 + LCD 16x2)
+│   └── handson_dht11/                  # Firmware calibrado para o Barril Físico (DHT-11 + LCD 16x2)
 ├── dashboard/
-│   ├── app.py                          # Entrypoint do servidor web Dash (Porta 8050)
-│   ├── requirements.txt                # Dependências Python devidamente comentadas
+│   ├── app.py                          # Entrypoint do servidor web Dash + API REST (Porta 8050)
+│   ├── requirements.txt                # Dependências Python
 │   ├── src/
-│   │   ├── config/settings.py          # Portas FIWARE (1026, 4041, 8666) e Presets de Vinho
-│   │   ├── models/iot_models.py        # Dataclasses tipadas (Triggers, Séries, Dispositivos)
-│   │   ├── repositories/               # Clientes HTTP para STH-Comet (:8666) e Orion/IoT Agent (:1026/:4041)
+│   │   ├── config/settings.py          # Configurações Plug-and-Play (MQTT, FIWARE, Supabase, Open-Meteo)
+│   │   ├── models/iot_models.py        # Dataclasses tipadas (Triggers, Séries, Vinícolas Reais)
+│   │   ├── repositories/               # Clientes MQTT Wokwi, Open-Meteo, Supabase, STH-Comet e Orion
 │   │   ├── services/                   # Regras de negócio de Triggers, Alertas Remotos e Devices
-│   │   └── ui/                         # Componentes visuais e Callbacks reativos do Dashboard
-│   └── tests/                          # Suíte de testes unitários e de integração (Pytest)
+│   │   └── ui/                         # Componentes visuais, Telinha Verde, Gráficos SCADA e Rotas API
+│   └── tests/                          # 13 testes automatizados (Pytest)
 └── docs/
     └── MANUAL_INSTALACAO_E_OPERACAO.md # Manual completo de montagem de Hardware e operação de Software
 ```
 
 ---
 
-## 🚀 6. Links Rápidos (GitHub, Wokwi, Supabase e Manual)
+## 🚀 6. Links Rápidos e Execução Plug-and-Play (Para Avaliadores)
 
 - 💻 **Repositório Oficial no GitHub**:
   - 👉 **[https://github.com/six01010101010101/checkpoint5-vinheria-fiware-esp32](https://github.com/six01010101010101/checkpoint5-vinheria-fiware-esp32)**
-- 🌐 **Link Oficial da Simulação no Wokwi (LDR + DHT-22 + Buzzer + LED Azul)**:
+- 🌐 **Link Oficial da Simulação no Wokwi (ESP32 + Tela Verde LCD 16x2 + 3 LEDs + Buzzer + DHT22 + LDR)**:
   - 👉 **[https://wokwi.com/projects/478106752109243393](https://wokwi.com/projects/478106752109243393)**
 - 🗄️ **Banco de Dados em Nuvem no Supabase (PostgreSQL — `Vinheria Agnello CP5`)**:
-  - 👉 **API / Project URL**: `https://slqozouuqzxwmfswyroo.supabase.co` (Tabelas: `vine_devices`, `vine_trigger_configs`, `vine_telemetry`)
+  - 👉 **API / Project URL**: `https://slqozouuqzxwmfswyroo.supabase.co` (`vine_devices`, `vine_trigger_configs`, `vine_telemetry`, `real_vineyards_status`, `v_vine_telemetry_summary`)
 - 📘 **[Manual Completo de Instalação e Operação (Software + Hardware)](./docs/MANUAL_INSTALACAO_E_OPERACAO.md)**
 
-### Execução Rápida do Dashboard:
+### Como Executar ao Baixar a Pasta (Zero Configuração):
+1. Dê um **duplo clique em `INICIAR_PROJETO.bat`** (ou execute os comandos abaixo) e dê **Play** no link do Wokwi (`https://wokwi.com/projects/478106752109243393`):
 ```bash
 cd dashboard
 pip install -r requirements.txt
 python app.py
-# Acesse em: http://127.0.0.1:8050
+# Dashboard Ao Vivo: http://127.0.0.1:8050
+# API Status JSON:   http://127.0.0.1:8050/api/v1/status
+# API Vinícolas:     http://127.0.0.1:8050/api/v1/vineyards
 ```
 
----
-
-## 🎤 7. Roteiro de Pitch para o Hands-on (40% da Nota — 3 Minutos)
-
-1. **Problema & Proposta de Valor (30s)**: *"Um único grau fora da faixa ideal ou incidência de luz na cave pode arruinar milhares de reais em safras. Criamos uma plataforma global de monitoramento enológico integrada ao FIWARE que não apenas exibe dados históricos, mas age proativamente acionando alertas físicos distintos na adega."*
-2. **Demonstração de Cadastro IoT & Diferencial (45s)**: Mostrar no Dashboard o cadastro do dispositivo `vine001` no IoT Agent (`:4041`) e alternar entre os **Presets de Vinho** (*Tinto* vs *Espumante*), destacando a mudança instantânea das linhas de Trigger nos 3 gráficos dinâmicos consumidos da **API 8666 do STH-Comet**.
-3. **Demonstração Prática dos Alertas no ESP32 (60s)**:
-   - Aquecer o **DHT-11** ou ajustar o trigger de Temperatura no Front-end → Mostrar o **LED Azul piscando** e o **Buzzer tocando o Alerta Tipo 1 (2000 Hz)**.
-   - Iluminar o **LDR** com a lanterna do celular → Mostrar a transição automática para o **Alerta Tipo 3 (Sirene Alternada 1200/1700 Hz)** ou **Alerta Múltiplo**.
-   - Retornar às condições normais → Mostrar o Front-end enviando `alert|normal` e o ESP32 apagando o LED Azul e silenciando o Buzzer imediatamente.
-4. **Fechamento (15s)**: Destacar a arquitetura modular em camadas, o Índice de Saúde da Adega em tempo real e a escalabilidade para múltiplas vinícolas globais.
