@@ -64,21 +64,9 @@ body {
 }
 
 @keyframes pulseBlueLed {
-    0% {
-        background-color: #0088ff;
-        box-shadow: 0 0 4px #0088ff, 0 0 12px #00a2ff;
-        transform: scale(1);
-    }
-    50% {
-        background-color: #002b5e;
-        box-shadow: none;
-        transform: scale(0.92);
-    }
-    100% {
-        background-color: #0088ff;
-        box-shadow: 0 0 8px #0088ff, 0 0 18px #00c3ff;
-        transform: scale(1);
-    }
+    0% { background-color: #0088ff; box-shadow: 0 0 4px #0088ff, 0 0 12px #00a2ff; transform: scale(1); }
+    50% { background-color: #002b5e; box-shadow: none; transform: scale(0.92); }
+    100% { background-color: #0088ff; box-shadow: 0 0 8px #0088ff, 0 0 18px #00c3ff; transform: scale(1); }
 }
 
 .led-blue-blinking {
@@ -92,33 +80,11 @@ body {
     line-height: 1.15;
 }
 
-.custom-icon {
-    width: 22px;
-    height: 22px;
-    object-fit: contain;
-    vertical-align: middle;
-    margin-right: 7px;
-}
+.custom-icon { width: 22px; height: 22px; object-fit: contain; vertical-align: middle; margin-right: 7px; }
+.custom-icon-lg { width: 32px; height: 32px; object-fit: contain; vertical-align: middle; margin-right: 10px; }
+.custom-icon-sm { width: 17px; height: 17px; object-fit: contain; vertical-align: middle; margin-right: 6px; }
 
-.custom-icon-lg {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
-    vertical-align: middle;
-    margin-right: 10px;
-}
-
-.custom-icon-sm {
-    width: 17px;
-    height: 17px;
-    object-fit: contain;
-    vertical-align: middle;
-    margin-right: 6px;
-}
-
-/* ==========================================================================
-   Miniaturas Compactas dos Prototipos 3D (Tampa + Barril)
-   ========================================================================== */
+/* Miniaturas Compactas dos Prototipos 3D (Tampa + Barril) */
 .proto-thumb-box {
     background-color: #10161f;
     border: 1px solid #263244;
@@ -171,10 +137,7 @@ body {
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.55));
 }
 
-/* ==========================================================================
-   Telinha Verde no Formato Retangular do Buraco da Tampa (66x26mm ~ 2.54:1)
-   Somente Escrita de Informatica Verde
-   ========================================================================== */
+/* Telinha Verde no Formato Retangular do Buraco da Tampa (66x26mm ~ 2.54:1) */
 .green-lcd-cutout-screen {
     background: repeating-linear-gradient(0deg, #041b09 0px, #041b09 2px, #06250e 2px, #06250e 4px) !important;
     border: 3px solid #2b384e !important;

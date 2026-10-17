@@ -11,7 +11,6 @@ import dash_bootstrap_components as dbc
 from dash import Dash, Input, Output, State, ctx
 from src.config.settings import DEFAULT_FIWARE_HOST, DEFAULT_WOKWI_BROKER, WINE_PRESETS
 from src.models.iot_models import SensorSnapshot, TimeSeriesPoint, TriggerConfig
-from src.repositories.wokwi_mqtt_repository import WokwiMqttRepository
 from src.services.device_manager_service import DeviceManagerService
 from src.services.trigger_alert_service import TriggerAlertService
 from src.ui.components.charts_and_status import build_sensor_figure
@@ -21,6 +20,19 @@ from src.ui.components.status_cards_builder import (
     build_kpi_cards,
     build_wokwi_status_bar,
 )
+
+
+def _safe_range(v_min: Any, v_max: Any, def_min: float, def_max: float) -> Tuple[float, float]:
+    """Garante que os limites de Trigger nunca fiquem nulos ou invertidos (min > max)."""
+    try:
+        a = float(v_min) if v_min is not None else def_min
+    except (ValueError, TypeError):
+        a = def_min
+    try:
+        b = float(v_max) if v_max is not None else def_max
+    except (ValueError, TypeError):
+        b = def_max
+    return (a, b) if a <= b else (b, a)
 
 
 def register_dashboard_callbacks(app: Dash) -> None:
@@ -118,33 +130,26 @@ def register_dashboard_callbacks(app: Dash) -> None:
         clean_broker = (wokwi_broker or DEFAULT_WOKWI_BROKER).strip()
         clean_entity = (entity_id or "urn:ngsi-ld:Vine:001").strip()
         clean_type = (entity_type or "Vine").strip()
-        n_samples = int(last_n or 30)
+        n_samples = max(5, min(100, int(last_n or 30)))
 
-        triggers = TriggerConfig(
-            temp_min=float(t_min if t_min is not None else 14.0),
-            temp_max=float(t_max if t_max is not None else 18.0),
-            hum_min=float(h_min if h_min is not None else 60.0),
-            hum_max=float(h_max if h_max is not None else 75.0),
-            lum_min=float(l_min if l_min is not None else 0.0),
-            lum_max=float(l_max if l_max is not None else 25.0),
-        )
+        t_lo, t_hi = _safe_range(t_min, t_max, 12.0, 18.0)
+        h_lo, h_hi = _safe_range(h_min, h_max, 60.0, 75.0)
+        l_lo, l_hi = _safe_range(l_min, l_max, 0.0, 25.0)
+        triggers = TriggerConfig(t_lo, t_hi, h_lo, h_hi, l_lo, l_hi)
 
         tick = int(n_intervals or 0)
         wave = math.sin(tick * 0.55)
-        base_t = float(sim_temp if sim_temp is not None else 15.5)
-        base_h = float(sim_hum if sim_hum is not None else 68.0)
-        base_l = float(sim_lum if sim_lum is not None else 12.0)
+        base_t = max(-40.0, min(80.0, float(sim_temp if sim_temp is not None else 15.5)))
+        base_h = max(0.0, min(100.0, float(sim_hum if sim_hum is not None else 68.0)))
+        base_l = max(0.0, min(100.0, float(sim_lum if sim_lum is not None else 12.0)))
 
         cur_t = round(base_t + wave * 0.2, 1)
         cur_h = round(base_h + math.cos(tick * 0.45) * 0.5, 1)
-        cur_l = round(max(0.0, base_l + wave * 0.4), 1)
+        cur_l = round(max(0.0, min(100.0, base_l + wave * 0.4)), 1)
 
         wokwi_series, wokwi_snap, wokwi_meta = DeviceManagerService.get_wokwi_realtime_data(
             broker_host=clean_broker, device_id=device_id, api_key=api_key, last_n=n_samples
         )
-        is_manual_push = ctx.triggered_id in ("btn-publish-mqtt-test", "sim-temp-input", "sim-hum-input", "sim-lum-input")
-        if ctx.triggered_id == "btn-publish-mqtt-test":
-            WokwiMqttRepository.get_instance().publish_test_telemetry(base_t, base_h, base_l)
 
         now_str = datetime.now().strftime("%H:%M:%S")
         store = local_store or {"temperature": [], "humidity": [], "luminosity": []}
@@ -156,7 +161,7 @@ def register_dashboard_callbacks(app: Dash) -> None:
             active_snapshot = fiware_snap
             temp_pts, hum_pts, lum_pts = sth_series.temperature, sth_series.humidity, sth_series.luminosity
             source_label = f"STH-Comet ({clean_host}:8666)"
-        elif scenario_mode == "wokwi_live" and wokwi_snap is not None and not is_manual_push:
+        elif scenario_mode == "wokwi_live" and wokwi_snap is not None:
             active_snapshot = wokwi_snap
             temp_pts, hum_pts, lum_pts = wokwi_series.temperature, wokwi_series.humidity, wokwi_series.luminosity
             source_label = "Wokwi #478106752109243393 Ao Vivo"
@@ -171,7 +176,7 @@ def register_dashboard_callbacks(app: Dash) -> None:
             source_label = "Sincronizado → Wokwi #478106752109243393"
 
         is_user_action = ctx.triggered_id != "interval-auto-refresh"
-        evaluation, dispatch_ok, dispatch_msg = TriggerAlertService.evaluate_and_dispatch_remote_alert(
+        evaluation, _, dispatch_msg = TriggerAlertService.evaluate_and_dispatch_remote_alert(
             host=clean_host,
             entity_id=clean_entity,
             snapshot=active_snapshot,

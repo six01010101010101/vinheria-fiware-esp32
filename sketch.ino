@@ -3,7 +3,6 @@
  * Hardware Barril 3D: ESP32 + Tela Verde LCD 16x2 I2C (SDA 21/SCL 22) + DHT22 (15) + LDR (34)
  * Atuadores: LED Verde OK (GPIO 5) | LED Vermelho Alerta (GPIO 18) | LED Azul Remoto (GPIO 2) + Buzzer (4)
  */
-
 #include <WiFi.h>
 #include <Wire.h>
 #include <math.h>
@@ -25,54 +24,44 @@ const char* TOPIC_PUBLISH_CMDEXE = "/TEF/vine001/cmdexe";
 #define LCD_ADDR      0x27
 
 WiFiClient espClient;
-String currentAlertMode = "normal";
+String currentAlertMode = "normal", lastRow0 = "", lastRow1 = "";
 unsigned long lastDhtMs = 0, lastLdrMs = 0, lastPublishMs = 0, lastBlinkMs = 0, lastPingMs = 0, lastRetryMs = 0;
 float validTemp = 15.5f, validHum = 68.0f, validLum = 12.0f;
 float pubTemp = -999.0f, pubHum = -999.0f, pubLum = -999.0f;
 bool ledState = false;
 int soundStep = 0;
 
-// --- Driver Nativo I2C PCF8574 + HD44780 para a Tela Verde LCD 16x2 (Zero Bibliotecas) ---
 void lcdExpanderWrite(uint8_t data) {
-  Wire.beginTransmission(LCD_ADDR);
-  Wire.write(data | 0x08); // Bit 3 (0x08) = Backlight Verde Aceso
-  Wire.endTransmission();
+  Wire.beginTransmission(LCD_ADDR); Wire.write(data | 0x08); Wire.endTransmission();
 }
 void lcdWrite4Bits(uint8_t val) {
-  lcdExpanderWrite(val);
-  lcdExpanderWrite(val | 0x04); // Pulso ENABLE HIGH
-  delayMicroseconds(2);
-  lcdExpanderWrite(val & ~0x04); // Pulso ENABLE LOW
-  delayMicroseconds(50);
+  lcdExpanderWrite(val); lcdExpanderWrite(val | 0x04); delayMicroseconds(2);
+  lcdExpanderWrite(val & ~0x04); delayMicroseconds(45);
 }
 void lcdSend(uint8_t val, uint8_t mode) {
-  lcdWrite4Bits((val & 0xF0) | mode);
-  lcdWrite4Bits(((val << 4) & 0xF0) | mode);
+  lcdWrite4Bits((val & 0xF0) | mode); lcdWrite4Bits(((val << 4) & 0xF0) | mode);
 }
 void lcdInit() {
-  Wire.begin(21, 22);
-  delay(50);
-  lcdExpanderWrite(0x00);
-  delay(20);
+  Wire.begin(21, 22); Wire.setClock(400000); delay(50);
+  lcdExpanderWrite(0x00); delay(20);
   lcdWrite4Bits(0x30); delayMicroseconds(4500);
   lcdWrite4Bits(0x30); delayMicroseconds(4500);
   lcdWrite4Bits(0x30); delayMicroseconds(150);
   lcdWrite4Bits(0x20); delayMicroseconds(150);
-  lcdSend(0x28, 0); lcdSend(0x0C, 0); lcdSend(0x06, 0); lcdSend(0x01, 0);
-  delay(3);
+  lcdSend(0x28, 0); lcdSend(0x0C, 0); lcdSend(0x06, 0); lcdSend(0x01, 0); delay(3);
 }
 void lcdPrintRow16(uint8_t row, String txt) {
   lcdSend((row == 0) ? 0x80 : 0xC0, 0);
   while (txt.length() < 16) txt += " ";
+  if (txt.length() > 16) txt = txt.substring(0, 16);
   for (int i = 0; i < 16; i++) lcdSend((uint8_t)txt[i], 1);
 }
 void updateGreenScreen() {
   String r0 = "T:" + String(validTemp, 1) + "C U:" + String(validHum, 0) + "%";
   String r1 = "L:" + String(validLum, 0) + "% " + ((currentAlertMode == "normal") ? "ADEGA:OK" : ("ALR:" + currentAlertMode));
-  lcdPrintRow16(0, r0);
-  lcdPrintRow16(1, r1);
+  if (r0 != lastRow0) { lastRow0 = r0; lcdPrintRow16(0, r0); }
+  if (r1 != lastRow1) { lastRow1 = r1; lcdPrintRow16(1, r1); }
 }
-
 bool readDht22Safe(float &outTemp, float &outHum) {
   uint8_t data[5] = {0, 0, 0, 0, 0};
   pinMode(PIN_DHT, OUTPUT); digitalWrite(PIN_DHT, LOW); delayMicroseconds(1150);
@@ -95,7 +84,6 @@ bool readDht22Safe(float &outTemp, float &outHum) {
   if (isnan(t) || isnan(h) || t < -40.0f || t > 80.0f || h < 0.0f || h > 100.0f) return false;
   outTemp = t; outHum = h; return true;
 }
-
 void mqttPublish(const char* topic, const String &payload) {
   if (!espClient.connected()) return;
   uint16_t tLen = strlen(topic), pLen = payload.length(); uint32_t remLen = 2 + tLen + pLen;
@@ -104,13 +92,11 @@ void mqttPublish(const char* topic, const String &payload) {
   espClient.write((uint8_t)(tLen >> 8)); espClient.write((uint8_t)(tLen & 0xFF));
   espClient.print(topic); espClient.print(payload);
 }
-
 void mqttSubscribe(const char* topic) {
   uint16_t tLen = strlen(topic);
   uint8_t pkt[6] = {0x82, (uint8_t)(5 + tLen), 0x00, 0x01, (uint8_t)(tLen >> 8), (uint8_t)(tLen & 0xFF)};
   espClient.write(pkt, 6); espClient.print(topic); espClient.write((uint8_t)0x00);
 }
-
 void applyAlertMode(String mode) {
   mode.trim(); if (mode.length() == 0) return;
   bool changed = (mode != currentAlertMode); currentAlertMode = mode;
@@ -123,7 +109,6 @@ void applyAlertMode(String mode) {
   }
   updateGreenScreen();
 }
-
 void ensureMqttConnected() {
   if (espClient.connected()) return;
   unsigned long now = millis(); if (now - lastRetryMs < 1500) return; lastRetryMs = now;
@@ -136,7 +121,6 @@ void ensureMqttConnected() {
   for (int i = 0; i < 4 && espClient.available(); i++) espClient.read();
   mqttSubscribe(TOPIC_SUBSCRIBE_CMD);
 }
-
 void mqttLoop() {
   if (!espClient.connected()) return;
   if (millis() - lastPingMs > 8000) { lastPingMs = millis(); uint8_t ping[2] = {0xC0, 0x00}; espClient.write(ping, 2); }
@@ -163,7 +147,6 @@ void mqttLoop() {
     }
   }
 }
-
 void handleRemoteAlertActuators() {
   if (currentAlertMode == "normal") {
     digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW);
@@ -182,7 +165,6 @@ void handleRemoteAlertActuators() {
     else if (currentAlertMode == "multi") { int f[3] = {1000, 1800, 2500}; tone(PIN_BUZZER, f[soundStep], 130); }
   }
 }
-
 void publishSensorsRealTime() {
   unsigned long now = millis();
   if (now - lastDhtMs >= 1400) { lastDhtMs = now; readDht22Safe(validTemp, validHum); }
@@ -197,7 +179,6 @@ void publishSensorsRealTime() {
     updateGreenScreen();
   }
 }
-
 void setup() {
   Serial.begin(115200);
   pinMode(PIN_LED_GREEN, OUTPUT); pinMode(PIN_LED_RED, OUTPUT);
@@ -207,7 +188,6 @@ void setup() {
   WiFi.mode(WIFI_STA); WiFi.setSleep(false); WiFi.begin(WIFI_SSID, WIFI_PASSWORD, 6);
   while (WiFi.status() != WL_CONNECTED) { delay(80); }
 }
-
 void loop() {
   ensureMqttConnected(); mqttLoop(); handleRemoteAlertActuators(); publishSensorsRealTime(); delay(10);
 }
