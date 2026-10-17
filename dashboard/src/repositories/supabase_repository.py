@@ -1,16 +1,22 @@
 """
-Repositório de persistência em nuvem no Supabase (PostgreSQL via PostgREST API).
-Sincroniza leituras de telemetria (Temperatura, Umidade, Luminosidade), alertas remotos
-e dispositivos IoT cadastrados no projeto 'Vinheria Agnello CP5'.
+Repositório Otimizado de Persistência em Nuvem no Supabase (PostgreSQL via PostgREST API).
+Utiliza Pool de Conexões HTTP Keep-Alive, Upsert em Lote das 9 Vinícolas Reais do Mundo
+e consulta à View Analítica Otimizada (public.v_vine_telemetry_summary).
 """
 
 import os
 from pathlib import Path
 import threading
 import time
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 import requests
-from src.models.iot_models import AnomalyEvaluation, DeviceProvisionSpec, SensorSnapshot
+from requests.adapters import HTTPAdapter
+from src.models.iot_models import (
+    AnomalyEvaluation,
+    DeviceProvisionSpec,
+    RealVineyardTelemetry,
+    SensorSnapshot,
+)
 
 
 def _load_env_vars() -> Dict[str, str]:
@@ -30,7 +36,7 @@ def _load_env_vars() -> Dict[str, str]:
 
 
 class SupabaseRepository:
-    """Cliente assíncrono não-bloqueante para persistência de telemetria e devices no Supabase."""
+    """Cliente assíncrono com Connection Pool para persistência de telemetria e vinícolas no Supabase."""
 
     _instance: Optional["SupabaseRepository"] = None
     _lock: threading.Lock = threading.Lock()
@@ -40,7 +46,12 @@ class SupabaseRepository:
         self.project_url: str = os.getenv("SUPABASE_URL", env_map.get("SUPABASE_URL", "")).rstrip("/")
         self.api_key: str = os.getenv("SUPABASE_ANON_KEY", env_map.get("SUPABASE_ANON_KEY", ""))
         self.last_sync_ts: float = 0.0
+        self.last_vineyards_sync_ts: float = 0.0
         self.last_alert_mode: str = ""
+        self._session = requests.Session()
+        adapter = HTTPAdapter(pool_connections=8, pool_maxsize=16)
+        self._session.mount("https://", adapter)
+        self._session.mount("http://", adapter)
 
     @classmethod
     def get_instance(cls) -> "SupabaseRepository":
@@ -54,12 +65,12 @@ class SupabaseRepository:
         """Verifica se URL e chave do projeto Supabase estão disponíveis."""
         return bool(self.project_url and self.api_key)
 
-    def _headers(self) -> Dict[str, str]:
+    def _headers(self, prefer: str = "return=minimal") -> Dict[str, str]:
         return {
             "apikey": self.api_key,
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
-            "Prefer": "return=minimal",
+            "Prefer": prefer,
         }
 
     def sync_telemetry_async(
@@ -82,7 +93,6 @@ class SupabaseRepository:
 
         self.last_sync_ts = now
         self.last_alert_mode = evaluation.command_code
-
         payload = {
             "device_id": device_id or "vine001",
             "temperature": round(float(snapshot.temperature), 2),
@@ -92,7 +102,36 @@ class SupabaseRepository:
             "cellar_health_score": evaluation.cellar_health_score,
             "source": source,
         }
-        threading.Thread(target=self._post_row, args=("vine_telemetry", payload), daemon=True).start()
+        threading.Thread(target=self._post_json, args=("vine_telemetry", payload, "return=minimal"), daemon=True).start()
+
+    def sync_real_vineyards_async(self, vineyards: List[RealVineyardTelemetry]) -> None:
+        """Faz upsert em lote (Batch SQL) das 9 vinícolas reais na tabela public.real_vineyards_status."""
+        if not self.is_configured() or not vineyards:
+            return
+        now = time.time()
+        if (now - self.last_vineyards_sync_ts) < 45.0:
+            return
+        self.last_vineyards_sync_ts = now
+        rows = [
+            {
+                "vineyard_id": v.vineyard_id,
+                "name": v.name,
+                "region": v.region,
+                "country": v.country,
+                "latitude": v.latitude,
+                "longitude": v.longitude,
+                "temperature_c": v.temperature,
+                "humidity_pct": v.humidity,
+                "luminosity_pct": v.luminosity,
+                "solar_wm2": v.solar_wm2,
+                "dew_point_c": v.dew_point,
+                "is_day": v.is_day,
+                "local_time": v.local_time,
+            }
+            for v in vineyards
+        ]
+        prefer = "resolution=merge-duplicates,return=minimal"
+        threading.Thread(target=self._post_json, args=("real_vineyards_status", rows, prefer), daemon=True).start()
 
     def register_device_async(self, spec: DeviceProvisionSpec) -> None:
         """Persiste ou atualiza um IoT Device na tabela public.vine_devices do Supabase."""
@@ -105,28 +144,30 @@ class SupabaseRepository:
             "api_key": spec.api_key,
             "transport": "MQTT",
         }
-        threading.Thread(target=self._upsert_device, args=(payload,), daemon=True).start()
+        prefer = "resolution=merge-duplicates,return=minimal"
+        threading.Thread(target=self._post_json, args=("vine_devices", payload, prefer), daemon=True).start()
 
-    def _post_row(self, table: str, payload: Dict[str, object]) -> None:
+    def fetch_telemetry_summary(self) -> List[Dict[str, object]]:
+        """Consulta a View SQL otimizada public.v_vine_telemetry_summary no Supabase."""
+        if not self.is_configured():
+            return []
         try:
-            requests.post(
-                f"{self.project_url}/rest/v1/{table}",
-                headers=self._headers(),
-                json=payload,
-                timeout=2,
+            resp = self._session.get(
+                f"{self.project_url}/rest/v1/v_vine_telemetry_summary?limit=10",
+                headers=self._headers("return=representation"),
+                timeout=2.0,
             )
-        except requests.RequestException:
-            pass
+            return resp.json() if resp.status_code == 200 and isinstance(resp.json(), list) else []
+        except (requests.RequestException, ValueError):
+            return []
 
-    def _upsert_device(self, payload: Dict[str, object]) -> None:
-        headers = self._headers()
-        headers["Prefer"] = "resolution=merge-duplicates,return=minimal"
+    def _post_json(self, table: str, payload: object, prefer: str) -> None:
         try:
-            requests.post(
-                f"{self.project_url}/rest/v1/vine_devices",
-                headers=headers,
+            self._session.post(
+                f"{self.project_url}/rest/v1/{table}",
+                headers=self._headers(prefer),
                 json=payload,
-                timeout=2,
+                timeout=2.5,
             )
         except requests.RequestException:
             pass

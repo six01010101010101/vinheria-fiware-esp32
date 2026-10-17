@@ -97,4 +97,6 @@ class RealVineyardTelemetry:
     solar_wm2: float
     is_day: bool
     local_time: str
+    dew_point: float = 0.0
+
 

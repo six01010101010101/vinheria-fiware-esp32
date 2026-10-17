@@ -1,23 +1,26 @@
 """
-Repositório de Telemetria Meteorológica e Solar em Tempo Real de Vinícolas Reais do Mundo.
-Consulta coordenadas GPS autênticas de vinhedos reais via API Open-Meteo (Satélite + Estações),
-retornando Temperatura (°C), Umidade Relativa (%) e Luminosidade Solar (%) ao vivo e histórico 24h.
+Repositório Otimizado de Telemetria Meteorológica e Solar de Vinícolas Reais do Mundo.
+Utiliza Pool de Conexões HTTP Keep-Alive, Conversão Física (Radiação Solar -> Luminosidade %
+e Ponto de Orvalho Magnus-Tetens), Cache Stale-While-Revalidate e Sincronização com Supabase.
 """
 
 from datetime import datetime
+import math
 import threading
 import time
 from typing import Any, Dict, List, Optional, Tuple
 import requests
+from requests.adapters import HTTPAdapter
 from src.models.iot_models import (
     HistoricalSeries,
     RealVineyardTelemetry,
     SensorSnapshot,
     TimeSeriesPoint,
 )
+from src.repositories.supabase_repository import SupabaseRepository
 
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
-CACHE_TTL_SECONDS = 60.0
+CACHE_TTL_SECONDS = 45.0
 
 REAL_VINEYARDS: Dict[str, Dict[str, Any]] = {
     "miolo_br": {"name": "Vinícola Miolo", "region": "Vale dos Vinhedos, Bento Gonçalves - RS", "country": "Brasil", "lat": -29.1864, "lon": -51.5567},
@@ -35,10 +38,19 @@ REAL_VINEYARDS: Dict[str, Dict[str, Any]] = {
 def radiation_to_luminosity_pct(shortwave_wm2: Any) -> float:
     """Converte radiação solar de ondas curtas (0-1000 W/m²) em Luminosidade percentual (0-100%)."""
     try:
-        rad = float(shortwave_wm2 or 0.0)
+        rad = float(shortwave_wm2 if shortwave_wm2 is not None else 0.0)
+        if not math.isfinite(rad):
+            rad = 0.0
     except (TypeError, ValueError):
         rad = 0.0
     return round(min(100.0, max(0.0, rad / 10.0)), 1)
+
+
+def calculate_dew_point_c(temp_c: float, rh_pct: float) -> float:
+    """Calcula o Ponto de Orvalho (°C) pela equação física de Magnus-Tetens."""
+    clamped_rh = max(1.0, min(100.0, float(rh_pct)))
+    alpha = ((17.27 * float(temp_c)) / (237.7 + float(temp_c))) + math.log(clamped_rh / 100.0)
+    return round((237.7 * alpha) / (17.27 - alpha), 1)
 
 
 class RealVineyardsRepository:
@@ -51,7 +63,12 @@ class RealVineyardsRepository:
         self._data_lock = threading.Lock()
         self._overview_cache: List[RealVineyardTelemetry] = []
         self._overview_ts: float = 0.0
+        self._refreshing_overview: bool = False
         self._series_cache: Dict[str, Tuple[float, HistoricalSeries, SensorSnapshot, RealVineyardTelemetry]] = {}
+        self._session = requests.Session()
+        adapter = HTTPAdapter(pool_connections=10, pool_maxsize=20)
+        self._session.mount("https://", adapter)
+        self._session.mount("http://", adapter)
 
     @classmethod
     def get_instance(cls) -> "RealVineyardsRepository":
@@ -62,12 +79,17 @@ class RealVineyardsRepository:
             return cls._instance
 
     def fetch_all_vineyards_overview(self, force: bool = False) -> List[RealVineyardTelemetry]:
-        """Busca simultaneamente os dados ao vivo das 9 vinícolas reais em uma única requisição batch."""
+        """Busca dados ao vivo das 9 vinícolas reais (Stale-While-Revalidate não-bloqueante)."""
         now = time.time()
         with self._data_lock:
-            if not force and self._overview_cache and (now - self._overview_ts) < CACHE_TTL_SECONDS:
+            if not force and self._overview_cache:
+                if (now - self._overview_ts) >= CACHE_TTL_SECONDS and not self._refreshing_overview:
+                    self._refreshing_overview = True
+                    threading.Thread(target=self._refresh_overview_sync, daemon=True).start()
                 return list(self._overview_cache)
+        return self._refresh_overview_sync()
 
+    def _refresh_overview_sync(self) -> List[RealVineyardTelemetry]:
         keys = list(REAL_VINEYARDS.keys())
         params = {
             "latitude": ",".join(str(REAL_VINEYARDS[k]["lat"]) for k in keys),
@@ -76,7 +98,7 @@ class RealVineyardsRepository:
             "timezone": "auto",
         }
         try:
-            resp = requests.get(OPEN_METEO_URL, params=params, timeout=4.0)
+            resp = requests.get(OPEN_METEO_URL, params=params, timeout=3.5)
             resp.raise_for_status()
             payload = resp.json()
             items = payload if isinstance(payload, list) else [payload]
@@ -88,6 +110,7 @@ class RealVineyardsRepository:
                 hum = round(float(cur.get("relative_humidity_2m", 65.0)), 1)
                 rad = round(float(cur.get("shortwave_radiation", 0.0)), 1)
                 lum = radiation_to_luminosity_pct(rad)
+                dew = calculate_dew_point_c(temp, hum)
                 raw_time = str(cur.get("time", ""))
                 loc_time = raw_time.split("T")[-1] if "T" in raw_time else datetime.now().strftime("%H:%M")
                 results.append(
@@ -95,15 +118,18 @@ class RealVineyardsRepository:
                         vineyard_id=key, name=str(meta["name"]), region=str(meta["region"]),
                         country=str(meta["country"]), latitude=float(meta["lat"]), longitude=float(meta["lon"]),
                         temperature=temp, humidity=hum, luminosity=lum, solar_wm2=rad,
-                        is_day=bool(cur.get("is_day", 1)), local_time=loc_time,
+                        is_day=bool(cur.get("is_day", 1)), local_time=loc_time, dew_point=dew,
                     )
                 )
             with self._data_lock:
                 self._overview_cache = results
-                self._overview_ts = now
+                self._overview_ts = time.time()
+                self._refreshing_overview = False
+            SupabaseRepository.get_instance().sync_real_vineyards_async(results)
             return results
         except (requests.RequestException, ValueError, KeyError, TypeError):
             with self._data_lock:
+                self._refreshing_overview = False
                 return list(self._overview_cache)
 
     def fetch_vineyard_telemetry(
@@ -125,7 +151,7 @@ class RealVineyardsRepository:
             "past_days": 1, "forecast_days": 1, "timezone": "auto",
         }
         try:
-            resp = requests.get(OPEN_METEO_URL, params=params, timeout=4.0)
+            resp = requests.get(OPEN_METEO_URL, params=params, timeout=3.5)
             resp.raise_for_status()
             data = resp.json()
             cur = data.get("current", {})
@@ -133,14 +159,13 @@ class RealVineyardsRepository:
             hum = round(float(cur.get("relative_humidity_2m", 65.0)), 1)
             rad = round(float(cur.get("shortwave_radiation", 0.0)), 1)
             lum = radiation_to_luminosity_pct(rad)
+            dew = calculate_dew_point_c(temp, hum)
             cur_time_iso = str(cur.get("time", ""))
             loc_time = cur_time_iso.split("T")[-1] if "T" in cur_time_iso else datetime.now().strftime("%H:%M")
 
             hourly = data.get("hourly", {})
             times: List[str] = hourly.get("time", [])
-            t_list: List[Any] = hourly.get("temperature_2m", [])
-            h_list: List[Any] = hourly.get("relative_humidity_2m", [])
-            r_list: List[Any] = hourly.get("shortwave_radiation", [])
+            t_list, h_list, r_list = hourly.get("temperature_2m", []), hourly.get("relative_humidity_2m", []), hourly.get("shortwave_radiation", [])
 
             t_pts, h_pts, l_pts = [], [], []
             for idx, t_iso in enumerate(times):
@@ -161,7 +186,7 @@ class RealVineyardsRepository:
                 vineyard_id=vid, name=str(meta["name"]), region=str(meta["region"]),
                 country=str(meta["country"]), latitude=float(meta["lat"]), longitude=float(meta["lon"]),
                 temperature=temp, humidity=hum, luminosity=lum, solar_wm2=rad,
-                is_day=bool(cur.get("is_day", 1)), local_time=loc_time,
+                is_day=bool(cur.get("is_day", 1)), local_time=loc_time, dew_point=dew,
             )
             with self._data_lock:
                 self._series_cache[vid] = (now, series, snap, info)

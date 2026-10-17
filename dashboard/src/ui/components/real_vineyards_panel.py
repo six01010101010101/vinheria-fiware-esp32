@@ -1,7 +1,7 @@
 """
 Componente de UI: Monitoramento Verídico em Tempo Real de Vinhas e Vinícolas Reais do Mundo.
-Exibe status ao vivo de Temperatura (°C), Umidade Relativa (%) e Luminosidade Solar (% / W/m²)
-de 9 vinícolas autênticas (Brasil, Argentina, Chile, França, Itália, Portugal e EUA) via Open-Meteo.
+Exibe status ao vivo de Temperatura (°C), Umidade Relativa (%), Luminosidade Solar (% / W/m²)
+e Ponto de Orvalho (°C) de 9 vinícolas autênticas via satélite e estações Open-Meteo.
 """
 
 from typing import List
@@ -53,7 +53,7 @@ def render_real_vineyards_panel() -> dbc.Card:
                                     className="section-title mb-1",
                                 ),
                                 html.Small(
-                                    "Dados meteorológicos e de radiação solar autênticos por coordenadas GPS reais das vinícolas (atualização ao vivo).",
+                                    "Monitoramento climático e solar autêntico por coordenadas GPS reais das vinícolas + Ponto de Orvalho (Magnus-Tetens) e persistência SQL.",
                                     className="text-muted d-block mb-2",
                                 ),
                             ],
@@ -63,7 +63,7 @@ def render_real_vineyards_panel() -> dbc.Card:
                         dbc.Col(
                             [
                                 dbc.Label(
-                                    "Selecionar Vinícola Real Ativa no Painel, Gráficos & Telinha Verde:",
+                                    "Selecionar Vinícola Real Ativa no Painel, Gráficos 24h & Telinha Verde:",
                                     className="small fw-bold text-info mb-1",
                                 ),
                                 dcc.Dropdown(
@@ -85,7 +85,7 @@ def render_real_vineyards_panel() -> dbc.Card:
             ],
             className="py-2 px-3",
         ),
-        className="clean-card mb-3 shadow-sm border-info",
+        className="clean-card mb-3 shadow-sm",
     )
 
 
@@ -110,8 +110,7 @@ def build_real_vineyards_grid(
         l_alert = v.luminosity < triggers.lum_min or v.luminosity > triggers.lum_max
         any_alert = t_alert or h_alert or l_alert
 
-        card_border = "1px solid #39ff14" if is_selected else "1px solid #263244"
-        card_bg = "#132219" if is_selected else "#10161f"
+        card_cls = "vineyard-card vineyard-card-active h-100" if is_selected else "vineyard-card h-100"
         day_label = "☀️ Dia" if v.is_day else "🌙 Noite"
 
         cols.append(
@@ -125,7 +124,7 @@ def build_real_vineyards_grid(
                                     className="fw-bold text-white small text-truncate",
                                 ),
                                 dbc.Badge(
-                                    "ATIVA" if is_selected else ("ALERTA" if any_alert else "IDEAL"),
+                                    "NO PAINEL" if is_selected else ("FORA TRIGGER" if any_alert else "FAIXA IDEAL"),
                                     color="success" if is_selected else ("warning" if any_alert else "secondary"),
                                     className="ms-1",
                                     style={"fontSize": "0.62rem"},
@@ -134,7 +133,7 @@ def build_real_vineyards_grid(
                             className="d-flex justify-content-between align-items-center mb-1",
                         ),
                         html.Div(
-                            f"{v.region} • {day_label} ({v.local_time})",
+                            f"{v.region} • {day_label} ({v.local_time}) • Orv: {v.dew_point:.1f}°C",
                             className="text-muted text-truncate mb-1",
                             style={"fontSize": "0.68rem"},
                         ),
@@ -159,8 +158,7 @@ def build_real_vineyards_grid(
                             className="d-flex flex-wrap align-items-center justify-content-between",
                         ),
                     ],
-                    className="p-2 rounded h-100",
-                    style={"backgroundColor": card_bg, "border": card_border},
+                    className=card_cls,
                 ),
                 lg=4,
                 md=6,

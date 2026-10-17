@@ -90,14 +90,30 @@ def build_sensor_figure(
 
     fig = go.Figure()
 
+    fill_map = {
+        "#ff7875": "rgba(255, 120, 117, 0.12)",
+        "#40a9ff": "rgba(64, 169, 255, 0.12)",
+        "#ffd666": "rgba(255, 214, 102, 0.12)",
+    }
+
+    fig.add_hrect(
+        y0=min_trigger,
+        y1=max_trigger,
+        fillcolor="rgba(34, 197, 94, 0.07)",
+        line_width=0,
+    )
+
     fig.add_trace(
         go.Scatter(
             x=timestamps,
             y=values,
             mode="lines+markers",
             name=title,
-            line={"color": line_color, "width": 2.5, "shape": "linear"},
-            marker={"size": 6},
+            fill="tozeroy",
+            fillcolor=fill_map.get(line_color, "rgba(255,255,255,0.08)"),
+            line={"color": line_color, "width": 2.6, "shape": "spline", "smoothing": 0.55},
+            marker={"size": 6, "line": {"width": 1, "color": "#0f141c"}},
+            hovertemplate=f"%{{x}} → <b>%{{y:.1f}}{unit}</b><extra></extra>",
         )
     )
 
@@ -120,11 +136,12 @@ def build_sensor_figure(
     fig.update_layout(
         title={"text": f"{title} ({unit})", "font": {"size": 14, "color": "#e6edf3"}},
         paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(16,22,31,0.7)",
+        plot_bgcolor="rgba(13,18,26,0.82)",
         font={"color": "#9bb0c9", "size": 11},
         margin={"l": 42, "r": 16, "t": 38, "b": 32},
-        xaxis={"gridcolor": "rgba(255,255,255,0.06)"},
-        yaxis={"title": unit, "gridcolor": "rgba(255,255,255,0.06)", "range": [y_min, y_max]},
+        xaxis={"gridcolor": "rgba(255,255,255,0.05)"},
+        yaxis={"title": unit, "gridcolor": "rgba(255,255,255,0.05)", "range": [y_min, y_max]},
         showlegend=False,
     )
     return fig
+

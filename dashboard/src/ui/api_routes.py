@@ -1,7 +1,7 @@
 """
 Endpoints REST API de Última Geração (Porta 8050) para integração híbrida em Tempo Real
 entre o Dashboard Web, o Simulador Wokwi ESP32, o Protótipo Físico em Caixa (ESP32),
-FIWARE (Portas 1026, 4041, 8666, 1883) e Supabase Cloud.
+as 9 Vinícolas Reais do Mundo (Open-Meteo), FIWARE (1026, 4041, 8666, 1883) e Supabase SQL.
 """
 
 from datetime import datetime
@@ -19,7 +19,7 @@ from src.config.settings import (
     WOKWI_PROJECT_URL,
 )
 from src.models.iot_models import SensorSnapshot, TimeSeriesPoint, TriggerConfig
-from src.repositories.real_vineyards_repository import RealVineyardsRepository
+from src.repositories.real_vineyards_repository import REAL_VINEYARDS, RealVineyardsRepository
 from src.repositories.supabase_repository import SupabaseRepository
 from src.repositories.wokwi_mqtt_repository import WokwiMqttRepository
 from src.services.trigger_alert_service import TriggerAlertService
@@ -83,8 +83,25 @@ def register_api_routes(server: Flask) -> None:
 
     @server.route("/api/v1/vineyards", methods=["GET"])
     def get_real_vineyards():  # type: ignore[no-untyped-def]
-        """Retorna a telemetria meteorológica e solar verídica em tempo real das 9 vinícolas reais."""
-        items = RealVineyardsRepository.get_instance().fetch_all_vineyards_overview()
+        """Retorna telemetria ao vivo das 9 vinícolas reais ou série 24h de uma vinícola (?id=miolo_br)."""
+        repo = RealVineyardsRepository.get_instance()
+        vid = str(request.args.get("id", "")).strip()
+        if vid and vid in REAL_VINEYARDS:
+            last_n = max(6, min(48, int(request.args.get("last_n", 24))))
+            series, _, info = repo.fetch_vineyard_telemetry(vid, last_n=last_n)
+            return jsonify(
+                {
+                    "vineyard_id": vid,
+                    "current": info.__dict__ if info else None,
+                    "history_24h": {
+                        "temperature": [p.__dict__ for p in series.temperature],
+                        "humidity": [p.__dict__ for p in series.humidity],
+                        "luminosity": [p.__dict__ for p in series.luminosity],
+                    },
+                }
+            )
+
+        items = repo.fetch_all_vineyards_overview()
         return jsonify(
             {
                 "source": "Open-Meteo Satellite & Weather Stations (Real-Time)",
@@ -101,6 +118,7 @@ def register_api_routes(server: Flask) -> None:
                         "humidity_pct": v.humidity,
                         "luminosity_pct": v.luminosity,
                         "solar_radiation_wm2": v.solar_wm2,
+                        "dew_point_c": v.dew_point,
                         "is_day": v.is_day,
                         "local_time": v.local_time,
                     }
@@ -138,13 +156,9 @@ def register_api_routes(server: Flask) -> None:
 
         wokwi_repo.publish_test_telemetry(temp, hum, lum)
         evaluation, ok, msg = TriggerAlertService.evaluate_and_dispatch_remote_alert(
-            host=DEFAULT_FIWARE_HOST,
-            entity_id=DEFAULT_ENTITY_ID,
-            snapshot=snap,
-            triggers=TriggerConfig(),
-            force=True,
+            host=DEFAULT_FIWARE_HOST, entity_id=DEFAULT_ENTITY_ID,
+            snapshot=snap, triggers=TriggerConfig(), force=True,
         )
-
         return jsonify(
             {
                 "ok": ok,
@@ -164,9 +178,7 @@ def register_api_routes(server: Flask) -> None:
         cmd = str(data.get("command", "normal")).strip().lower()
         if cmd not in ("normal", "temp", "hum", "lum", "multi"):
             return jsonify({"ok": False, "error": "Comando inválido. Use: normal, temp, hum, lum, multi"}), 400
-
         wokwi_repo = WokwiMqttRepository.get_instance()
         wokwi_repo.ensure_connected()
         ok, msg = wokwi_repo.publish_alert_command(cmd, force=True)
         return jsonify({"ok": ok, "command": cmd, "topic": f"/{DEFAULT_API_KEY}/{DEFAULT_DEVICE_ID}/cmd", "detail": msg})
-

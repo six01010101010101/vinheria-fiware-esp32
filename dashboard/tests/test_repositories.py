@@ -153,15 +153,17 @@ def test_rest_api_status_and_telemetry_endpoints() -> None:
 
 @patch("src.repositories.real_vineyards_repository.requests.get")
 def test_real_vineyards_radiation_and_fetch(mock_get: MagicMock) -> None:
-    """Valida a conversão de radiação solar (W/m²) em Luminosidade (%) e a busca de vinícola real."""
+    """Valida a conversão de radiação solar (W/m²), Ponto de Orvalho (Magnus-Tetens) e busca de vinícola real."""
     from src.repositories.real_vineyards_repository import (
         RealVineyardsRepository,
+        calculate_dew_point_c,
         radiation_to_luminosity_pct,
     )
 
     assert radiation_to_luminosity_pct(812.0) == 81.2
     assert radiation_to_luminosity_pct(1450.0) == 100.0
     assert radiation_to_luminosity_pct(0.0) == 0.0
+    assert 5.5 <= calculate_dew_point_c(16.6, 49.0) <= 6.2
 
     mock_resp = MagicMock()
     mock_resp.json.return_value = {
@@ -187,6 +189,7 @@ def test_real_vineyards_radiation_and_fetch(mock_get: MagicMock) -> None:
     assert snap.temperature == 16.6
     assert snap.humidity == 49.0
     assert snap.luminosity == 81.2
-    assert info is not None and info.name == "Vinícola Miolo"
+    assert info is not None and info.name == "Vinícola Miolo" and info.dew_point > 0
     assert len(series.temperature) == 2
+
 
