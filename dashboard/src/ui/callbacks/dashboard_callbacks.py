@@ -142,6 +142,7 @@ def register_dashboard_callbacks(app: Dash) -> None:
         wokwi_series, wokwi_snap, wokwi_meta = DeviceManagerService.get_wokwi_realtime_data(
             broker_host=clean_broker, device_id=device_id, api_key=api_key, last_n=n_samples
         )
+        is_manual_push = ctx.triggered_id in ("btn-publish-mqtt-test", "sim-temp-input", "sim-hum-input", "sim-lum-input")
         if ctx.triggered_id == "btn-publish-mqtt-test":
             WokwiMqttRepository.get_instance().publish_test_telemetry(base_t, base_h, base_l)
 
@@ -155,7 +156,7 @@ def register_dashboard_callbacks(app: Dash) -> None:
             active_snapshot = fiware_snap
             temp_pts, hum_pts, lum_pts = sth_series.temperature, sth_series.humidity, sth_series.luminosity
             source_label = f"STH-Comet ({clean_host}:8666)"
-        elif scenario_mode == "wokwi_live" and wokwi_snap is not None:
+        elif scenario_mode == "wokwi_live" and wokwi_snap is not None and not is_manual_push:
             active_snapshot = wokwi_snap
             temp_pts, hum_pts, lum_pts = wokwi_series.temperature, wokwi_series.humidity, wokwi_series.luminosity
             source_label = "Wokwi #478106752109243393 Ao Vivo"
@@ -167,10 +168,16 @@ def register_dashboard_callbacks(app: Dash) -> None:
             temp_pts = [TimeSeriesPoint(d["t"], float(d["v"])) for d in store["temperature"]]
             hum_pts = [TimeSeriesPoint(d["t"], float(d["v"])) for d in store["humidity"]]
             lum_pts = [TimeSeriesPoint(d["t"], float(d["v"])) for d in store["luminosity"]]
-            source_label = f"Cenário Ativo → Wokwi #478106752109243393"
+            source_label = "Sincronizado → Wokwi #478106752109243393"
 
+        is_user_action = ctx.triggered_id != "interval-auto-refresh"
         evaluation, dispatch_ok, dispatch_msg = TriggerAlertService.evaluate_and_dispatch_remote_alert(
-            host=clean_host, entity_id=clean_entity, snapshot=active_snapshot, triggers=triggers, use_fiware_http=(source_mode == "sth")
+            host=clean_host,
+            entity_id=clean_entity,
+            snapshot=active_snapshot,
+            triggers=triggers,
+            use_fiware_http=(source_mode == "sth"),
+            force=is_user_action,
         )
 
         banner = build_remote_alert_banner(evaluation, dispatch_ok, dispatch_msg, source_label)

@@ -115,6 +115,7 @@ class TriggerAlertService:
         snapshot: SensorSnapshot,
         triggers: TriggerConfig,
         use_fiware_http: bool = False,
+        force: bool = False,
     ) -> Tuple[AnomalyEvaluation, bool, str]:
         """
         Avalia os triggers e envia o comando remoto instantaneamente via MQTT Real-Time (Wokwi)
@@ -122,7 +123,7 @@ class TriggerAlertService:
         """
         evaluation = cls.evaluate_snapshot(snapshot, triggers)
         wokwi_repo = WokwiMqttRepository.get_instance()
-        mqtt_ok, mqtt_msg = wokwi_repo.publish_alert_command(evaluation.command_code)
+        mqtt_ok, mqtt_msg = wokwi_repo.publish_alert_command(evaluation.command_code, force=force)
 
         if use_fiware_http:
             fiware_repo = FiwareIotRepository(host=host)

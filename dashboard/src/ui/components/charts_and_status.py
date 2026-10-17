@@ -76,9 +76,17 @@ def build_sensor_figure(
     max_trigger: float,
     line_color: str,
 ) -> go.Figure:
-    """Constrói um gráfico dinâmico Plotly limpo com a série histórica e linhas de Trigger."""
-    timestamps = [p.timestamp for p in points]
-    values = [p.value for p in points]
+    """Constrói um gráfico dinâmico Plotly com escala protegida e linhas de Trigger."""
+    low_bound = -40.0 if unit == "°C" else 0.0
+    high_bound = 80.0 if unit == "°C" else 100.0
+    clean_pts = [p for p in points if low_bound <= p.value <= high_bound]
+    timestamps = [p.timestamp for p in clean_pts]
+    values = [p.value for p in clean_pts]
+
+    ref_vals = values + [min_trigger, max_trigger]
+    pad = 3.0 if unit == "°C" else 8.0
+    y_min = max(low_bound, min(ref_vals) - pad)
+    y_max = min(high_bound, max(ref_vals) + pad)
 
     fig = go.Figure()
 
@@ -88,7 +96,7 @@ def build_sensor_figure(
             y=values,
             mode="lines+markers",
             name=title,
-            line={"color": line_color, "width": 2.5, "shape": "spline"},
+            line={"color": line_color, "width": 2.5, "shape": "linear"},
             marker={"size": 6},
         )
     )
@@ -114,10 +122,9 @@ def build_sensor_figure(
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(16,22,31,0.7)",
         font={"color": "#9bb0c9", "size": 11},
-        margin={"l": 38, "r": 16, "t": 38, "b": 32},
+        margin={"l": 42, "r": 16, "t": 38, "b": 32},
         xaxis={"gridcolor": "rgba(255,255,255,0.06)"},
-        yaxis={"title": unit, "gridcolor": "rgba(255,255,255,0.06)"},
-        uirevision="constant",
+        yaxis={"title": unit, "gridcolor": "rgba(255,255,255,0.06)", "range": [y_min, y_max]},
         showlegend=False,
     )
     return fig

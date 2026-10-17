@@ -120,6 +120,8 @@ def test_wokwi_mqtt_parse_ultralight_payload() -> None:
 
 
 def test_wokwi_mqtt_rejects_malformed_payload() -> None:
-    """Garante segurança contra pacotes MQTT malformados."""
+    """Garante segurança contra pacotes MQTT malformados ou fora da escala física (ex.: 235°C)."""
     assert WokwiMqttRepository.parse_ultralight_payload("invalido", "15:30:00") is None
     assert WokwiMqttRepository.parse_ultralight_payload("x|10|y|20", "15:30:00") is None
+    assert WokwiMqttRepository.parse_ultralight_payload("t|235.0|h|68.0|l|12.0", "15:30:00") is None
+    assert WokwiMqttRepository.parse_ultralight_payload("t|15.5|h|180.0|l|12.0", "15:30:00") is None
