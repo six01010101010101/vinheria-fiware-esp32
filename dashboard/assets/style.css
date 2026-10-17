@@ -93,3 +93,82 @@ body {
     vertical-align: middle;
     margin-right: 6px;
 }
+
+/* ==========================================================================
+   Plaquinha Verde (PCB + Display LCD Verde da Caixa Fisica / Wokwi)
+   ========================================================================== */
+.green-hardware-plaque {
+    background: linear-gradient(145deg, #0b4628 0%, #07331d 60%, #052615 100%) !important;
+    border: 2px solid #23864c !important;
+    border-radius: 12px !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55), inset 0 0 18px rgba(46, 204, 113, 0.12) !important;
+    position: relative;
+    padding: 14px 18px;
+}
+
+.green-plaque-alert {
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 18px rgba(0, 162, 255, 0.35), inset 0 0 18px rgba(46, 204, 113, 0.15) !important;
+}
+
+.pcb-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    border-bottom: 1px dashed rgba(126, 231, 135, 0.35);
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 0.8rem;
+    color: #a7f3d0;
+    letter-spacing: 0.04em;
+}
+
+.pcb-screw {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #1f2937 35%, #d97706 40%, #b45309 100%);
+    border: 1px solid #fbbf24;
+    margin-right: 6px;
+}
+
+.lcd-screen-green {
+    background: linear-gradient(180deg, #8cd91a 0%, #76c314 100%);
+    color: #092205;
+    border: 4px solid #1e293b;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: "Consolas", "Courier New", monospace;
+    font-weight: 700;
+    box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.38), 0 0 10px rgba(140, 217, 26, 0.35);
+    line-height: 1.45;
+    font-size: 0.9rem;
+}
+
+.lcd-row-line {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dotted rgba(9, 34, 5, 0.22);
+    padding: 2px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pcb-sensor-chip {
+    background-color: rgba(6, 32, 18, 0.82);
+    border: 1px solid #2ea05c;
+    border-radius: 8px;
+    padding: 10px 12px;
+    height: 100%;
+    transition: all 0.2s ease;
+}
+
+.pcb-sensor-chip-alert {
+    background-color: rgba(45, 14, 22, 0.85);
+    border: 1px solid #ff4d4f;
+    box-shadow: 0 0 10px rgba(255, 77, 79, 0.28);
+}
