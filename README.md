@@ -150,8 +150,8 @@ Todas as vezes que um parâmetro sai da faixa de triggers configurada no Front-e
 ## 🚀 6. Links Rápidos, Simulação Wokwi e Manual
 
 - 📘 **[Manual Completo de Instalação e Operação (Software + Hardware)](./docs/MANUAL_INSTALACAO_E_OPERACAO.md)**
-- 🌐 **Link da Simulação Wokwi (LDR + DHT-22 + Buzzer + LED Azul)**:
-  - `[Inserir Link Público do Projeto Salvo no Wokwi Aqui]` *(Basta colar os arquivos [`sketch_wokwi_dht22.ino`](./hardware/wokwi_dht22/sketch_wokwi_dht22.ino) e [`diagram.json`](./hardware/wokwi_dht22/diagram.json) em [wokwi.com/projects/new/esp32](https://wokwi.com/projects/new/esp32) e clicar em Share).*
+- 🌐 **Link Oficial da Simulação no Wokwi (LDR + DHT-22 + Buzzer + LED Azul)**:
+  - 👉 **[https://wokwi.com/projects/478106752109243393](https://wokwi.com/projects/478106752109243393)**
 
 ### Execução Rápida do Dashboard:
 ```bash

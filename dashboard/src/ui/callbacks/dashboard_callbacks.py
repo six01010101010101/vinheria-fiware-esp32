@@ -97,7 +97,7 @@ def register_dashboard_callbacks(app: Dash) -> None:
         Input("sim-hum-input", "value"),
         Input("sim-lum-input", "value"),
         Input("btn-publish-mqtt-test", "n_clicks"),
-        State("radio-wokwi-scenario", "value"),
+        Input("radio-wokwi-scenario", "value"),
         State("input-wokwi-broker", "value"),
         State("reg-device-id", "value"),
         State("reg-api-key", "value"),
@@ -113,7 +113,7 @@ def register_dashboard_callbacks(app: Dash) -> None:
         scenario_mode: str, wokwi_broker: str, device_id: str, api_key: str, host: str,
         entity_id: str, entity_type: str, last_n: int, local_store: Dict[str, List[Dict[str, Any]]],
     ) -> Tuple[Any, Any, Any, Any, Any, Dict[str, List[Dict[str, Any]]], Any]:
-        """Atualiza telemetria em Tempo Real (Wokwi MQTT / STH-Comet 8666) e dispara alertas ao ESP32."""
+        """Atualiza telemetria em Tempo Real (Wokwi #478106752109243393 / STH-Comet 8666) e dispara alertas ao ESP32."""
         clean_host = (host or DEFAULT_FIWARE_HOST).strip()
         clean_broker = (wokwi_broker or DEFAULT_WOKWI_BROKER).strip()
         clean_entity = (entity_id or "urn:ngsi-ld:Vine:001").strip()
@@ -135,16 +135,15 @@ def register_dashboard_callbacks(app: Dash) -> None:
         base_h = float(sim_hum if sim_hum is not None else 68.0)
         base_l = float(sim_lum if sim_lum is not None else 12.0)
 
-        # Oscilação realista em tempo real para curvas dinâmicas contínuas
-        cur_t = round(base_t + (wave * 0.25 if scenario_mode != "manual" else 0.0), 1)
-        cur_h = round(base_h + (math.cos(tick * 0.45) * 0.6 if scenario_mode != "manual" else 0.0), 1)
-        cur_l = round(max(0.0, base_l + (wave * 0.5 if scenario_mode != "manual" else 0.0)), 1)
+        cur_t = round(base_t + wave * 0.2, 1)
+        cur_h = round(base_h + math.cos(tick * 0.45) * 0.5, 1)
+        cur_l = round(max(0.0, base_l + wave * 0.4), 1)
 
         wokwi_series, wokwi_snap, wokwi_meta = DeviceManagerService.get_wokwi_realtime_data(
             broker_host=clean_broker, device_id=device_id, api_key=api_key, last_n=n_samples
         )
-        if scenario_mode != "manual" or ctx.triggered_id == "btn-publish-mqtt-test":
-            WokwiMqttRepository.get_instance().publish_test_telemetry(cur_t, cur_h, cur_l)
+        if ctx.triggered_id == "btn-publish-mqtt-test":
+            WokwiMqttRepository.get_instance().publish_test_telemetry(base_t, base_h, base_l)
 
         now_str = datetime.now().strftime("%H:%M:%S")
         store = local_store or {"temperature": [], "humidity": [], "luminosity": []}
@@ -156,10 +155,10 @@ def register_dashboard_callbacks(app: Dash) -> None:
             active_snapshot = fiware_snap
             temp_pts, hum_pts, lum_pts = sth_series.temperature, sth_series.humidity, sth_series.luminosity
             source_label = f"STH-Comet ({clean_host}:8666)"
-        elif wokwi_snap is not None and len(wokwi_series.temperature) >= 2:
+        elif scenario_mode == "wokwi_live" and wokwi_snap is not None:
             active_snapshot = wokwi_snap
             temp_pts, hum_pts, lum_pts = wokwi_series.temperature, wokwi_series.humidity, wokwi_series.luminosity
-            source_label = f"Wokwi MQTT Tempo Real ({clean_broker}:1883)"
+            source_label = "Wokwi #478106752109243393 Ao Vivo"
         else:
             active_snapshot = SensorSnapshot(cur_t, cur_h, cur_l, now_str)
             store["temperature"] = (store.get("temperature", []) + [{"t": now_str, "v": cur_t}])[-n_samples:]
@@ -168,7 +167,7 @@ def register_dashboard_callbacks(app: Dash) -> None:
             temp_pts = [TimeSeriesPoint(d["t"], float(d["v"])) for d in store["temperature"]]
             hum_pts = [TimeSeriesPoint(d["t"], float(d["v"])) for d in store["humidity"]]
             lum_pts = [TimeSeriesPoint(d["t"], float(d["v"])) for d in store["luminosity"]]
-            source_label = "Telemetria em Tempo Real Ativa"
+            source_label = f"Cenário Ativo → Wokwi #478106752109243393"
 
         evaluation, dispatch_ok, dispatch_msg = TriggerAlertService.evaluate_and_dispatch_remote_alert(
             host=clean_host, entity_id=clean_entity, snapshot=active_snapshot, triggers=triggers, use_fiware_http=(source_mode == "sth")

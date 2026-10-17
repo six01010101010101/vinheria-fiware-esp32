@@ -8,6 +8,7 @@ Construtor de cartões visuais limpos e profissionais:
 from typing import Dict, List, Optional
 import dash_bootstrap_components as dbc
 from dash import html
+from src.config.settings import WOKWI_PROJECT_URL
 from src.models.iot_models import AnomalyEvaluation, RegisteredDeviceInfo, SensorSnapshot, TriggerConfig
 
 
@@ -20,13 +21,21 @@ def build_wokwi_status_bar(meta: Dict[str, object]) -> html.Div:
 
     return html.Div(
         [
+            dbc.Button(
+                "🔗 Abrir Projeto Wokwi #478106752109243393",
+                href=WOKWI_PROJECT_URL,
+                target="_blank",
+                color="primary",
+                size="sm",
+                className="me-2 fw-semibold",
+            ),
             dbc.Badge(
-                "🔑 Wokwi CLI Token Ativo" if has_token else "🔑 Wokwi Token Pendente",
+                "🔑 Wokwi Token Ativo" if has_token else "🔑 Wokwi Token Pendente",
                 color="info" if has_token else "secondary",
                 className="p-2 me-2",
             ),
             dbc.Badge(
-                "🟢 Wokwi / MQTT Tempo Real Ativo" if connected else "🟡 Conectando ao Broker MQTT...",
+                "🟢 MQTT Tempo Real Ativo" if connected else "🟡 Conectando MQTT...",
                 color="success" if connected else "secondary",
                 className="p-2 me-2",
             ),

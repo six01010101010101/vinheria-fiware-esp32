@@ -10,6 +10,7 @@ from typing import Any, Dict
 # Configurações de rede padrão do servidor FIWARE e Broker MQTT Real-Time (Wokwi)
 DEFAULT_FIWARE_HOST: str = os.getenv("FIWARE_HOST", "localhost")
 DEFAULT_WOKWI_BROKER: str = os.getenv("WOKWI_MQTT_BROKER", "broker.hivemq.com")
+WOKWI_PROJECT_URL: str = "https://wokwi.com/projects/478106752109243393"
 ORION_PORT: int = int(os.getenv("ORION_PORT", "1026"))
 IOT_AGENT_PORT: int = int(os.getenv("IOT_AGENT_PORT", "4041"))
 STH_COMET_PORT: int = int(os.getenv("STH_COMET_PORT", "8666"))

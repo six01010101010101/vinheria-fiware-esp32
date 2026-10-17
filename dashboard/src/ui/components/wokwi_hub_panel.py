@@ -1,7 +1,7 @@
 """
-Componente de Controle de Cenários em Tempo Real (Wokwi MQTT & Automação).
-Permite selecionar cenários de operação normal ou anomalias específicas com 1 clique,
-sincronizando automaticamente as leituras e o disparo remoto para o ESP32 no Wokwi.
+Componente de Controle de Cenários em Tempo Real (Wokwi #478106752109243393 & Automação).
+Permite receber os sensores ao vivo do Wokwi ou selecionar anomalias com 1 clique
+para acionar remotamente o LED Azul e o Buzzer no projeto Wokwi.
 """
 
 from typing import Dict, Tuple
@@ -9,41 +9,41 @@ from dash import Dash, Input, Output, no_update
 from src.repositories.wokwi_mqtt_repository import WokwiMqttRepository
 
 SCENARIO_PRESETS: Dict[str, Dict[str, object]] = {
+    "wokwi_live": {
+        "label": "📡 Receber Sensores Ao Vivo do Wokwi (#478106752109243393)",
+        "temp": None,
+        "hum": None,
+        "lum": None,
+    },
     "normal": {
-        "label": "🟢 Operação Normal Automática (15.5°C | 68% | 12% Lum) — LED e Buzzer Desligados",
+        "label": "🟢 Operação Normal (15.5°C | 68% | 12% Lum) — Desliga LED e Buzzer no Wokwi",
         "temp": 15.5,
         "hum": 68.0,
         "lum": 12.0,
     },
     "temp": {
-        "label": "🌡️ Anomalia de Temperatura (24.5°C) — Ativa LED Azul + Buzzer 2000 Hz",
+        "label": "🌡️ Anomalia de Temperatura (24.5°C) — Ativa LED Azul + Buzzer 2000 Hz no Wokwi",
         "temp": 24.5,
         "hum": 68.0,
         "lum": 12.0,
     },
     "hum": {
-        "label": "💧 Anomalia de Umidade (42.0%) — Ativa LED Azul + Buzzer 850 Hz",
+        "label": "💧 Anomalia de Umidade (42.0%) — Ativa LED Azul + Buzzer 850 Hz no Wokwi",
         "temp": 15.5,
         "hum": 42.0,
         "lum": 12.0,
     },
     "lum": {
-        "label": "☀️ Anomalia de Luminosidade (78.0%) — Ativa LED Azul + Sirene 1200/1700 Hz",
+        "label": "☀️ Anomalia de Luminosidade (78.0%) — Ativa LED Azul + Sirene 1200/1700 Hz no Wokwi",
         "temp": 15.5,
         "hum": 68.0,
         "lum": 78.0,
     },
     "multi": {
-        "label": "🚨 Anomalia Múltipla (26.0°C | 38% | 85% Lum) — LED Rápido + Escala Tripla",
+        "label": "🚨 Anomalia Múltipla (26.0°C | 38% | 85% Lum) — LED Rápido + Escala Tripla no Wokwi",
         "temp": 26.0,
         "hum": 38.0,
         "lum": 85.0,
-    },
-    "manual": {
-        "label": "🎛️ Ajuste Manual Livre / Recepção Exclusiva do Wokwi",
-        "temp": None,
-        "hum": None,
-        "lum": None,
     },
 }
 
@@ -60,7 +60,7 @@ def register_wokwi_hub_callbacks(app: Dash) -> None:
     )
     def apply_wokwi_scenario(scenario_key: str) -> Tuple[object, object, object]:
         """Aplica os valores do cenário selecionado e publica imediatamente via MQTT para o Wokwi."""
-        preset = SCENARIO_PRESETS.get(scenario_key, SCENARIO_PRESETS["normal"])
+        preset = SCENARIO_PRESETS.get(scenario_key, SCENARIO_PRESETS["wokwi_live"])
         if preset["temp"] is None:
             return no_update, no_update, no_update
 
