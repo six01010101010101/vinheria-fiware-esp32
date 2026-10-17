@@ -125,3 +125,27 @@ def test_wokwi_mqtt_rejects_malformed_payload() -> None:
     assert WokwiMqttRepository.parse_ultralight_payload("x|10|y|20", "15:30:00") is None
     assert WokwiMqttRepository.parse_ultralight_payload("t|235.0|h|68.0|l|12.0", "15:30:00") is None
     assert WokwiMqttRepository.parse_ultralight_payload("t|15.5|h|180.0|l|12.0", "15:30:00") is None
+
+
+def test_rest_api_status_and_telemetry_endpoints() -> None:
+    """Valida os endpoints REST API (/api/v1/status e /api/v1/telemetry) da porta 8050."""
+    from flask import Flask
+    from src.ui.api_routes import register_api_routes
+
+    flask_app = Flask(__name__)
+    register_api_routes(flask_app)
+    client = flask_app.test_client()
+
+    res_status = client.get("/api/v1/status")
+    assert res_status.status_code == 200
+    body = res_status.get_json()
+    assert body["status"] == "online"
+    assert body["ports_and_protocols"]["mqtt_port"] == 1883
+    assert body["ports_and_protocols"]["fiware_sth_comet_port"] == 8666
+
+    res_bad = client.post("/api/v1/telemetry", json={"temperature": 235.0, "humidity": 68.0, "luminosity": 12.0})
+    assert res_bad.status_code == 422
+
+    res_ok = client.post("/api/v1/telemetry", json={"temperature": 24.5, "humidity": 68.0, "luminosity": 12.0})
+    assert res_ok.status_code == 200
+    assert res_ok.get_json()["command_code"] == "temp"

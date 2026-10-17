@@ -8,6 +8,7 @@ Executa o servidor web Dash/Plotly integrado em Tempo Real ao Wokwi (MQTT :1883)
 
 import dash_bootstrap_components as dbc
 from dash import Dash, html
+from src.ui.api_routes import register_api_routes
 from src.ui.callbacks.dashboard_callbacks import register_dashboard_callbacks
 from src.ui.components.charts_and_status import render_charts_and_status
 from src.ui.components.device_management import render_device_management
@@ -16,7 +17,7 @@ from src.ui.components.wokwi_hub_panel import register_wokwi_hub_callbacks
 
 
 def create_app() -> Dash:
-    """Instancia e configura a aplicação Dash com layout modular limpo e callbacks reativos."""
+    """Instancia e configura a aplicação Dash com layout modular limpo, API REST e callbacks reativos."""
     app = Dash(
         __name__,
         external_stylesheets=[dbc.themes.DARKLY],
@@ -29,7 +30,7 @@ def create_app() -> Dash:
             render_charts_and_status(),
             render_device_management(),
             html.Footer(
-                "Check Point 5 — Monitoramento Global de Vinherias (ESP32 + DHT-11/22 + LDR + Buzzer + FIWARE STH-Comet)",
+                "Check Point 5 — Monitoramento Global de Vinherias (ESP32 + DHT-11/22 + LDR + Buzzer + FIWARE STH-Comet + Supabase)",
                 className="text-center text-muted small py-2",
             ),
         ],
@@ -37,6 +38,7 @@ def create_app() -> Dash:
         className="py-3 px-4",
     )
 
+    register_api_routes(app.server)  # type: ignore[arg-type]
     register_dashboard_callbacks(app)
     register_wokwi_hub_callbacks(app)
     return app
@@ -45,4 +47,4 @@ def create_app() -> Dash:
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=8050, debug=True)
+    app.run(host="0.0.0.0", port=8050, debug=True)
