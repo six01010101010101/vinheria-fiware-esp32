@@ -25,6 +25,11 @@ def render_real_vineyards_panel() -> dbc.Card:
     """Renderiza o seletor de vinícolas reais e a grade global de telemetria verídica ao vivo."""
     options = [
         {
+            "label": "⚡ Sincronização Direta Wokwi ESP32 (#478106752109243393) ↔ Site & API em Tempo Real",
+            "value": "wokwi_only",
+        }
+    ] + [
+        {
             "label": (
                 f"{COUNTRY_FLAGS.get(str(meta['country']), '🌍')} "
                 f"{meta['name']} — {meta['region']} ({meta['country']}) "
@@ -34,12 +39,6 @@ def render_real_vineyards_panel() -> dbc.Card:
         }
         for key, meta in REAL_VINEYARDS.items()
     ]
-    options.append(
-        {
-            "label": "🔌 Modo Simulador Wokwi ESP32 (#478106752109243393) / Cenários de Teste Manuais",
-            "value": "wokwi_only",
-        }
-    )
 
     return dbc.Card(
         dbc.CardBody(
@@ -63,13 +62,13 @@ def render_real_vineyards_panel() -> dbc.Card:
                         dbc.Col(
                             [
                                 dbc.Label(
-                                    "Selecionar Vinícola Real Ativa no Painel, Gráficos 24h & Telinha Verde:",
+                                    "Fonte Ativa na Telinha Verde, Gráficos & Wokwi ESP32:",
                                     className="small fw-bold text-info mb-1",
                                 ),
                                 dcc.Dropdown(
                                     id="dropdown-real-vineyard",
                                     options=options,
-                                    value="miolo_br",
+                                    value="wokwi_only",
                                     clearable=False,
                                     className="text-dark small",
                                 ),

@@ -7,10 +7,18 @@ cabeçalhos FIWARE, tópicos Ultralight 2.0 e Presets de Vinho.
 import os
 from typing import Any, Dict
 
-# Configurações de rede padrão do servidor FIWARE e Broker MQTT Real-Time (Wokwi)
+# Configurações de rede padrão do servidor FIWARE, Broker MQTT Wokwi e APIs em Nuvem (Plug-and-Play)
 DEFAULT_FIWARE_HOST: str = os.getenv("FIWARE_HOST", "localhost")
 DEFAULT_WOKWI_BROKER: str = os.getenv("WOKWI_MQTT_BROKER", "broker.hivemq.com")
 WOKWI_PROJECT_URL: str = "https://wokwi.com/projects/478106752109243393"
+OPEN_METEO_API_URL: str = "https://api.open-meteo.com/v1/forecast"
+DEFAULT_SUPABASE_URL: str = os.getenv(
+    "SUPABASE_URL", "https://slqozouuqzxwmfswyroo.supabase.co"
+)
+DEFAULT_SUPABASE_ANON_KEY: str = os.getenv(
+    "SUPABASE_ANON_KEY",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNscW96b3V1cXp4d21mc3d5cm9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyMDkxOTMsImV4cCI6MjEwNzc4NTE5M30.spwyPsi31yzG6rvh2FsSHWM8Fkv2CPLHpUx9Us8aRo4",
+)
 ORION_PORT: int = int(os.getenv("ORION_PORT", "1026"))
 IOT_AGENT_PORT: int = int(os.getenv("IOT_AGENT_PORT", "4041"))
 STH_COMET_PORT: int = int(os.getenv("STH_COMET_PORT", "8666"))

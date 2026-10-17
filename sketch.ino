@@ -2,6 +2,7 @@
  * CHECK POINT 5 - MONITORAMENTO GLOBAL DE VINHERIAS (WOKWI ESP32 - ZERO LIBS)
  * Hardware Barril 3D: ESP32 + Tela Verde LCD 16x2 I2C (SDA 21/SCL 22) + DHT22 (15) + LDR (34)
  * Atuadores: LED Verde OK (GPIO 5) | LED Vermelho Alerta (GPIO 18) | LED Azul Remoto (GPIO 2) + Buzzer (4)
+ * Sincronia Bidirecional em Tempo Real: Wokwi <-> Site Web (MQTT :1883 & Cloud API)
  */
 #include <WiFi.h>
 #include <Wire.h>
@@ -25,29 +26,21 @@ const char* TOPIC_PUBLISH_CMDEXE = "/TEF/vine001/cmdexe";
 
 WiFiClient espClient;
 String currentAlertMode = "normal", lastRow0 = "", lastRow1 = "";
-unsigned long lastDhtMs = 0, lastLdrMs = 0, lastPublishMs = 0, lastBlinkMs = 0, lastPingMs = 0, lastRetryMs = 0;
-float validTemp = 15.5f, validHum = 68.0f, validLum = 12.0f;
-float pubTemp = -999.0f, pubHum = -999.0f, pubLum = -999.0f;
+unsigned long lastDhtMs = 0, lastLdrMs = 0, lastPublishMs = 0, lastBlinkMs = 0, lastPingMs = 0, lastRetryMs = 0, remoteSyncUntilMs = 0;
+float validTemp = 15.5f, validHum = 68.0f, validLum = 12.0f, lastHwTemp = 15.5f, lastHwHum = 68.0f, lastHwLum = 12.0f;
 bool ledState = false;
 int soundStep = 0;
 
-void lcdExpanderWrite(uint8_t data) {
-  Wire.beginTransmission(LCD_ADDR); Wire.write(data | 0x08); Wire.endTransmission();
-}
+void lcdExpanderWrite(uint8_t data) { Wire.beginTransmission(LCD_ADDR); Wire.write(data | 0x08); Wire.endTransmission(); }
 void lcdWrite4Bits(uint8_t val) {
   lcdExpanderWrite(val); lcdExpanderWrite(val | 0x04); delayMicroseconds(2);
   lcdExpanderWrite(val & ~0x04); delayMicroseconds(45);
 }
-void lcdSend(uint8_t val, uint8_t mode) {
-  lcdWrite4Bits((val & 0xF0) | mode); lcdWrite4Bits(((val << 4) & 0xF0) | mode);
-}
+void lcdSend(uint8_t val, uint8_t mode) { lcdWrite4Bits((val & 0xF0) | mode); lcdWrite4Bits(((val << 4) & 0xF0) | mode); }
 void lcdInit() {
-  Wire.begin(21, 22); Wire.setClock(400000); delay(50);
-  lcdExpanderWrite(0x00); delay(20);
-  lcdWrite4Bits(0x30); delayMicroseconds(4500);
-  lcdWrite4Bits(0x30); delayMicroseconds(4500);
-  lcdWrite4Bits(0x30); delayMicroseconds(150);
-  lcdWrite4Bits(0x20); delayMicroseconds(150);
+  Wire.begin(21, 22); Wire.setClock(400000); delay(50); lcdExpanderWrite(0x00); delay(20);
+  lcdWrite4Bits(0x30); delayMicroseconds(4500); lcdWrite4Bits(0x30); delayMicroseconds(4500);
+  lcdWrite4Bits(0x30); delayMicroseconds(150);  lcdWrite4Bits(0x20); delayMicroseconds(150);
   lcdSend(0x28, 0); lcdSend(0x0C, 0); lcdSend(0x06, 0); lcdSend(0x01, 0); delay(3);
 }
 void lcdPrintRow16(uint8_t row, String txt) {
@@ -97,7 +90,21 @@ void mqttSubscribe(const char* topic) {
   uint8_t pkt[6] = {0x82, (uint8_t)(5 + tLen), 0x00, 0x01, (uint8_t)(tLen >> 8), (uint8_t)(tLen & 0xFF)};
   espClient.write(pkt, 6); espClient.print(topic); espClient.write((uint8_t)0x00);
 }
-void applyAlertMode(String mode) {
+void parseAndApplyCommand(String rawMsg) {
+  int p1 = rawMsg.indexOf('|');
+  String rest = (p1 != -1) ? rawMsg.substring(p1 + 1) : rawMsg;
+  int p2 = rest.indexOf('|');
+  String mode = (p2 != -1) ? rest.substring(0, p2) : rest;
+  if (p2 != -1) {
+    String vals = rest.substring(p2 + 1);
+    int p3 = vals.indexOf('|'), p4 = vals.lastIndexOf('|');
+    if (p3 != -1 && p4 > p3) {
+      validTemp = vals.substring(0, p3).toFloat();
+      validHum  = vals.substring(p3 + 1, p4).toFloat();
+      validLum  = vals.substring(p4 + 1).toFloat();
+      remoteSyncUntilMs = millis() + 12000;
+    }
+  }
   mode.trim(); if (mode.length() == 0) return;
   bool changed = (mode != currentAlertMode); currentAlertMode = mode;
   if (currentAlertMode == "normal") {
@@ -140,8 +147,7 @@ void mqttLoop() {
     if ((hdr & 0xF0) == 0x30 && idx > 2) {
       uint16_t tLen = ((uint16_t)pkt[0] << 8) | pkt[1];
       if (idx >= (uint16_t)(2 + tLen)) {
-        String msg = String((char*)(pkt + 2 + tLen)); int pipeIdx = msg.indexOf('|');
-        applyAlertMode((pipeIdx != -1) ? msg.substring(pipeIdx + 1) : msg);
+        parseAndApplyCommand(String((char*)(pkt + 2 + tLen)));
         mqttPublish(TOPIC_PUBLISH_CMDEXE, "vine001@alert|OK_" + currentAlertMode);
       }
     }
@@ -167,15 +173,20 @@ void handleRemoteAlertActuators() {
 }
 void publishSensorsRealTime() {
   unsigned long now = millis();
-  if (now - lastDhtMs >= 1400) { lastDhtMs = now; readDht22Safe(validTemp, validHum); }
+  float hwT = lastHwTemp, hwH = lastHwHum, hwL = lastHwLum;
+  if (now - lastDhtMs >= 1400) { lastDhtMs = now; readDht22Safe(hwT, hwH); }
   if (now - lastLdrMs >= 250) {
-    lastLdrMs = now; float rawLum = map(analogRead(PIN_LDR), 0, 4095, 100, 0);
-    if (rawLum >= 0.0f && rawLum <= 100.0f) validLum = rawLum;
+    lastLdrMs = now; float rL = map(analogRead(PIN_LDR), 0, 4095, 100, 0);
+    if (rL >= 0.0f && rL <= 100.0f) hwL = rL;
   }
-  bool changed = (fabs(validTemp - pubTemp) >= 0.2f) || (fabs(validHum - pubHum) >= 0.5f) || (fabs(validLum - pubLum) >= 1.0f);
-  if (changed || (now - lastPublishMs >= 1500)) {
-    pubTemp = validTemp; pubHum = validHum; pubLum = validLum; lastPublishMs = now;
-    mqttPublish(TOPIC_PUBLISH_ATTRS, "t|" + String(validTemp, 1) + "|h|" + String(validHum, 1) + "|l|" + String(validLum, 1));
+  bool hwMoved = (fabs(hwT - lastHwTemp) >= 0.2f) || (fabs(hwH - lastHwHum) >= 0.5f) || (fabs(hwL - lastHwLum) >= 1.0f);
+  if (hwMoved) { lastHwTemp = hwT; lastHwHum = hwH; lastHwLum = hwL; remoteSyncUntilMs = 0; }
+  if (now >= remoteSyncUntilMs) { validTemp = lastHwTemp; validHum = lastHwHum; validLum = lastHwLum; }
+  if (hwMoved || (now - lastPublishMs >= 1500)) {
+    lastPublishMs = now;
+    if (now >= remoteSyncUntilMs) {
+      mqttPublish(TOPIC_PUBLISH_ATTRS, "t|" + String(validTemp, 1) + "|h|" + String(validHum, 1) + "|l|" + String(validLum, 1));
+    }
     updateGreenScreen();
   }
 }
@@ -188,6 +199,4 @@ void setup() {
   WiFi.mode(WIFI_STA); WiFi.setSleep(false); WiFi.begin(WIFI_SSID, WIFI_PASSWORD, 6);
   while (WiFi.status() != WL_CONNECTED) { delay(80); }
 }
-void loop() {
-  ensureMqttConnected(); mqttLoop(); handleRemoteAlertActuators(); publishSensorsRealTime(); delay(10);
-}
+void loop() { ensureMqttConnected(); mqttLoop(); handleRemoteAlertActuators(); publishSensorsRealTime(); delay(10); }

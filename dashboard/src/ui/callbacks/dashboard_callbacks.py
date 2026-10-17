@@ -1,7 +1,7 @@
 """
 Callbacks reativos do Dashboard Dash Otimizados em Tempo Real (1s).
-Conecta Vinícolas Reais do Mundo (Open-Meteo Satélite), Presets, Triggers,
-Gerenciamento de Devices e Telemetria Automática Wokwi MQTT aos serviços de domínio.
+Garante conversa bidirecional Plug-and-Play entre o Site, a API em Nuvem (Supabase/Open-Meteo)
+e o Simulador Wokwi ESP32 (#478106752109243393) em qualquer computador.
 """
 
 from datetime import datetime
@@ -12,6 +12,7 @@ from dash import Dash, Input, Output, State, ctx
 from src.config.settings import DEFAULT_FIWARE_HOST, DEFAULT_WOKWI_BROKER, WINE_PRESETS
 from src.models.iot_models import SensorSnapshot, TimeSeriesPoint, TriggerConfig
 from src.repositories.real_vineyards_repository import REAL_VINEYARDS
+from src.repositories.supabase_repository import SupabaseRepository
 from src.repositories.wokwi_mqtt_repository import WokwiMqttRepository
 from src.services.device_manager_service import DeviceManagerService
 from src.services.trigger_alert_service import TriggerAlertService
@@ -128,7 +129,7 @@ def register_dashboard_callbacks(app: Dash) -> None:
         _pub_clicks: int, scenario_mode: str, wokwi_broker: str, device_id: str, api_key: str, host: str,
         entity_id: str, entity_type: str, last_n: int, local_store: Dict[str, List[Dict[str, Any]]],
     ) -> Tuple[Any, Any, Any, Any, Any, Dict[str, List[Dict[str, Any]]], Any, Any]:
-        """Atualiza telemetria em Tempo Real (Vinícolas Reais / Wokwi / STH-Comet 8666) e dispara alertas ao ESP32."""
+        """Sincroniza telemetria bidirecional entre Site, Wokwi #478106752109243393, Vinícolas Reais e FIWARE."""
         clean_host = (host or DEFAULT_FIWARE_HOST).strip()
         clean_broker = (wokwi_broker or DEFAULT_WOKWI_BROKER).strip()
         clean_entity = (entity_id or "urn:ngsi-ld:Vine:001").strip()
@@ -151,6 +152,7 @@ def register_dashboard_callbacks(app: Dash) -> None:
         )
         now_str = datetime.now().strftime("%H:%M:%S")
         store = local_store or {"temperature": [], "humidity": [], "luminosity": []}
+        push_to_wokwi_lcd = False
 
         if source_mode == "sth":
             sth_series, fiware_snap, _ = DeviceManagerService.get_historical_and_latest_data(
@@ -161,37 +163,36 @@ def register_dashboard_callbacks(app: Dash) -> None:
             source_label = f"STH-Comet ({clean_host}:8666)"
         elif real_vineyard_id in REAL_VINEYARDS:
             v_series, v_snap, v_info = DeviceManagerService.get_real_vineyard_data(real_vineyard_id, last_n=n_samples)
-            if v_snap is not None and v_info is not None:
-                active_snapshot = v_snap
-                temp_pts, hum_pts, lum_pts = v_series.temperature, v_series.humidity, v_series.luminosity
-                source_label = f"🌍 {v_info.name} ({v_info.region} - {v_info.country})"
-                if ctx.triggered_id == "dropdown-real-vineyard" or (tick % 15 == 0 and v_snap.temperature is not None):
-                    WokwiMqttRepository.get_instance().publish_test_telemetry(
-                        float(v_snap.temperature or 16.0), float(v_snap.humidity or 65.0), float(v_snap.luminosity or 15.0)
-                    )
-            else:
-                active_snapshot = SensorSnapshot(cur_t, cur_h, cur_l, now_str)
-                temp_pts, hum_pts, lum_pts = wokwi_series.temperature, wokwi_series.humidity, wokwi_series.luminosity
-                source_label = "Wokwi #478106752109243393 Ao Vivo"
+            active_snapshot = v_snap or SensorSnapshot(cur_t, cur_h, cur_l, now_str)
+            temp_pts, hum_pts, lum_pts = v_series.temperature, v_series.humidity, v_series.luminosity
+            source_label = f"🌍 {v_info.name} ({v_info.region} - {v_info.country})" if v_info else "Vinícola Real"
+            push_to_wokwi_lcd = ctx.triggered_id == "dropdown-real-vineyard" or (tick % 6 == 0)
         elif scenario_mode == "wokwi_live" and wokwi_snap is not None:
             active_snapshot = wokwi_snap
             temp_pts, hum_pts, lum_pts = wokwi_series.temperature, wokwi_series.humidity, wokwi_series.luminosity
-            source_label = "Wokwi #478106752109243393 Ao Vivo"
+            source_label = "⚡ Wokwi #478106752109243393 ↔ Site Ao Vivo"
         else:
-            active_snapshot = SensorSnapshot(cur_t, cur_h, cur_l, now_str)
-            store["temperature"] = (store.get("temperature", []) + [{"t": now_str, "v": cur_t}])[-n_samples:]
-            store["humidity"] = (store.get("humidity", []) + [{"t": now_str, "v": cur_h}])[-n_samples:]
-            store["luminosity"] = (store.get("luminosity", []) + [{"t": now_str, "v": cur_l}])[-n_samples:]
+            cloud_snap = SupabaseRepository.get_instance().fetch_latest_cloud_telemetry() if scenario_mode == "wokwi_live" and tick == 0 else None
+            active_snapshot = cloud_snap or SensorSnapshot(cur_t, cur_h, cur_l, now_str)
+            store["temperature"] = (store.get("temperature", []) + [{"t": now_str, "v": active_snapshot.temperature or cur_t}])[-n_samples:]
+            store["humidity"] = (store.get("humidity", []) + [{"t": now_str, "v": active_snapshot.humidity or cur_h}])[-n_samples:]
+            store["luminosity"] = (store.get("luminosity", []) + [{"t": now_str, "v": active_snapshot.luminosity or cur_l}])[-n_samples:]
             temp_pts = [TimeSeriesPoint(d["t"], float(d["v"])) for d in store["temperature"]]
             hum_pts = [TimeSeriesPoint(d["t"], float(d["v"])) for d in store["humidity"]]
             lum_pts = [TimeSeriesPoint(d["t"], float(d["v"])) for d in store["luminosity"]]
-            source_label = "Sincronizado → Wokwi #478106752109243393"
+            source_label = "Sincronizado ↔ Wokwi #478106752109243393"
+            push_to_wokwi_lcd = scenario_mode != "wokwi_live" and (ctx.triggered_id != "interval-auto-refresh" or tick % 5 == 0)
 
         is_user_action = ctx.triggered_id != "interval-auto-refresh"
         evaluation, _, dispatch_msg = TriggerAlertService.evaluate_and_dispatch_remote_alert(
             host=clean_host, entity_id=clean_entity, snapshot=active_snapshot,
             triggers=triggers, use_fiware_http=(source_mode == "sth"), force=is_user_action,
         )
+        if push_to_wokwi_lcd and active_snapshot.temperature is not None:
+            WokwiMqttRepository.get_instance().publish_test_telemetry(
+                float(active_snapshot.temperature), float(active_snapshot.humidity or 65.0),
+                float(active_snapshot.luminosity or 15.0), evaluation.command_code,
+            )
 
         banner = build_green_hardware_plaque(active_snapshot, triggers, evaluation, dispatch_msg, source_label)
         kpis = build_kpi_cards(active_snapshot, triggers)

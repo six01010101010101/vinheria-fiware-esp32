@@ -1,6 +1,6 @@
 """
-Repositório MQTT Real-Time para integração direta e de baixa latência com o Wokwi (ESP32)
-e Broker FIWARE (Protocolo Ultralight 2.0 sobre MQTT na porta 1883).
+Repositório MQTT Real-Time Bidirecional para integração Plug-and-Play entre o Site e o Wokwi ESP32
+(#478106752109243393) sobre o Broker FIWARE / HiveMQ (Protocolo Ultralight 2.0 na porta 1883).
 """
 
 from collections import deque
@@ -17,7 +17,7 @@ from src.models.iot_models import HistoricalSeries, SensorSnapshot, TimeSeriesPo
 
 
 def _detect_wokwi_token() -> bool:
-    """Verifica se o WOKWI_CLI_TOKEN está configurado no ambiente Windows ou arquivo .env."""
+    """Verifica se o WOKWI_CLI_TOKEN está configurado no ambiente ou arquivo .env."""
     if os.getenv("WOKWI_CLI_TOKEN"):
         return True
     env_file = Path(__file__).resolve().parents[3] / ".env"
@@ -28,7 +28,7 @@ def _detect_wokwi_token() -> bool:
 
 
 class WokwiMqttRepository:
-    """Gerenciador Singleton Thread-Safe de conexão MQTT Real-Time com o Wokwi ESP32."""
+    """Gerenciador Singleton Thread-Safe de conexão MQTT Bidirecional com o Wokwi ESP32."""
 
     _instance: Optional["WokwiMqttRepository"] = None
     _lock: threading.Lock = threading.Lock()
@@ -44,6 +44,7 @@ class WokwiMqttRepository:
         self.last_ack_message: str = "Wokwi Sincronizado"
         self.last_packet_time: str = "--:--:--"
         self.packets_received: int = 0
+        self.last_hw_packet_ts: float = 0.0
         self.last_sent_cmd: str = ""
         self.last_sent_ts: float = 0.0
 
@@ -145,6 +146,7 @@ class WokwiMqttRepository:
                 self.latest_snapshot = snapshot
                 self.last_packet_time = now_str
                 self.packets_received += 1
+                self.last_hw_packet_ts = time.time()
                 if snapshot.temperature is not None:
                     self.temp_buffer.append(TimeSeriesPoint(now_str, snapshot.temperature))
                 if snapshot.humidity is not None:
@@ -168,6 +170,7 @@ class WokwiMqttRepository:
                 "broker": self.broker_host,
                 "last_packet_time": self.last_packet_time,
                 "packets_received": self.packets_received,
+                "last_hw_packet_ts": self.last_hw_packet_ts,
                 "last_ack": self.last_ack_message,
             }
             return series, self.latest_snapshot, meta
@@ -187,10 +190,12 @@ class WokwiMqttRepository:
             return True, f"Comando Ativo no Wokwi ({cmd_topic}): {cmd_payload}"
         return False, f"Falha ao publicar comando MQTT em {cmd_topic}"
 
-    def publish_test_telemetry(self, temp: float, hum: float, lum: float) -> bool:
-        """Publica telemetria Ultralight 2.0 real no broker MQTT em tempo real."""
+    def publish_test_telemetry(self, temp: float, hum: float, lum: float, cmd_code: str = "") -> bool:
+        """Sincroniza valores de Temperatura, Umidade e Luminosidade do Site direto para a Tela Verde e LEDs do Wokwi."""
         if self.client is None or not self.is_connected:
             return False
-        attrs_topic = f"/{self.api_key}/{self.device_id}/attrs"
-        info = self.client.publish(attrs_topic, f"t|{temp:.1f}|h|{hum:.1f}|l|{lum:.1f}", qos=0)
+        mode = cmd_code or self.last_sent_cmd or "normal"
+        cmd_topic = f"/{self.api_key}/{self.device_id}/cmd"
+        sync_payload = f"{self.device_id}@alert|{mode}|{temp:.1f}|{hum:.1f}|{lum:.1f}"
+        info = self.client.publish(cmd_topic, sync_payload, qos=0, retain=True)
         return info.rc == mqtt.MQTT_ERR_SUCCESS
