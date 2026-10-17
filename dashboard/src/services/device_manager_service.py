@@ -15,6 +15,7 @@ from src.models.iot_models import (
 )
 from src.repositories.fiware_iot_repository import FiwareIotRepository
 from src.repositories.sth_comet_repository import SthCometRepository
+from src.repositories.supabase_repository import SupabaseRepository
 from src.repositories.wokwi_mqtt_repository import WokwiMqttRepository
 
 
@@ -29,7 +30,7 @@ class DeviceManagerService:
         entity_type: str = "Vine",
         api_key: str = "TEF",
     ) -> Tuple[bool, str]:
-        """Valida os campos de entrada e cadastra o dispositivo + subscrição STH-Comet."""
+        """Valida os campos de entrada e cadastra o dispositivo no FIWARE e no Supabase."""
         clean_id = (device_id or "").strip()
         clean_entity = (entity_name or "").strip()
         clean_type = (entity_type or "Vine").strip()
@@ -44,6 +45,7 @@ class DeviceManagerService:
             entity_type=clean_type,
             api_key=clean_key,
         )
+        SupabaseRepository.get_instance().register_device_async(spec)
         repo = FiwareIotRepository(host=host)
         return repo.register_device(spec)
 

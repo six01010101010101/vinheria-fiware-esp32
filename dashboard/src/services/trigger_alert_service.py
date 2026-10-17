@@ -15,6 +15,7 @@ from src.config.settings import (
 )
 from src.models.iot_models import AnomalyEvaluation, SensorSnapshot, TriggerConfig
 from src.repositories.fiware_iot_repository import FiwareIotRepository
+from src.repositories.supabase_repository import SupabaseRepository
 from src.repositories.wokwi_mqtt_repository import WokwiMqttRepository
 
 
@@ -124,6 +125,11 @@ class TriggerAlertService:
         evaluation = cls.evaluate_snapshot(snapshot, triggers)
         wokwi_repo = WokwiMqttRepository.get_instance()
         mqtt_ok, mqtt_msg = wokwi_repo.publish_alert_command(evaluation.command_code, force=force)
+        SupabaseRepository.get_instance().sync_telemetry_async(
+            device_id=wokwi_repo.device_id,
+            snapshot=snapshot,
+            evaluation=evaluation,
+        )
 
         if use_fiware_http:
             fiware_repo = FiwareIotRepository(host=host)

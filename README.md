@@ -147,11 +147,15 @@ Todas as vezes que um parâmetro sai da faixa de triggers configurada no Front-e
 
 ---
 
-## 🚀 6. Links Rápidos, Simulação Wokwi e Manual
+## 🚀 6. Links Rápidos (GitHub, Wokwi, Supabase e Manual)
 
-- 📘 **[Manual Completo de Instalação e Operação (Software + Hardware)](./docs/MANUAL_INSTALACAO_E_OPERACAO.md)**
+- 💻 **Repositório Oficial no GitHub**:
+  - 👉 **[https://github.com/six01010101010101/checkpoint5-vinheria-fiware-esp32](https://github.com/six01010101010101/checkpoint5-vinheria-fiware-esp32)**
 - 🌐 **Link Oficial da Simulação no Wokwi (LDR + DHT-22 + Buzzer + LED Azul)**:
   - 👉 **[https://wokwi.com/projects/478106752109243393](https://wokwi.com/projects/478106752109243393)**
+- 🗄️ **Banco de Dados em Nuvem no Supabase (PostgreSQL — `Vinheria Agnello CP5`)**:
+  - 👉 **API / Project URL**: `https://slqozouuqzxwmfswyroo.supabase.co` (Tabelas: `vine_devices`, `vine_trigger_configs`, `vine_telemetry`)
+- 📘 **[Manual Completo de Instalação e Operação (Software + Hardware)](./docs/MANUAL_INSTALACAO_E_OPERACAO.md)**
 
 ### Execução Rápida do Dashboard:
 ```bash
