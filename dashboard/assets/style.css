@@ -1,6 +1,6 @@
 /* ==========================================================================
    Estilos Profissionais e Limpos - Monitoramento Global de Vinherias (CP5)
-   Foco em legibilidade, divisao clara de secoes e animacao real do LED Azul
+   Foco em legibilidade, divisao clara de secoes e animacao real dos 3 LEDs
    ========================================================================== */
 
 body {
@@ -26,14 +26,36 @@ body {
     padding-bottom: 0.45rem;
 }
 
-/* Indicador do LED Azul do ESP32 (Desligado vs Piscando Remotamente) */
+/* Indicadores dos 3 LEDs do ESP32: Verde (GPIO 5), Vermelho (GPIO 18) e Azul (GPIO 2) */
 .led-indicator {
     display: inline-block;
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     vertical-align: middle;
-    margin-right: 10px;
+    margin-right: 7px;
+}
+
+.led-green-on {
+    background-color: #22c55e;
+    border: 2px solid #86efac;
+    box-shadow: 0 0 6px #22c55e, 0 0 14px #16a34a;
+}
+
+.led-green-off {
+    background-color: #143321;
+    border: 2px solid #1e462f;
+}
+
+.led-red-on {
+    background-color: #ef4444;
+    border: 2px solid #fca5a5;
+    box-shadow: 0 0 6px #ef4444, 0 0 16px #dc2626;
+}
+
+.led-red-off {
+    background-color: #3b181c;
+    border: 2px solid #522429;
 }
 
 .led-blue-off {

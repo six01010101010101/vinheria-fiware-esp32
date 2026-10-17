@@ -1,6 +1,6 @@
 """
 Construtor de cartões visuais limpos e profissionais:
-- Banner de Alerta Remoto do ESP32 (LED Azul Piscante Real + Buzzer por Anomalia)
+- Banner de Alerta Remoto do ESP32 (LED Verde GPIO 5, LED Vermelho GPIO 18, LED Azul Piscante GPIO 2 + Buzzer)
 - 3 Cartões de Leitura em Tempo Real (KPIs com indicador individual de Trigger)
 - Barra de Status de Conexão e Tabela de Dispositivos FIWARE.
 """
@@ -67,8 +67,10 @@ def build_remote_alert_banner(
     dispatch_msg: str,
     source_label: str,
 ) -> dbc.Card:
-    """Exibe de forma limpa e direta o estado do LED Azul e do Buzzer no ESP32."""
-    led_cls = "led-indicator led-blue-blinking" if evaluation.is_anomalous else "led-indicator led-blue-off"
+    """Exibe de forma limpa e direta o estado dos 3 LEDs (Verde, Vermelho e Azul) e do Buzzer no ESP32."""
+    led_green_cls = "led-indicator led-green-off" if evaluation.is_anomalous else "led-indicator led-green-on"
+    led_red_cls = "led-indicator led-red-on" if evaluation.is_anomalous else "led-indicator led-red-off"
+    led_blue_cls = "led-indicator led-blue-blinking" if evaluation.is_anomalous else "led-indicator led-blue-off"
     border_cls = "border-danger" if evaluation.is_anomalous else "border-success"
 
     return dbc.Card(
@@ -78,21 +80,18 @@ def build_remote_alert_banner(
                     dbc.Col(
                         [
                             html.Div(
-                                "2. Status dos Atuadores Remotos no ESP32 (Acionados pelo Front-end)",
+                                "2. Status dos 3 LEDs (Verde, Vermelho e Azul) + Buzzer no ESP32 (Wokwi & Caixa Física)",
                                 className="section-title",
                             ),
                             html.Div(
                                 [
-                                    html.Span(className=led_cls),
-                                    html.Strong(evaluation.led_status_text, className="fs-5 text-white me-3"),
-                                    dbc.Badge(
-                                        f"Comando Ativo: alert|{evaluation.command_code}",
-                                        color=evaluation.badge_color,
-                                        className="p-2 me-2",
-                                    ),
+                                    html.Span([html.Span(className=led_green_cls), html.Strong("LED Verde (GPIO 5): Normal OK" if not evaluation.is_anomalous else "LED Verde (GPIO 5): Apagado", className="text-light me-3")]),
+                                    html.Span([html.Span(className=led_red_cls), html.Strong("LED Vermelho (GPIO 18): ALERTA ATIVO" if evaluation.is_anomalous else "LED Vermelho (GPIO 18): Apagado", className="text-light me-3")]),
+                                    html.Span([html.Span(className=led_blue_cls), html.Strong(evaluation.led_status_text, className="text-info me-3")]),
+                                    dbc.Badge(f"Comando: alert|{evaluation.command_code}", color=evaluation.badge_color, className="p-2 me-2"),
                                     dbc.Badge(source_label, color="dark", className="p-2 border border-secondary"),
                                 ],
-                                className="mb-2 d-flex align-items-center flex-wrap",
+                                className="mb-2 d-flex align-items-center flex-wrap gap-1",
                             ),
                             html.Div(f"🔊 {evaluation.buzzer_pattern_text}", className="fw-semibold text-warning mb-1"),
                             html.Div(" • ".join(evaluation.details_messages), className="small text-light mb-1"),
@@ -109,7 +108,7 @@ def build_remote_alert_banner(
                                     className="kpi-value text-success" if evaluation.cellar_health_score >= 85 else "kpi-value text-danger",
                                 ),
                                 html.Small(
-                                    "Operação Normal" if not evaluation.is_anomalous else "Anomalia Detectada",
+                                    "Operação Normal (LED Verde ON)" if not evaluation.is_anomalous else "Anomalia (Vermelho ON + Azul Pisca)",
                                     className="text-light",
                                 ),
                             ],

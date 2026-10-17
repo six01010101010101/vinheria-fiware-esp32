@@ -1,29 +1,27 @@
 /*
  * CHECK POINT 5 - MONITORAMENTO GLOBAL DE VINHERIAS (PROTOTIPO FISICO EM CAIXA - ESP32)
- * Hardware Caixa: ESP32 + DHT11/DHT22 (GPIO 15) + LDR (GPIO 34) + LED Azul (GPIO 2) + Buzzer (GPIO 4)
- * Compila nativamente na Arduino IDE SEM precisar instalar bibliotecas externas (Zero-Libs)!
- * Protocolo: FIWARE Ultralight 2.0 sobre MQTT 3.1.1 Binario (TCP_NODELAY)
+ * Hardware Caixa: ESP32 + DHT11/DHT22 (GPIO 15) + LDR (GPIO 34) + Buzzer (GPIO 4)
+ * 3 LEDs: LED Verde OK (GPIO 5) | LED Vermelho Alerta (GPIO 18) | LED Azul Remoto (GPIO 2)
  */
 
 #include <WiFi.h>
 #include <math.h>
 
-// --- Configure o Wi-Fi do Laboratorio / Roteador do Celular (Hotspot 2.4GHz) ---
 const char* WIFI_SSID_PRIMARY    = "FIAP-IOT";
 const char* WIFI_PASS_PRIMARY    = "senha_wifi_lab";
-
-// --- Broker MQTT Sincronizado com o Site (broker.hivemq.com ou IP do FIWARE) ---
 const char* MQTT_BROKER          = "broker.hivemq.com";
 const int   MQTT_PORT            = 1883;
 const char* TOPIC_PUBLISH_ATTRS  = "/TEF/vine001/attrs";
 const char* TOPIC_SUBSCRIBE_CMD  = "/TEF/vine001/cmd";
 const char* TOPIC_PUBLISH_CMDEXE = "/TEF/vine001/cmdexe";
 
-#define PIN_LED_BLUE 2    // LED Azul Remoto (GPIO 2)
-#define PIN_BUZZER   4    // Buzzer Sonoro Multi-Frequencia (GPIO 4)
-#define PIN_DHT      15   // Sensor DHT-11 (ou DHT-22) na Caixa Fisica (GPIO 15)
-#define PIN_LDR      34   // Sensor LDR Divisor de Tensao (GPIO 34 - ADC1)
-#define USE_DHT11    1    // 1 = DHT-11 (Bancada Fisica) | 0 = DHT-22 (Simulador Wokwi)
+#define PIN_LED_BLUE  2    // LED Azul Remoto (GPIO 2)
+#define PIN_BUZZER    4    // Buzzer Sonoro Multi-Frequencia (GPIO 4)
+#define PIN_LED_GREEN 5    // LED Verde: Operacao Normal OK (GPIO 5)
+#define PIN_DHT       15   // Sensor DHT-11 (ou DHT-22) na Caixa Fisica (GPIO 15)
+#define PIN_LED_RED   18   // LED Vermelho: Anomalia / Alerta Critico (GPIO 18)
+#define PIN_LDR       34   // Sensor LDR Divisor de Tensao (GPIO 34 - ADC1)
+#define USE_DHT11     1    // 1 = DHT-11 (Bancada Fisica) | 0 = DHT-22 (Simulador Wokwi)
 
 WiFiClient espClient;
 String currentAlertMode = "normal";
@@ -33,12 +31,11 @@ float pubTemp = -999.0f, pubHum = -999.0f, pubLum = -999.0f;
 bool ledState = false;
 int soundStep = 0;
 
-// Leitor Universal DHT-11 / DHT-22 com Checksum 8-bit e Protecao contra Picos de Escala
 bool readDhtPhysicalSafe(float &outTemp, float &outHum) {
   uint8_t data[5] = {0, 0, 0, 0, 0};
   pinMode(PIN_DHT, OUTPUT);
   digitalWrite(PIN_DHT, LOW);
-  delay(USE_DHT11 ? 18 : 2); // DHT-11 exige 18ms de pulso LOW; DHT-22 exige >1.1ms
+  delay(USE_DHT11 ? 18 : 2);
   pinMode(PIN_DHT, INPUT_PULLUP);
 
   unsigned long t0 = micros();
@@ -103,15 +100,16 @@ void applyAlertMode(String mode) {
   bool changed = (mode != currentAlertMode);
   currentAlertMode = mode;
   if (currentAlertMode == "normal") {
-    digitalWrite(PIN_LED_BLUE, LOW); noTone(PIN_BUZZER); ledState = false;
-  } else if (changed) {
-    ledState = false; lastBlinkMs = 0;
+    digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW);
+    digitalWrite(PIN_LED_BLUE, LOW);   noTone(PIN_BUZZER); ledState = false;
+  } else {
+    digitalWrite(PIN_LED_GREEN, LOW);  digitalWrite(PIN_LED_RED, HIGH);
+    if (changed) { ledState = false; lastBlinkMs = 0; }
   }
 }
 
 void ensureMqttConnected() {
-  if (WiFi.status() != WL_CONNECTED) return;
-  if (espClient.connected()) return;
+  if (WiFi.status() != WL_CONNECTED || espClient.connected()) return;
   unsigned long now = millis();
   if (now - lastRetryMs < 1500) return;
   lastRetryMs = now;
@@ -171,9 +169,11 @@ void mqttLoop() {
 
 void handleRemoteAlertActuators() {
   if (currentAlertMode == "normal") {
+    digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW);
     if (ledState) { digitalWrite(PIN_LED_BLUE, LOW); noTone(PIN_BUZZER); ledState = false; }
     return;
   }
+  digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH);
   unsigned long now = millis(), interval = (currentAlertMode == "multi") ? 180 : 320;
   if (lastBlinkMs == 0 || (now - lastBlinkMs >= interval)) {
     lastBlinkMs = (now == 0) ? 1 : now;
@@ -205,8 +205,9 @@ void publishSensorsRealTime() {
 
 void setup() {
   Serial.begin(115200);
-  pinMode(PIN_LED_BLUE, OUTPUT); pinMode(PIN_BUZZER, OUTPUT); pinMode(PIN_LDR, INPUT);
-  digitalWrite(PIN_LED_BLUE, LOW);
+  pinMode(PIN_LED_GREEN, OUTPUT); pinMode(PIN_LED_RED, OUTPUT);
+  pinMode(PIN_LED_BLUE, OUTPUT);  pinMode(PIN_BUZZER, OUTPUT); pinMode(PIN_LDR, INPUT);
+  digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW); digitalWrite(PIN_LED_BLUE, LOW);
   WiFi.mode(WIFI_STA); WiFi.setSleep(false); WiFi.setAutoReconnect(true);
   WiFi.begin(WIFI_SSID_PRIMARY, WIFI_PASS_PRIMARY);
   unsigned long t0 = millis();
@@ -217,9 +218,5 @@ void setup() {
 }
 
 void loop() {
-  ensureMqttConnected();
-  mqttLoop();
-  handleRemoteAlertActuators();
-  publishSensorsRealTime();
-  delay(10);
+  ensureMqttConnected(); mqttLoop(); handleRemoteAlertActuators(); publishSensorsRealTime(); delay(10);
 }

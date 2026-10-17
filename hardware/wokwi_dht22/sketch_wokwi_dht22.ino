@@ -1,7 +1,7 @@
 /*
  * CHECK POINT 5 - MONITORAMENTO GLOBAL DE VINHERIAS (WOKWI ESP32 - ZERO LIBS)
- * Hardware: ESP32 + DHT22 (GPIO 15) + LDR (GPIO 34) + LED Azul (GPIO 2) + Buzzer (GPIO 4)
- * Protocolo: FIWARE Ultralight 2.0 sobre MQTT 3.1.1 Binário Nativo (WiFiClient)
+ * Hardware: ESP32 + DHT22 (GPIO 15) + LDR (GPIO 34) + Buzzer (GPIO 4)
+ * 3 LEDs: LED Verde OK (GPIO 5) | LED Vermelho Alerta (GPIO 18) | LED Azul Remoto (GPIO 2)
  */
 
 #include <WiFi.h>
@@ -15,10 +15,12 @@ const char* TOPIC_PUBLISH_ATTRS  = "/TEF/vine001/attrs";
 const char* TOPIC_SUBSCRIBE_CMD  = "/TEF/vine001/cmd";
 const char* TOPIC_PUBLISH_CMDEXE = "/TEF/vine001/cmdexe";
 
-#define PIN_LED_BLUE 2
-#define PIN_BUZZER   4
-#define PIN_DHT      15
-#define PIN_LDR      34
+#define PIN_LED_BLUE  2   // LED Azul: Pisca remotamente pelo Front-end em anomalia
+#define PIN_BUZZER    4   // Buzzer: Assinatura sonora distinta para cada anomalia
+#define PIN_LED_GREEN 5   // LED Verde: Aceso fixo quando a Adega esta em Operacao Normal (OK)
+#define PIN_DHT       15  // Sensor DHT-22 (Temperatura e Umidade)
+#define PIN_LED_RED   18  // LED Vermelho: Acende indicando estado critico / anomalia ativa
+#define PIN_LDR       34  // Sensor LDR (Luminosidade 0-100%)
 
 WiFiClient espClient;
 String currentAlertMode = "normal";
@@ -28,7 +30,6 @@ float pubTemp = -999.0f, pubHum = -999.0f, pubLum = -999.0f;
 bool ledState = false;
 int soundStep = 0;
 
-// Leitor Nativo DHT-22 com Checksum 8-bit e Proteção contra Escala (-40..80 C / 0..100 %)
 bool readDht22Safe(float &outTemp, float &outHum) {
   uint8_t data[5] = {0, 0, 0, 0, 0};
   pinMode(PIN_DHT, OUTPUT);
@@ -58,9 +59,7 @@ bool readDht22Safe(float &outTemp, float &outHum) {
   float t = ((uint16_t)((data[2] & 0x7F) << 8) | data[3]) * 0.1f;
   if (data[2] & 0x80) t = -t;
   if (isnan(t) || isnan(h) || t < -40.0f || t > 80.0f || h < 0.0f || h > 100.0f) return false;
-
-  outTemp = t;
-  outHum  = h;
+  outTemp = t; outHum = h;
   return true;
 }
 
@@ -70,8 +69,7 @@ void mqttPublish(const char* topic, const String &payload) {
   uint32_t remLen = 2 + tLen + pLen;
   espClient.write((uint8_t)0x30);
   do {
-    uint8_t enc = remLen % 128;
-    remLen /= 128;
+    uint8_t enc = remLen % 128; remLen /= 128;
     if (remLen > 0) enc |= 128;
     espClient.write(enc);
   } while (remLen > 0);
@@ -95,12 +93,15 @@ void applyAlertMode(String mode) {
   bool changed = (mode != currentAlertMode);
   currentAlertMode = mode;
   if (currentAlertMode == "normal") {
+    digitalWrite(PIN_LED_GREEN, HIGH);
+    digitalWrite(PIN_LED_RED, LOW);
     digitalWrite(PIN_LED_BLUE, LOW);
     noTone(PIN_BUZZER);
     ledState = false;
-  } else if (changed) {
-    ledState = false;
-    lastBlinkMs = 0;
+  } else {
+    digitalWrite(PIN_LED_GREEN, LOW);
+    digitalWrite(PIN_LED_RED, HIGH);
+    if (changed) { ledState = false; lastBlinkMs = 0; }
   }
 }
 
@@ -131,8 +132,7 @@ void mqttLoop() {
   if (!espClient.connected()) return;
   if (millis() - lastPingMs > 8000) {
     lastPingMs = millis();
-    uint8_t ping[2] = {0xC0, 0x00};
-    espClient.write(ping, 2);
+    uint8_t ping[2] = {0xC0, 0x00}; espClient.write(ping, 2);
   }
   while (espClient.available() >= 2) {
     uint8_t hdr = espClient.read(), enc = 0;
@@ -142,29 +142,22 @@ void mqttLoop() {
       while (!espClient.available() && (millis() - t0) < 150) { delay(1); }
       if (!espClient.available()) return;
       enc = espClient.read();
-      remLen += (enc & 127) * mult;
-      mult *= 128;
+      remLen += (enc & 127) * mult; mult *= 128;
     } while ((enc & 128) != 0);
 
-    uint8_t pkt[256];
-    uint16_t idx = 0;
+    uint8_t pkt[256]; uint16_t idx = 0;
     for (uint32_t i = 0; i < remLen; i++) {
       unsigned long t0 = millis();
       while (!espClient.available() && (millis() - t0) < 150) { delay(1); }
-      if (espClient.available()) {
-        uint8_t b = espClient.read();
-        if (idx < 255) pkt[idx++] = b;
-      }
+      if (espClient.available()) { uint8_t b = espClient.read(); if (idx < 255) pkt[idx++] = b; }
     }
     pkt[idx] = 0;
-
     if ((hdr & 0xF0) == 0x30 && idx > 2) {
       uint16_t tLen = ((uint16_t)pkt[0] << 8) | pkt[1];
       if (idx >= (uint16_t)(2 + tLen)) {
         String msg = String((char*)(pkt + 2 + tLen));
         int pipeIdx = msg.indexOf('|');
-        String cmd = (pipeIdx != -1) ? msg.substring(pipeIdx + 1) : msg;
-        applyAlertMode(cmd);
+        applyAlertMode((pipeIdx != -1) ? msg.substring(pipeIdx + 1) : msg);
         mqttPublish(TOPIC_PUBLISH_CMDEXE, "vine001@alert|OK_" + currentAlertMode);
       }
     }
@@ -173,9 +166,11 @@ void mqttLoop() {
 
 void handleRemoteAlertActuators() {
   if (currentAlertMode == "normal") {
+    digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW);
     if (ledState) { digitalWrite(PIN_LED_BLUE, LOW); noTone(PIN_BUZZER); ledState = false; }
     return;
   }
+  digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH);
   unsigned long now = millis(), interval = (currentAlertMode == "multi") ? 180 : 320;
   if (lastBlinkMs == 0 || (now - lastBlinkMs >= interval)) {
     lastBlinkMs = (now == 0) ? 1 : now;
@@ -207,17 +202,14 @@ void publishSensorsRealTime() {
 
 void setup() {
   Serial.begin(115200);
-  pinMode(PIN_LED_BLUE, OUTPUT); pinMode(PIN_BUZZER, OUTPUT); pinMode(PIN_LDR, INPUT);
-  digitalWrite(PIN_LED_BLUE, LOW);
+  pinMode(PIN_LED_GREEN, OUTPUT); pinMode(PIN_LED_RED, OUTPUT);
+  pinMode(PIN_LED_BLUE, OUTPUT);  pinMode(PIN_BUZZER, OUTPUT); pinMode(PIN_LDR, INPUT);
+  digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW); digitalWrite(PIN_LED_BLUE, LOW);
   WiFi.mode(WIFI_STA); WiFi.setSleep(false); WiFi.begin(WIFI_SSID, WIFI_PASSWORD, 6);
   while (WiFi.status() != WL_CONNECTED) { delay(80); }
   Serial.println("[WiFi] Wokwi Conectado! IP: " + WiFi.localIP().toString());
 }
 
 void loop() {
-  ensureMqttConnected();
-  mqttLoop();
-  handleRemoteAlertActuators();
-  publishSensorsRealTime();
-  delay(10);
+  ensureMqttConnected(); mqttLoop(); handleRemoteAlertActuators(); publishSensorsRealTime(); delay(10);
 }
