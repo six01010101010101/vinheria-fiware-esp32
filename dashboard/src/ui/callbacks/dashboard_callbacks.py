@@ -18,7 +18,7 @@ from src.ui.components.charts_and_status import build_sensor_figure
 from src.ui.components.hardware_plaque import build_green_hardware_plaque
 from src.ui.components.status_cards_builder import (
     build_devices_table,
-    build_remote_alert_banner,
+    build_kpi_cards,
     build_wokwi_status_bar,
 )
 
@@ -180,8 +180,8 @@ def register_dashboard_callbacks(app: Dash) -> None:
             force=is_user_action,
         )
 
-        banner = build_remote_alert_banner(evaluation, dispatch_ok, dispatch_msg, source_label)
-        kpis = build_green_hardware_plaque(active_snapshot, triggers, evaluation, dispatch_msg, source_label)
+        banner = build_green_hardware_plaque(active_snapshot, triggers, evaluation, dispatch_msg, source_label)
+        kpis = build_kpi_cards(active_snapshot, triggers)
         fig_t = build_sensor_figure("Temperatura", "°C", temp_pts, triggers.temp_min, triggers.temp_max, "#ff7875")
         fig_h = build_sensor_figure("Umidade Relativa", "%", hum_pts, triggers.hum_min, triggers.hum_max, "#40a9ff")
         fig_l = build_sensor_figure("Luminosidade (LDR)", "%", lum_pts, triggers.lum_min, triggers.lum_max, "#ffd666")

@@ -1,6 +1,6 @@
 /* ==========================================================================
-   Estilos Profissionais e Limpos - Monitoramento Global de Vinherias (CP5)
-   Barril 3D (Corpo_Barril.STL + Tampa_Display_LCD16x2.STL) e Telinha Verde
+   Estilos Profissionais e Grid Perfeito - Monitoramento Global de Vinherias
+   Barril 3D Compacto + Telinha Verde Retangular (Medida do Recorte 66x26mm)
    ========================================================================== */
 
 body {
@@ -16,30 +16,30 @@ body {
 }
 
 .section-title {
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     font-weight: 700;
     letter-spacing: 0.03em;
     text-transform: uppercase;
     color: #9bb0c9;
-    margin-bottom: 0.85rem;
+    margin-bottom: 0.7rem;
     border-bottom: 1px solid #232e3f;
-    padding-bottom: 0.45rem;
+    padding-bottom: 0.4rem;
 }
 
 /* Indicadores dos 3 LEDs do ESP32: Verde (GPIO 5), Vermelho (GPIO 18) e Azul (GPIO 2) */
 .led-indicator {
     display: inline-block;
-    width: 18px;
-    height: 18px;
+    width: 15px;
+    height: 15px;
     border-radius: 50%;
     vertical-align: middle;
-    margin-right: 7px;
+    margin-right: 6px;
 }
 
 .led-green-on {
     background-color: #22c55e;
     border: 2px solid #86efac;
-    box-shadow: 0 0 6px #22c55e, 0 0 14px #16a34a;
+    box-shadow: 0 0 6px #22c55e, 0 0 12px #16a34a;
 }
 
 .led-green-off {
@@ -50,7 +50,7 @@ body {
 .led-red-on {
     background-color: #ef4444;
     border: 2px solid #fca5a5;
-    box-shadow: 0 0 6px #ef4444, 0 0 16px #dc2626;
+    box-shadow: 0 0 6px #ef4444, 0 0 14px #dc2626;
 }
 
 .led-red-off {
@@ -76,7 +76,7 @@ body {
     }
     100% {
         background-color: #0088ff;
-        box-shadow: 0 0 8px #0088ff, 0 0 20px #00c3ff;
+        box-shadow: 0 0 8px #0088ff, 0 0 18px #00c3ff;
         transform: scale(1);
     }
 }
@@ -87,103 +87,120 @@ body {
 }
 
 .kpi-value {
-    font-size: 1.95rem;
+    font-size: 1.75rem;
     font-weight: 700;
-    line-height: 1.2;
+    line-height: 1.15;
 }
 
 .custom-icon {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     object-fit: contain;
     vertical-align: middle;
-    margin-right: 8px;
+    margin-right: 7px;
 }
 
 .custom-icon-lg {
-    width: 34px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
     object-fit: contain;
     vertical-align: middle;
     margin-right: 10px;
 }
 
 .custom-icon-sm {
-    width: 18px;
-    height: 18px;
+    width: 17px;
+    height: 17px;
     object-fit: contain;
     vertical-align: middle;
     margin-right: 6px;
 }
 
 /* ==========================================================================
-   Tampa_Display_LCD16x2.STL com a Telinha Verde Encaixada no Recorte Retangular
+   Miniaturas Compactas dos Prototipos 3D (Tampa + Barril)
    ========================================================================== */
-.barrel-lid-wrapper {
-    position: relative;
-    width: 100%;
-    max-width: 340px;
-    aspect-ratio: 1 / 1;
-    margin: 0 auto;
+.proto-thumb-box {
+    background-color: #10161f;
+    border: 1px solid #263244;
+    border-radius: 8px;
+    padding: 8px 10px;
 }
 
-.barrel-lid-img {
+.barrel-lid-mini {
     position: relative;
+    width: 112px;
+    height: 112px;
+    flex-shrink: 0;
+}
+
+.barrel-lid-mini-img {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    z-index: 2;
-    pointer-events: none;
-    filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.65));
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.55));
 }
 
-.barrel-lcd-slot {
+.barrel-lcd-mini-slot {
     position: absolute;
-    left: 20.2%;
-    top: 38.1%;
-    width: 59.6%;
-    height: 23.8%;
-    z-index: 3;
-    background: repeating-linear-gradient(0deg, #05240c 0px, #05240c 2px, #072f10 2px, #072f10 4px);
-    border: 2px solid #0f5323;
-    border-radius: 3px;
-    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.85), 0 0 10px rgba(57, 255, 20, 0.25);
+    left: 20.5%;
+    top: 38.4%;
+    width: 59.0%;
+    height: 23.2%;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 4px 8px;
+    align-items: center;
     overflow: hidden;
+    pointer-events: none;
 }
 
-.barrel-lcd-line {
+.barrel-lcd-mini-text {
     color: #39ff14;
     font-family: "Consolas", "Courier New", monospace;
     font-weight: 700;
-    font-size: clamp(0.68rem, 1.35vw, 0.92rem);
-    line-height: 1.28;
-    letter-spacing: 0.04em;
-    text-shadow: 0 0 5px rgba(57, 255, 20, 0.55);
+    font-size: 0.43rem;
+    line-height: 1.15;
+    text-shadow: 0 0 3px rgba(57, 255, 20, 0.7);
     white-space: pre;
 }
 
-/* Telinha de Informatica Verde Expandida (Somente Escrita) */
-.green-crt-screen {
-    background: repeating-linear-gradient(0deg, #041b09 0px, #041b09 2px, #06230d 2px, #06230d 4px) !important;
-    border: 3px solid #1e293b !important;
-    outline: 2px solid #15803d !important;
-    border-radius: 8px !important;
-    padding: 12px 15px !important;
-    box-shadow: inset 0 0 22px rgba(34, 197, 94, 0.22), 0 4px 14px rgba(0, 0, 0, 0.5) !important;
+.barrel-3d-mini-img {
+    width: 96px;
+    height: 112px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.55));
+}
+
+/* ==========================================================================
+   Telinha Verde no Formato Retangular do Buraco da Tampa (66x26mm ~ 2.54:1)
+   Somente Escrita de Informatica Verde
+   ========================================================================== */
+.green-lcd-cutout-screen {
+    background: repeating-linear-gradient(0deg, #041b09 0px, #041b09 2px, #06250e 2px, #06250e 4px) !important;
+    border: 3px solid #2b384e !important;
+    outline: 2px solid #16a34a !important;
+    border-radius: 6px !important;
+    padding: 10px 14px !important;
+    width: 100%;
+    max-width: 470px;
+    min-height: 118px;
+    margin: 0 auto;
+    box-shadow: inset 0 0 20px rgba(34, 197, 94, 0.25), 0 4px 12px rgba(0, 0, 0, 0.55) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     overflow-x: auto;
 }
 
 .green-crt-text {
     color: #39ff14 !important;
     font-family: "Consolas", "Courier New", monospace !important;
-    font-size: 0.82rem !important;
+    font-size: 0.78rem !important;
     font-weight: 700 !important;
-    line-height: 1.42 !important;
-    text-shadow: 0 0 6px rgba(57, 255, 20, 0.45) !important;
+    line-height: 1.35 !important;
+    letter-spacing: 0.02em !important;
+    text-shadow: 0 0 5px rgba(57, 255, 20, 0.5) !important;
     background: transparent !important;
     white-space: pre !important;
+    margin: 0 !important;
 }

@@ -1,7 +1,8 @@
 """
-Componente do Barril Físico 3D (Corpo_Barril.STL + Tampa_Display_LCD16x2.STL)
-com a Telinha Verde de Informática (só escrita) encaixada exatamente no buraco retangular
-da tampa, em total sintonia com o Wokwi ESP32 e os sensores/LEDs.
+Painel Integrado Compacto (Grid Perfeito):
+- Coluna 1 (lg=3): Miniaturas pequenas da Tampa (Tampa_Display_LCD16x2.STL) e do Barril (Corpo_Barril.STL)
+- Coluna 2 (lg=5): Telinha Verde Retangular na proporção do buraco retangular da tampa (66x26mm), só com a escrita
+- Coluna 3 (lg=4): Status ao vivo dos 3 LEDs (Verde GPIO 5, Vermelho GPIO 18, Azul GPIO 2) + Buzzer + Saúde da Adega
 """
 
 from typing import Optional
@@ -10,15 +11,15 @@ from dash import html
 from src.models.iot_models import AnomalyEvaluation, SensorSnapshot, TriggerConfig
 
 
-def _sensor_status_text(val: Optional[float], min_lim: float, max_lim: float) -> str:
-    """Retorna apenas o texto de status do sensor para a telinha verde."""
+def _sensor_short_status(val: Optional[float], min_lim: float, max_lim: float) -> str:
+    """Retorna texto curto de status para a escrita da telinha verde."""
     if val is None:
-        return "AGUARDANDO"
+        return "AGUARD."
     if val < min_lim:
-        return "ABAIXO MIN!"
+        return "BAIXO! "
     if val > max_lim:
-        return "ACIMA MAX!"
-    return "NORMAL [OK]"
+        return "ALTO!  "
+    return "OK     "
 
 
 def build_green_hardware_plaque(
@@ -28,117 +29,150 @@ def build_green_hardware_plaque(
     dispatch_msg: str,
     source_label: str,
 ) -> dbc.Card:
-    """Renderiza o Barril 3D + Tampa com a Telinha Verde encaixada no recorte retangular + Terminal Verde."""
-    t_txt = _sensor_status_text(snapshot.temperature, triggers.temp_min, triggers.temp_max)
-    h_txt = _sensor_status_text(snapshot.humidity, triggers.hum_min, triggers.hum_max)
-    l_txt = _sensor_status_text(snapshot.luminosity, triggers.lum_min, triggers.lum_max)
+    """Renderiza o painel compacto com protótipos pequenos, telinha verde no formato do recorte e 3 LEDs."""
+    t_st = _sensor_short_status(snapshot.temperature, triggers.temp_min, triggers.temp_max)
+    h_st = _sensor_short_status(snapshot.humidity, triggers.hum_min, triggers.hum_max)
+    l_st = _sensor_short_status(snapshot.luminosity, triggers.lum_min, triggers.lum_max)
 
     t_v = f"{snapshot.temperature:4.1f}C" if snapshot.temperature is not None else "--.-C"
-    h_v = f"{snapshot.humidity:2.0f}%" if snapshot.humidity is not None else "--%"
-    l_v = f"{snapshot.luminosity:2.0f}%" if snapshot.luminosity is not None else "--%"
+    h_v = f"{snapshot.humidity:4.1f}%" if snapshot.humidity is not None else "--.-%"
+    l_v = f"{snapshot.luminosity:4.1f}%" if snapshot.luminosity is not None else "--.-%"
 
-    # Escrita de 2 linhas (16x2) encaixada exatamente dentro do buraco retangular da Tampa_Display_LCD16x2.STL
-    lcd16x2_row1 = f"T:{t_v} U:{h_v} L:{l_v}"
-    lcd16x2_row2 = (
-        f"ALERTA:{evaluation.command_code.upper():<5} [!] "
+    # Escrita compacta dentro da miniatura da tampa (112px)
+    mini_row1 = f"T:{t_v} U:{snapshot.humidity or 0:2.0f}%"
+    mini_row2 = "STATUS: OK" if not evaluation.is_anomalous else f"ALERTA:{evaluation.command_code.upper()}"
+
+    # Escrita pura dentro da Telinha Verde Retangular (proporção do buraco retangular 66x26mm da tampa)
+    led_line = (
+        "LED_VERDE:OFF | LED_VERM:ON  | LED_AZUL:PISCANDO"
         if evaluation.is_anomalous
-        else "STATUS:ADEGA OK "
+        else "LED_VERDE:ON  | LED_VERM:OFF | LED_AZUL:OFF     "
+    )
+    state_line = (
+        f"ESTADO: ALERTA ATIVO (CMD: alert|{evaluation.command_code}) [{snapshot.timestamp}]"
+        if evaluation.is_anomalous
+        else f"ESTADO: OPERACAO NORMAL - ADEGA 100% OK [{snapshot.timestamp}]"
     )
 
-    # Escrita completa da Telinha de Informática Verde (somente escrita) ao lado da tampa
-    led_g = "APAGADO (FORA DO TRIGGER)" if evaluation.is_anomalous else "ACESO   (OPERACAO NORMAL)"
-    led_r = "ACESO   (ALERTA CRITICO!)" if evaluation.is_anomalous else "APAGADO (SEM ANOMALIA)"
-    led_b = "PISCANDO REMOTAMENTE     " if evaluation.is_anomalous else "APAGADO (EM ESPERA)"
-
-    crt_lines = [
-        "======================================================================",
-        " TELINHA VERDE DO PRODUTO (DISPLAY LCD 16x2 NA TAMPA DO BARRIL 3D)    ",
-        "======================================================================",
-        f" FONTE : {source_label:<36} HORA: {snapshot.timestamp}",
-        f" SAUDE : {evaluation.cellar_health_score}%  |  COMANDO FIWARE: vine001@alert|{evaluation.command_code}",
-        "----------------------------------------------------------------------",
-        f" TEMPERATURA  (6 Furos DHT - GPIO 15) : {t_v:<6} [{triggers.temp_min:.0f}-{triggers.temp_max:.0f}C] -> {t_txt}",
-        f" UMIDADE      (6 Furos DHT - GPIO 15) : {h_v:<6} [{triggers.hum_min:.0f}-{triggers.hum_max:.0f}%] -> {h_txt}",
-        f" LUMINOSIDADE (Furo LDR    - GPIO 34) : {l_v:<6} [{triggers.lum_min:.0f}-{triggers.lum_max:.0f}%] -> {l_txt}",
-        "----------------------------------------------------------------------",
-        f" LED VERDE    (GPIO 05) : {led_g}",
-        f" LED VERMELHO (GPIO 18) : {led_r}",
-        f" LED AZUL     (GPIO 02) : {led_b}",
-        f" BUZZER 7FUROS(GPIO 04) : {evaluation.buzzer_pattern_text}",
-        f" SINCRONIA WOKWI/CAIXA  : {dispatch_msg}",
-        "======================================================================",
+    screen_lines = [
+        f"TEMP (DHT) : {t_v} ({triggers.temp_min:.0f}-{triggers.temp_max:.0f}C) [{t_st}] | UMID: {h_v} [{h_st}]",
+        f"LUMI (LDR) : {l_v} ({triggers.lum_min:.0f}-{triggers.lum_max:.0f}%) [{l_st}] | SAUDE ADEGA: {evaluation.cellar_health_score}%",
+        "--------------------------------------------------------",
+        led_line,
+        state_line,
     ]
+
+    led_green_cls = "led-indicator led-green-off" if evaluation.is_anomalous else "led-indicator led-green-on"
+    led_red_cls = "led-indicator led-red-on" if evaluation.is_anomalous else "led-indicator led-red-off"
+    led_blue_cls = "led-indicator led-blue-blinking" if evaluation.is_anomalous else "led-indicator led-blue-off"
+    border_cls = "border-danger" if evaluation.is_anomalous else "border-success"
 
     return dbc.Card(
         dbc.CardBody(
             [
                 html.Div(
-                    "Protótipo Físico 3D (Corpo_Barril.STL + Tampa_Display_LCD16x2.STL) — Telinha Verde Encaixada na Tampa",
+                    "2. Protótipo 3D (Tampa + Barril) • Telinha Verde do Recorte Retangular (66×26mm) • Status dos 3 LEDs e Buzzer",
                     className="section-title",
                 ),
                 dbc.Row(
                     [
-                        # Coluna 1: Tampa_Display_LCD16x2.STL com a Telinha Verde encaixada no buraco retangular
-                        dbc.Col(
-                            [
-                                html.Div(
-                                    [
-                                        html.Img(
-                                            src="/assets/icons/tampa_barril_lcd.png",
-                                            className="barrel-lid-img",
-                                        ),
-                                        # Telinha verde (só escrita) encaixada exatamente no buraco retangular da tampa
-                                        html.Div(
-                                            [
-                                                html.Div(lcd16x2_row1, className="barrel-lcd-line"),
-                                                html.Div(lcd16x2_row2, className="barrel-lcd-line"),
-                                            ],
-                                            className="barrel-lcd-slot",
-                                        ),
-                                    ],
-                                    className="barrel-lid-wrapper",
-                                ),
-                                html.Div(
-                                    "Tampa_Display_LCD16x2.STL (Ø 112mm) • Buraco Retangular 66x26mm com Telinha Verde Ao Vivo",
-                                    className="text-center small text-muted mt-2",
-                                ),
-                            ],
-                            lg=4,
-                            md=6,
-                            className="mb-3 mb-lg-0 d-flex flex-column align-items-center justify-content-center",
-                        ),
-                        # Coluna 2: Corpo_Barril.STL + Montagem 3D
-                        dbc.Col(
-                            [
-                                html.Div(
-                                    html.Img(
-                                        src="/assets/icons/corpo_barril_3d.png",
-                                        style={"width": "100%", "maxWidth": "230px", "objectFit": "contain"},
-                                    ),
-                                    className="text-center",
-                                ),
-                                html.Div(
-                                    "Corpo_Barril.STL (Ø 127.3 x 121.5mm) + Tampa Encaixada",
-                                    className="text-center small text-muted mt-1",
-                                ),
-                            ],
-                            lg=3,
-                            md=6,
-                            className="mb-3 mb-lg-0 d-flex flex-column align-items-center justify-content-center",
-                        ),
-                        # Coluna 3: Telinha de Informática Verde (Somente Escrita) em Tempo Real
+                        # Coluna 1 (Compacta): Miniaturas da Tampa e do Barril lado a lado
                         dbc.Col(
                             html.Div(
-                                html.Pre("\n".join(crt_lines), className="green-crt-text mb-0"),
-                                className="green-crt-screen h-100 d-flex align-items-center",
+                                [
+                                    html.Div(
+                                        [
+                                            html.Div(
+                                                [
+                                                    html.Img(
+                                                        src="/assets/icons/tampa_barril_lcd.png",
+                                                        className="barrel-lid-mini-img",
+                                                    ),
+                                                    html.Div(
+                                                        [
+                                                            html.Div(mini_row1, className="barrel-lcd-mini-text"),
+                                                            html.Div(mini_row2, className="barrel-lcd-mini-text"),
+                                                        ],
+                                                        className="barrel-lcd-mini-slot",
+                                                    ),
+                                                ],
+                                                className="barrel-lid-mini",
+                                            ),
+                                            html.Img(
+                                                src="/assets/icons/corpo_barril_3d.png",
+                                                className="barrel-3d-mini-img",
+                                            ),
+                                        ],
+                                        className="d-flex align-items-center justify-content-center gap-3",
+                                    ),
+                                    html.Div(
+                                        "Tampa_Display_LCD16x2.STL & Corpo_Barril.STL",
+                                        className="text-center text-muted mt-1",
+                                        style={"fontSize": "0.72rem"},
+                                    ),
+                                ],
+                                className="proto-thumb-box h-100 d-flex flex-column justify-content-center",
                             ),
+                            lg=3,
+                            md=12,
+                            className="mb-2 mb-lg-0",
+                        ),
+                        # Coluna 2 (Central): Telinha Verde Retangular na medida/proporção do buraco da tampa (só escrita)
+                        dbc.Col(
+                            [
+                                html.Div(
+                                    html.Pre("\n".join(screen_lines), className="green-crt-text"),
+                                    className="green-lcd-cutout-screen",
+                                ),
+                                html.Div(
+                                    f"Telinha Verde LCD 16x2 (Recorte Retangular 66×26mm da Tampa) • {source_label}",
+                                    className="text-center text-muted mt-1",
+                                    style={"fontSize": "0.72rem"},
+                                ),
+                            ],
                             lg=5,
+                            md=12,
+                            className="mb-2 mb-lg-0",
+                        ),
+                        # Coluna 3 (Direita): Status ao Vivo dos 3 LEDs + Buzzer + Saúde da Adega
+                        dbc.Col(
+                            html.Div(
+                                [
+                                    html.Div(
+                                        [
+                                            html.Span([html.Span(className=led_green_cls), html.Strong("Verde (GPIO 5)", className="small text-light me-2")]),
+                                            html.Span([html.Span(className=led_red_cls), html.Strong("Vermelho (GPIO 18)", className="small text-light me-2")]),
+                                            html.Span([html.Span(className=led_blue_cls), html.Strong("Azul (GPIO 2)", className="small text-info")]),
+                                        ],
+                                        className="d-flex flex-wrap align-items-center gap-1 mb-2",
+                                    ),
+                                    html.Div(
+                                        f"🔊 {evaluation.buzzer_pattern_text}",
+                                        className="small fw-semibold text-warning mb-1",
+                                    ),
+                                    html.Div(
+                                        [
+                                            dbc.Badge(f"alert|{evaluation.command_code}", color=evaluation.badge_color, className="me-2"),
+                                            dbc.Badge(f"Saúde da Adega: {evaluation.cellar_health_score}%", color="success" if not evaluation.is_anomalous else "danger"),
+                                        ],
+                                        className="mb-1",
+                                    ),
+                                    html.Small(
+                                        f"{' • '.join(evaluation.details_messages)} ({dispatch_msg})",
+                                        className="text-muted d-block",
+                                        style={"fontSize": "0.73rem"},
+                                    ),
+                                ],
+                                className="proto-thumb-box h-100 d-flex flex-column justify-content-center",
+                            ),
+                            lg=4,
                             md=12,
                         ),
                     ],
-                    align="center",
+                    align="stretch",
                 ),
-            ]
+            ],
+            className="py-2 px-3",
         ),
-        className="clean-card mb-3 shadow-sm",
+        className=f"clean-card mb-3 shadow-sm {border_cls}",
     )
