@@ -1,6 +1,6 @@
 /* ==========================================================================
-   Design Tokens & Estilo Clean Moderno (Branco, Cinzas e Ardósia)
-   Monitoramento Global de Vinherias — FIWARE & ESP32 Wokwi
+   Design Tokens & Estilo Clean Moderno com Detalhes Cor Vinho (Bordeaux)
+   Vinheria Agnello — FIWARE & ESP32 Wokwi (Check Point 5)
    ========================================================================== */
 
 :root {
@@ -11,7 +11,11 @@
     --text-primary: #0f172a;
     --text-secondary: #334155;
     --text-muted: #64748b;
-    --primary-blue: #0284c7;
+    --wine-primary: #722F37;
+    --wine-hover: #58111A;
+    --wine-light: #8E3A44;
+    --wine-subtle: rgba(114, 47, 55, 0.08);
+    --wine-glow: rgba(114, 47, 55, 0.16);
 }
 
 body {
@@ -20,70 +24,53 @@ body {
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* Navbar Moderna Superior */
+/* Navbar com Destaques Cor Vinho */
 .clean-navbar {
     background: rgba(255, 255, 255, 0.96) !important;
     backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border-subtle) !important;
+    border-bottom: 2px solid var(--wine-primary) !important;
     border-radius: 0 0 14px 14px;
 }
 .navbar-brand-logo { width: 30px; height: 30px; object-fit: contain; }
-.navbar-brand-title { font-size: 1.05rem; letter-spacing: 0.04em; color: var(--text-primary); }
+.navbar-brand-title { font-size: 1.08rem; letter-spacing: 0.05em; color: var(--wine-primary) !important; font-weight: 800 !important; }
 .navbar-brand-sub { font-size: 0.72rem; }
+
+/* Botões com Destaque Vinho */
+.btn-wine {
+    background-color: var(--wine-primary) !important; border-color: var(--wine-hover) !important;
+    color: #ffffff !important; transition: all 0.2s ease;
+}
+.btn-wine:hover { background-color: var(--wine-hover) !important; border-color: var(--wine-hover) !important; box-shadow: 0 2px 8px var(--wine-glow) !important; }
+.btn-outline-wine { color: var(--wine-primary) !important; border-color: var(--wine-primary) !important; }
+.btn-outline-wine:hover { background-color: var(--wine-primary) !important; color: #ffffff !important; }
 
 /* Cartões Principais Clean */
 .clean-card {
-    background: var(--bg-card) !important;
-    border: 1px solid var(--border-subtle) !important;
-    border-radius: 12px !important;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 4px 12px -2px rgba(15, 23, 42, 0.03) !important;
+    background: var(--bg-card) !important; border: 1px solid var(--border-subtle) !important;
+    border-radius: 12px !important; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 4px 12px -2px rgba(15, 23, 42, 0.03) !important;
 }
 
 .section-title {
-    font-size: 0.84rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--text-secondary);
-    border-color: var(--border-subtle) !important;
+    font-size: 0.84rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--wine-primary) !important; border-color: var(--border-subtle) !important;
+    border-left: 3px solid var(--wine-primary); padding-left: 8px;
 }
 
-/* Triggers & Inputs Customizados */
-.trigger-addon-label {
-    background-color: #f1f5f9 !important;
-    border-color: var(--border-input) !important;
-    color: var(--text-secondary) !important;
-    font-size: 0.76rem !important;
-    font-weight: 600;
-}
-.trigger-input-field {
-    border-color: var(--border-input) !important;
-    font-weight: 600;
-    color: var(--text-primary) !important;
-}
-.custom-dropdown .Select-control {
-    border-color: var(--border-input) !important;
-    border-radius: 8px !important;
-}
+/* Triggers & Inputs Customizados com Toques Vinho */
+.trigger-addon-label { background-color: #f1f5f9 !important; border-color: var(--border-input) !important; color: var(--text-secondary) !important; font-size: 0.76rem !important; font-weight: 600; }
+.trigger-input-field { border-color: var(--border-input) !important; font-weight: 600; color: var(--text-primary) !important; }
+.custom-dropdown .Select-control { border-color: var(--border-input) !important; border-radius: 8px !important; }
+.text-wine { color: var(--wine-primary) !important; }
 
-/* Cartões das 9 Vinícolas Reais do Mundo */
+/* Cartões das 9 Vinícolas Reais do Mundo (Ativo em Cor Vinho) */
 .vineyard-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-subtle);
-    border-radius: 10px;
-    padding: 10px 12px;
-    transition: all 0.2s ease;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+    background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 10px;
+    padding: 10px 12px; transition: all 0.2s ease; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
 }
-.vineyard-card:hover {
-    border-color: #94a3b8;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
-    transform: translateY(-1px);
-}
+.vineyard-card:hover { border-color: var(--wine-light); box-shadow: 0 4px 12px var(--wine-glow); transform: translateY(-1px); }
 .vineyard-card-active {
-    background: #f8fafc !important;
-    border: 2px solid var(--primary-blue) !important;
-    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12), 0 4px 12px rgba(2, 132, 199, 0.08) !important;
+    background: #fdfafb !important; border: 2px solid var(--wine-primary) !important;
+    box-shadow: 0 0 0 3px var(--wine-glow), 0 4px 12px rgba(114, 47, 55, 0.08) !important;
 }
 
 /* Indicadores dos 3 LEDs Físicos do ESP32 */
@@ -101,26 +88,13 @@ body {
 }
 .led-blue-blinking { border: 2px solid #7dd3fc; animation: pulseBlueLed 0.65s infinite ease-in-out; }
 
-.kpi-value {
-    font-size: 1.82rem;
-    font-weight: 800;
-    line-height: 1.15;
-    letter-spacing: -0.02em;
-    font-feature-settings: "tnum";
-    color: var(--text-primary);
-}
-
+.kpi-value { font-size: 1.82rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; font-feature-settings: "tnum"; color: var(--text-primary); }
 .custom-icon { width: 22px; height: 22px; object-fit: contain; }
 .custom-icon-lg { width: 30px; height: 30px; object-fit: contain; }
 .custom-icon-sm { width: 17px; height: 17px; object-fit: contain; }
 
 /* Miniaturas Compactas dos Protótipos 3D (Tampa + Barril) */
-.proto-thumb-box {
-    background-color: #f8fafc;
-    border: 1px solid var(--border-subtle);
-    border-radius: 10px;
-    padding: 8px 10px;
-}
+.proto-thumb-box { background-color: #f8fafc; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 8px 10px; }
 .barrel-lid-mini { position: relative; width: 112px; height: 112px; flex-shrink: 0; }
 .barrel-lid-mini-img, .barrel-3d-mini-img { height: 112px; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.12)); }
 .barrel-lid-mini-img { width: 100%; }
@@ -128,68 +102,29 @@ body {
 
 .barrel-lcd-mini-slot {
     position: absolute; left: 20.5%; top: 38.4%; width: 59.0%; height: 23.2%;
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-    overflow: hidden; pointer-events: none;
+    display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; pointer-events: none;
 }
-.barrel-lcd-mini-text {
-    color: #39ff14; font-family: "Consolas", monospace; font-weight: 700;
-    font-size: 0.43rem; line-height: 1.15; text-shadow: 0 0 3px rgba(57, 255, 20, 0.7);
-    white-space: pre;
-}
+.barrel-lcd-mini-text { color: #39ff14; font-family: "Consolas", monospace; font-weight: 700; font-size: 0.43rem; line-height: 1.15; text-shadow: 0 0 3px rgba(57, 255, 20, 0.7); white-space: pre; }
 
 /* Telinha Verde no Recorte Retangular da Tampa (66x26mm) */
 .green-lcd-cutout-screen {
     background: repeating-linear-gradient(0deg, #051b0a 0px, #051b0a 2px, #07270e 2px, #07270e 4px) !important;
-    border: 3px solid #cbd5e1 !important;
-    outline: 2px solid #22c55e !important;
-    border-radius: 8px !important;
-    padding: 10px 14px !important;
-    width: 100%;
-    max-width: 470px;
-    min-height: 118px;
-    margin: 0 auto;
+    border: 3px solid #cbd5e1 !important; outline: 2px solid #22c55e !important; border-radius: 8px !important;
+    padding: 10px 14px !important; width: 100%; max-width: 470px; min-height: 118px; margin: 0 auto;
     box-shadow: inset 0 0 20px rgba(34, 197, 94, 0.25), 0 4px 12px rgba(15, 23, 42, 0.08) !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow-x: auto;
+    display: flex; align-items: center; justify-content: center; overflow-x: auto;
 }
-
 .green-crt-text {
-    color: #39ff14 !important;
-    font-family: "Consolas", monospace !important;
-    font-size: 0.78rem !important;
-    font-weight: 700 !important;
-    line-height: 1.35 !important;
-    letter-spacing: 0.02em !important;
-    text-shadow: 0 0 5px rgba(57, 255, 20, 0.5) !important;
-    background: transparent !important;
-    white-space: pre !important;
-    margin: 0 !important;
+    color: #39ff14 !important; font-family: "Consolas", monospace !important; font-size: 0.78rem !important;
+    font-weight: 700 !important; line-height: 1.35 !important; letter-spacing: 0.02em !important;
+    text-shadow: 0 0 5px rgba(57, 255, 20, 0.5) !important; background: transparent !important; white-space: pre !important; margin: 0 !important;
 }
 
 /* Subpainéis SCADA dos Gráficos */
-.chart-panel-box {
-    background: var(--bg-card);
-    border: 1px solid var(--border-subtle);
-    border-radius: 10px;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
-}
+.chart-panel-box { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 10px; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03); }
 .chart-header { border-color: var(--border-subtle) !important; }
 
 /* Controles de Formulário e Dropdowns Clean */
-.form-control, .form-select {
-    border-color: var(--border-input) !important;
-    color: var(--text-primary) !important;
-    background-color: var(--bg-card) !important;
-}
-.form-control:focus, .form-select:focus {
-    border-color: var(--primary-blue) !important;
-    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15) !important;
-}
-.input-group-text {
-    background-color: #f1f5f9 !important;
-    border-color: var(--border-input) !important;
-    color: var(--text-secondary) !important;
-    font-weight: 600;
-}
+.form-control, .form-select { border-color: var(--border-input) !important; color: var(--text-primary) !important; background-color: var(--bg-card) !important; }
+.form-control:focus, .form-select:focus { border-color: var(--wine-primary) !important; box-shadow: 0 0 0 3px var(--wine-glow) !important; }
+.input-group-text { background-color: #f1f5f9 !important; border-color: var(--border-input) !important; color: var(--text-secondary) !important; font-weight: 600; }

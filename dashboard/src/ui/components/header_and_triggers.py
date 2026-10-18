@@ -72,7 +72,7 @@ def render_header_and_triggers() -> html.Div:
                                         dbc.Label(
                                             [
                                                 html.Img(src="/assets/icons/wine.png", className="custom-icon me-2"),
-                                                html.Span("Preset por Tipo de Vinho", className="fw-semibold text-dark"),
+                                                html.Span("Preset por Tipo de Vinho", className="fw-semibold text-wine"),
                                             ],
                                             className="small mb-1 d-flex align-items-center",
                                         ),

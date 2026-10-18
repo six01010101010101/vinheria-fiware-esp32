@@ -25,9 +25,8 @@ def build_wokwi_status_bar(meta: Dict[str, object]) -> html.Div:
                 "⚡ Wokwi ESP32 #478106752109243393",
                 href=WOKWI_PROJECT_URL,
                 target="_blank",
-                color="primary",
                 size="sm",
-                className="fw-semibold px-2 py-1 me-1 shadow-none",
+                className="btn-wine fw-semibold px-2 py-1 me-1 shadow-none",
             ),
             dbc.Button(
                 "API Status",
