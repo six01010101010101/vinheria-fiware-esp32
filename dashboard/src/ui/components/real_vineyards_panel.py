@@ -48,12 +48,13 @@ def render_real_vineyards_panel() -> dbc.Card:
                         dbc.Col(
                             [
                                 html.Div(
-                                    "🌍 Telemetria Verídica em Tempo Real — Vinhas e Vinícolas Originais do Mundo (Satélite & Estações Open-Meteo)",
-                                    className="section-title mb-1",
+                                    "🌍 Telemetria Verídica em Tempo Real — Vinhas e Vinícolas Originais do Mundo (Satélite & Estações)",
+                                    className="section-title mb-1 pb-1",
                                 ),
                                 html.Small(
-                                    "Monitoramento climático e solar autêntico por coordenadas GPS reais das vinícolas + Ponto de Orvalho (Magnus-Tetens) e persistência SQL.",
+                                    "Monitoramento climático e solar autêntico por coordenadas GPS reais das vinícolas + Ponto de Orvalho (Magnus-Tetens).",
                                     className="text-muted d-block mb-2",
+                                    style={"fontSize": "0.78rem"},
                                 ),
                             ],
                             lg=7,
@@ -63,14 +64,14 @@ def render_real_vineyards_panel() -> dbc.Card:
                             [
                                 dbc.Label(
                                     "Fonte Ativa na Telinha Verde, Gráficos & Wokwi ESP32:",
-                                    className="small fw-bold text-info mb-1",
+                                    className="small fw-semibold text-dark mb-1",
                                 ),
                                 dcc.Dropdown(
                                     id="dropdown-real-vineyard",
                                     options=options,
                                     value="wokwi_only",
                                     clearable=False,
-                                    className="text-dark small",
+                                    className="text-dark small custom-dropdown",
                                 ),
                             ],
                             lg=5,
@@ -78,27 +79,22 @@ def render_real_vineyards_panel() -> dbc.Card:
                         ),
                     ],
                     align="center",
-                    className="mb-2",
+                    className="mb-3",
                 ),
                 html.Div(id="real-vineyards-global-grid"),
             ],
-            className="py-2 px-3",
+            className="p-3",
         ),
         className="clean-card mb-3 shadow-sm",
     )
 
 
 def build_real_vineyards_grid(
-    vineyards: List[RealVineyardTelemetry],
-    active_vineyard_id: str,
-    triggers: TriggerConfig,
+    vineyards: List[RealVineyardTelemetry], active_vineyard_id: str, triggers: TriggerConfig
 ) -> html.Div:
     """Constrói os cartões compactos em tempo real das 9 vinícolas reais do mundo."""
     if not vineyards:
-        return html.Div(
-            "Consultando satélite e estações meteorológicas das vinícolas mundiais...",
-            className="text-muted small py-2",
-        )
+        return html.Div("Consultando satélite e estações meteorológicas das vinícolas mundiais...", className="text-muted small py-2")
 
     cols: List[dbc.Col] = []
     for v in vineyards:
@@ -118,10 +114,7 @@ def build_real_vineyards_grid(
                     [
                         html.Div(
                             [
-                                html.Span(
-                                    f"{flag} {v.name}",
-                                    className="fw-bold text-dark small text-truncate",
-                                ),
+                                html.Span(f"{flag} {v.name}", className="fw-bold text-dark small text-truncate"),
                                 dbc.Badge(
                                     "NO PAINEL" if is_selected else ("FORA TRIGGER" if any_alert else "FAIXA IDEAL"),
                                     color="success" if is_selected else ("warning" if any_alert else "secondary"),
@@ -133,26 +126,14 @@ def build_real_vineyards_grid(
                         ),
                         html.Div(
                             f"{v.region} • {day_label} ({v.local_time}) • Orv: {v.dew_point:.1f}°C",
-                            className="text-muted text-truncate mb-1",
-                            style={"fontSize": "0.68rem"},
+                            className="text-muted text-truncate mb-2",
+                            style={"fontSize": "0.70rem"},
                         ),
                         html.Div(
                             [
-                                html.Span(
-                                    f"🌡️ {v.temperature:.1f}°C",
-                                    className="text-danger fw-bold me-2" if t_alert else "text-secondary fw-semibold me-2",
-                                    style={"fontSize": "0.76rem"},
-                                ),
-                                html.Span(
-                                    f"💧 {v.humidity:.0f}%",
-                                    className="text-info fw-bold me-2" if h_alert else "text-secondary fw-semibold me-2",
-                                    style={"fontSize": "0.76rem"},
-                                ),
-                                html.Span(
-                                    f"☀️ {v.luminosity:.1f}% ({v.solar_wm2:.0f}W/m²)",
-                                    className="text-warning fw-bold" if l_alert else "text-secondary fw-semibold",
-                                    style={"fontSize": "0.74rem"},
-                                ),
+                                html.Span(f"🌡️ {v.temperature:.1f}°C", className="text-danger fw-bold me-2" if t_alert else "text-secondary fw-semibold me-2", style={"fontSize": "0.76rem"}),
+                                html.Span(f"💧 {v.humidity:.0f}%", className="text-info fw-bold me-2" if h_alert else "text-secondary fw-semibold me-2", style={"fontSize": "0.76rem"}),
+                                html.Span(f"☀️ {v.luminosity:.1f}% ({v.solar_wm2:.0f}W/m²)", className="text-warning fw-bold" if l_alert else "text-secondary fw-semibold", style={"fontSize": "0.74rem"}),
                             ],
                             className="d-flex flex-wrap align-items-center justify-content-between",
                         ),
@@ -166,4 +147,4 @@ def build_real_vineyards_grid(
             )
         )
 
-    return dbc.Row(cols, className="g-2")
+    return dbc.Row(cols, className="g-3")

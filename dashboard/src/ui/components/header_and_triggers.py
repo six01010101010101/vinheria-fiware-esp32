@@ -1,6 +1,7 @@
 """
-Componente de UI: Cabeçalho Profissional, Status da Conexão em Tempo Real,
-Presets de Vinho (Diferencial) e Ajuste dos Triggers (Temperatura, Umidade e Luminosidade).
+Componente de UI: Painel de Triggers e Presets de Vinho (Diferencial).
+Permite configurar os limites ideais de Temperatura, Umidade e Luminosidade,
+com carregamento instantâneo de perfis enológicos para vinhos finos.
 """
 
 import dash_bootstrap_components as dbc
@@ -11,76 +12,58 @@ from src.config.settings import WINE_PRESETS
 def _build_trigger_input_group(
     icon_src: str, label: str, min_id: str, max_id: str, min_val: float, max_val: float, step: float
 ) -> dbc.Col:
-    """Constrói um grupo limpo de inputs Mínimo e Máximo para cada Trigger com ícone customizado."""
+    """Constrói um grupo de inputs Mínimo e Máximo para cada Trigger com ícone e rótulo clean."""
     return dbc.Col(
         [
             dbc.Label(
-                [html.Img(src=icon_src, className="custom-icon"), html.Span(label)],
-                className="small fw-bold text-secondary mb-1 d-flex align-items-center",
+                [
+                    html.Img(src=icon_src, className="custom-icon me-2"),
+                    html.Span(label, className="fw-semibold text-dark"),
+                ],
+                className="small mb-1 d-flex align-items-center",
             ),
             dbc.InputGroup(
                 [
-                    dbc.InputGroupText("Mín"),
-                    dbc.Input(id=min_id, type="number", step=step, value=min_val),
-                    dbc.InputGroupText("Máx"),
-                    dbc.Input(id=max_id, type="number", step=step, value=max_val),
+                    dbc.InputGroupText("Mín", className="trigger-addon-label"),
+                    dbc.Input(id=min_id, type="number", step=step, value=min_val, className="trigger-input-field"),
+                    dbc.InputGroupText("Máx", className="trigger-addon-label"),
+                    dbc.Input(id=max_id, type="number", step=step, value=max_val, className="trigger-input-field"),
                 ],
                 size="sm",
+                className="trigger-input-group shadow-none",
             ),
         ],
-        md=3,
+        lg=3,
+        md=6,
+        sm=12,
+        className="mb-2 mb-lg-0",
     )
 
 
 def render_header_and_triggers() -> html.Div:
-    """Renderiza o cabeçalho limpo e a barra de configuração dos Triggers e Presets."""
+    """Renderiza a seção de Triggers e Presets Enológicos com visual moderno e clean."""
     preset_options = [{"label": meta["name"], "value": key} for key, meta in WINE_PRESETS.items()]
     default_preset = WINE_PRESETS["tinto"]
 
     return html.Div(
         [
-            # Cabeçalho Principal Limpo e Direto com Ícone Customizado de Taça de Vinho
-            dbc.Card(
-                dbc.CardBody(
-                    dbc.Row(
-                        [
-                            dbc.Col(
-                                [
-                                    html.H4(
-                                        [
-                                            html.Img(src="/assets/icons/wine.png", className="custom-icon-lg"),
-                                            html.Span("Monitoramento Global de Vinherias — FIWARE & ESP32"),
-                                        ],
-                                        className="mb-1 fw-bold text-dark d-flex align-items-center",
-                                    ),
-                                    html.Div(
-                                        "Check Point 5 • Controle de Temperatura, Umidade e Luminosidade com Alerta Remoto (LED Azul + Buzzer)",
-                                        className="text-muted small",
-                                    ),
-                                ],
-                                md=7,
-                            ),
-                            dbc.Col(
-                                html.Div(
-                                    id="wokwi-live-status-bar",
-                                    className="d-flex justify-content-md-end mt-2 mt-md-0",
-                                ),
-                                md=5,
-                            ),
-                        ],
-                        align="center",
-                    ),
-                    className="py-3",
-                ),
-                className="clean-card mb-3 shadow-sm",
-            ),
-            # Seção de Ajustes dos Triggers + Presets por Tipo de Vinho (Diferencial)
             dbc.Card(
                 dbc.CardBody(
                     [
                         html.Div(
-                            "1. Configuração de Triggers e Perfil de Conservação (Diferencial)",
-                            className="section-title",
+                            [
+                                html.Div(
+                                    [
+                                        html.Span("1. Configuração de Triggers & Perfil de Conservação (Diferencial)"),
+                                        html.Small(
+                                            "Ajuste os parâmetros ideais ou escolha um preset homologado para aplicar no ESP32.",
+                                            className="text-muted fw-normal d-block mt-1",
+                                            style={"fontSize": "0.78rem", "textTransform": "none"},
+                                        ),
+                                    ],
+                                    className="section-title mb-3 pb-2 border-bottom",
+                                ),
+                            ]
                         ),
                         dbc.Row(
                             [
@@ -88,25 +71,29 @@ def render_header_and_triggers() -> html.Div:
                                     [
                                         dbc.Label(
                                             [
-                                                html.Img(src="/assets/icons/wine.png", className="custom-icon"),
-                                                html.Span("Preset por Tipo de Vinho"),
+                                                html.Img(src="/assets/icons/wine.png", className="custom-icon me-2"),
+                                                html.Span("Preset por Tipo de Vinho", className="fw-semibold text-dark"),
                                             ],
-                                            className="small fw-bold text-warning mb-1 d-flex align-items-center",
+                                            className="small mb-1 d-flex align-items-center",
                                         ),
                                         dcc.Dropdown(
                                             id="dropdown-wine-preset",
                                             options=preset_options,
                                             value="tinto",
                                             clearable=False,
-                                            className="text-dark small",
+                                            className="text-dark small custom-dropdown",
                                         ),
                                         html.Div(
                                             default_preset["description"],
                                             id="preset-description-text",
-                                            className="small text-muted mt-1",
+                                            className="small text-muted mt-1 text-truncate",
+                                            style={"fontSize": "0.74rem"},
                                         ),
                                     ],
-                                    md=3,
+                                    lg=3,
+                                    md=6,
+                                    sm=12,
+                                    className="mb-2 mb-lg-0",
                                 ),
                                 _build_trigger_input_group(
                                     "/assets/icons/temperature.png",
@@ -137,8 +124,10 @@ def render_header_and_triggers() -> html.Div:
                                 ),
                             ],
                             align="start",
+                            className="g-3",
                         ),
-                    ]
+                    ],
+                    className="p-3",
                 ),
                 className="clean-card mb-3 shadow-sm",
             ),

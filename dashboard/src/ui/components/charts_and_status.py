@@ -19,15 +19,15 @@ def _graph_col(graph_id: str, icon_src: str, header_title: str, accent_cls: str)
             [
                 html.Div(
                     [
-                        html.Img(src=icon_src, className="custom-icon-sm"),
+                        html.Img(src=icon_src, className="custom-icon-sm me-2"),
                         html.Span(header_title, className=f"small fw-bold {accent_cls}"),
                     ],
-                    className="d-flex align-items-center px-2 pt-2 pb-1 border-bottom border-light",
+                    className="chart-header d-flex align-items-center px-3 py-2 border-bottom",
                 ),
                 dcc.Graph(
                     id=graph_id,
                     config={"displayModeBar": False, "responsive": True},
-                    style={"height": "295px"},
+                    style={"height": "285px"},
                 ),
             ],
             className="chart-panel-box h-100",
@@ -51,12 +51,12 @@ def render_charts_and_status() -> html.Div:
                             [
                                 html.Span("3. Gráficos Analíticos em Tempo Real (Curva Ao Vivo • Faixa Ideal • Detecção de Anomalias)"),
                                 html.Small(
-                                    "🟢 Zona Verde = Faixa Ideal | ◆ Diamante Vermelho = Fora do Trigger | — Tracejada = Média",
+                                    "🟢 Faixa Ideal | ◆ Anomalia | — Média",
                                     className="text-muted fw-normal d-none d-xl-inline",
                                     style={"fontSize": "0.72rem", "textTransform": "none"},
                                 ),
                             ],
-                            className="section-title d-flex justify-content-between align-items-center",
+                            className="section-title d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom",
                         ),
                         dbc.Row(
                             [
@@ -64,10 +64,10 @@ def render_charts_and_status() -> html.Div:
                                 _graph_col("graph-humidity", "/assets/icons/humidity.png", "UMIDADE RELATIVA (%)", "text-info"),
                                 _graph_col("graph-luminosity", "/assets/icons/luminosity.png", "LUMINOSIDADE (LDR / SOLAR %)", "text-warning"),
                             ],
-                            className="g-2",
+                            className="g-3",
                         ),
                     ],
-                    className="py-2 px-3",
+                    className="p-3",
                 ),
                 className="clean-card mb-3 shadow-sm",
             ),
@@ -126,10 +126,10 @@ def build_sensor_figure(
         m_sizes[-1] = 11
     else:
         avg_val = (min_trigger + max_trigger) / 2.0
-        subtitle_html = f"<span style='font-size:11px;color:#64748b'>Aguardando amostras ({unit})...</span>"
+        subtitle_html = f"<span style='font-size:11px;color:#64748b'>Aguardando dados ({unit})...</span>"
         m_colors, m_sizes, m_symbols = line_color, 6, "circle"
 
-    # 2. Curva Principal + Marcadores Inteligentes (Diamante Vermelho em Anomalia)
+    # 2. Curva Principal + Marcadores Inteligentes
     fig.add_trace(
         go.Scatter(
             x=timestamps, y=values, mode="lines+markers", name=title, fill="tozeroy",

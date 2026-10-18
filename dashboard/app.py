@@ -13,6 +13,7 @@ from src.ui.callbacks.dashboard_callbacks import register_dashboard_callbacks
 from src.ui.components.charts_and_status import render_charts_and_status
 from src.ui.components.device_management import render_device_management
 from src.ui.components.header_and_triggers import render_header_and_triggers
+from src.ui.components.navbar import render_navbar
 from src.ui.components.real_vineyards_panel import render_real_vineyards_panel
 from src.ui.components.wokwi_hub_panel import register_wokwi_hub_callbacks
 
@@ -25,19 +26,27 @@ def create_app() -> Dash:
         title="Vinheria Agnello | Monitoramento Global IoT & FIWARE",
     )
 
-    app.layout = dbc.Container(
+    app.layout = html.Div(
         [
-            render_header_and_triggers(),
-            render_real_vineyards_panel(),
-            render_charts_and_status(),
-            render_device_management(),
-            html.Footer(
-                "Check Point 5 — Monitoramento Global de Vinherias (ESP32 + DHT-11/22 + LDR + Buzzer + FIWARE STH-Comet + Open-Meteo + Supabase)",
-                className="text-center text-muted small py-2",
+            render_navbar(),
+            dbc.Container(
+                [
+                    render_header_and_triggers(),
+                    render_real_vineyards_panel(),
+                    render_charts_and_status(),
+                    render_device_management(),
+                    html.Footer(
+                        [
+                            html.Span("Check Point 5 — Vinheria Agnello • FIWARE STH-Comet (:8666) & IoT Agent (:4041) • ESP32 Wokwi MQTT (:1883) • Open-Meteo & Supabase"),
+                        ],
+                        className="text-center text-muted small py-3 border-top mt-4",
+                        style={"fontSize": "0.76rem"},
+                    ),
+                ],
+                fluid=True,
+                className="px-3 px-md-4",
             ),
-        ],
-        fluid=True,
-        className="py-3 px-4",
+        ]
     )
 
     register_api_routes(app.server)  # type: ignore[arg-type]
