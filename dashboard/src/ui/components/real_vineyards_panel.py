@@ -120,7 +120,7 @@ def build_real_vineyards_grid(
                             [
                                 html.Span(
                                     f"{flag} {v.name}",
-                                    className="fw-bold text-white small text-truncate",
+                                    className="fw-bold text-dark small text-truncate",
                                 ),
                                 dbc.Badge(
                                     "NO PAINEL" if is_selected else ("FORA TRIGGER" if any_alert else "FAIXA IDEAL"),
@@ -140,17 +140,17 @@ def build_real_vineyards_grid(
                             [
                                 html.Span(
                                     f"🌡️ {v.temperature:.1f}°C",
-                                    className="text-danger fw-bold me-2" if t_alert else "text-light fw-semibold me-2",
+                                    className="text-danger fw-bold me-2" if t_alert else "text-secondary fw-semibold me-2",
                                     style={"fontSize": "0.76rem"},
                                 ),
                                 html.Span(
                                     f"💧 {v.humidity:.0f}%",
-                                    className="text-info fw-bold me-2" if h_alert else "text-light fw-semibold me-2",
+                                    className="text-info fw-bold me-2" if h_alert else "text-secondary fw-semibold me-2",
                                     style={"fontSize": "0.76rem"},
                                 ),
                                 html.Span(
                                     f"☀️ {v.luminosity:.1f}% ({v.solar_wm2:.0f}W/m²)",
-                                    className="text-warning fw-bold" if l_alert else "text-light fw-semibold",
+                                    className="text-warning fw-bold" if l_alert else "text-secondary fw-semibold",
                                     style={"fontSize": "0.74rem"},
                                 ),
                             ],

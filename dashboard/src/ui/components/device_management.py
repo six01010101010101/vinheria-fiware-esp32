@@ -71,7 +71,7 @@ def render_device_management() -> html.Div:
                                         id="radio-wokwi-scenario",
                                         options=scenario_options,
                                         value="wokwi_live",
-                                        className="small text-light mb-3",
+                                        className="small text-dark mb-3",
                                     ),
                                     dbc.Row(
                                         [

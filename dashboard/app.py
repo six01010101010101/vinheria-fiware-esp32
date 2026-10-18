@@ -21,7 +21,7 @@ def create_app() -> Dash:
     """Instancia e configura a aplicação Dash com layout modular limpo, API REST e callbacks reativos."""
     app = Dash(
         __name__,
-        external_stylesheets=[dbc.themes.DARKLY],
+        external_stylesheets=[dbc.themes.FLATLY],
         title="Vinheria Agnello | Monitoramento Global IoT & FIWARE",
     )
 

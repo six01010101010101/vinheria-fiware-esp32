@@ -13,7 +13,7 @@ from src.models.iot_models import TimeSeriesPoint
 
 
 def _graph_col(graph_id: str, icon_src: str, header_title: str, accent_cls: str) -> dbc.Col:
-    """Envolve cada gráfico Plotly em um subpainel estilo SCADA com cabeçalho e borda dedicada."""
+    """Envolve cada gráfico Plotly em um subpainel estilo SCADA com cabeçalho clean."""
     return dbc.Col(
         html.Div(
             [
@@ -22,7 +22,7 @@ def _graph_col(graph_id: str, icon_src: str, header_title: str, accent_cls: str)
                         html.Img(src=icon_src, className="custom-icon-sm"),
                         html.Span(header_title, className=f"small fw-bold {accent_cls}"),
                     ],
-                    className="d-flex align-items-center px-2 pt-2 pb-1 border-bottom border-secondary border-opacity-25",
+                    className="d-flex align-items-center px-2 pt-2 pb-1 border-bottom border-light",
                 ),
                 dcc.Graph(
                     id=graph_id,
@@ -51,7 +51,7 @@ def render_charts_and_status() -> html.Div:
                             [
                                 html.Span("3. Gráficos Analíticos em Tempo Real (Curva Ao Vivo • Faixa Ideal • Detecção de Anomalias)"),
                                 html.Small(
-                                    "🟢 Zona Verde = Faixa Ideal do Vinho | ◆ Diamante Vermelho = Leitura Fora do Trigger | — Linha Tracejada = Média",
+                                    "🟢 Zona Verde = Faixa Ideal | ◆ Diamante Vermelho = Fora do Trigger | — Tracejada = Média",
                                     className="text-muted fw-normal d-none d-xl-inline",
                                     style={"fontSize": "0.72rem", "textTransform": "none"},
                                 ),
@@ -81,14 +81,9 @@ def render_charts_and_status() -> html.Div:
 
 
 def build_sensor_figure(
-    title: str,
-    unit: str,
-    points: List[TimeSeriesPoint],
-    min_trigger: float,
-    max_trigger: float,
-    line_color: str,
+    title: str, unit: str, points: List[TimeSeriesPoint], min_trigger: float, max_trigger: float, line_color: str
 ) -> go.Figure:
-    """Constrói um gráfico analítico Plotly de alta precisão com marcadores de anomalia e estatísticas."""
+    """Constrói um gráfico analítico Plotly com estética clean, tons modernos e marcadores inteligentes."""
     low_bound = -40.0 if unit == "°C" else 0.0
     high_bound = 80.0 if unit == "°C" else 100.0
     clean_pts = [p for p in points if low_bound <= p.value <= high_bound]
@@ -97,65 +92,50 @@ def build_sensor_figure(
 
     ref_vals = values + [min_trigger, max_trigger]
     pad = 3.2 if unit == "°C" else 8.5
-    y_min = max(low_bound, min(ref_vals) - pad)
-    y_max = min(high_bound, max(ref_vals) + pad)
+    y_min, y_max = max(low_bound, min(ref_vals) - pad), min(high_bound, max(ref_vals) + pad)
 
     fill_map = {
-        "#ff7875": "rgba(255, 120, 117, 0.15)",
-        "#40a9ff": "rgba(64, 169, 255, 0.15)",
-        "#ffd666": "rgba(255, 214, 102, 0.15)",
+        "#ff7875": "rgba(239, 68, 68, 0.08)",
+        "#40a9ff": "rgba(2, 132, 199, 0.08)",
+        "#ffd666": "rgba(245, 158, 11, 0.08)",
     }
 
     fig = go.Figure()
-
-    # 1. Faixa Verde Sombreada da Zona de Conservação Ideal (entre Mín e Máx)
+    # 1. Faixa Verde Sombreada da Zona de Conservação Ideal
     fig.add_hrect(
-        y0=min_trigger,
-        y1=max_trigger,
-        fillcolor="rgba(34, 197, 94, 0.10)",
-        line_width=1,
-        line_color="rgba(34, 197, 94, 0.22)",
-        annotation_text="ZONA IDEAL",
-        annotation_position="top left",
-        annotation_font={"size": 9, "color": "rgba(134, 239, 172, 0.75)"},
+        y0=min_trigger, y1=max_trigger, fillcolor="rgba(34, 197, 94, 0.08)",
+        line_width=1, line_color="rgba(34, 197, 94, 0.25)",
+        annotation_text="ZONA IDEAL", annotation_position="top left",
+        annotation_font={"size": 9, "color": "rgba(22, 163, 74, 0.9)"},
     )
 
     if values:
         avg_val = sum(values) / len(values)
         min_v, max_v, cur_v = min(values), max(values), values[-1]
         is_cur_out = cur_v < min_trigger or cur_v > max_trigger
-        cur_color = "#ff4d4f" if is_cur_out else "#22c55e"
+        cur_color = "#ef4444" if is_cur_out else "#16a34a"
         subtitle_html = (
-            f"<span style='font-size:11px;color:#9bb0c9'>"
-            f"Atual: <b style='color:{cur_color}'>{cur_v:.1f}{unit}</b>  •  "
-            f"Média: <b>{avg_val:.1f}{unit}</b>  •  "
+            f"<span style='font-size:11px;color:#64748b'>"
+            f"Atual: <b style='color:{cur_color}'>{cur_v:.1f}{unit}</b> • "
+            f"Média: <b style='color:#334155'>{avg_val:.1f}{unit}</b> • "
             f"Faixa: {min_v:.1f}–{max_v:.1f}{unit}</span>"
         )
-        m_colors = ["#ff4d4f" if (v < min_trigger or v > max_trigger) else line_color for v in values]
+        m_colors = ["#ef4444" if (v < min_trigger or v > max_trigger) else line_color for v in values]
         m_sizes = [9 if (v < min_trigger or v > max_trigger) else 6 for v in values]
         m_symbols = ["diamond" if (v < min_trigger or v > max_trigger) else "circle" for v in values]
         m_sizes[-1] = 11
     else:
         avg_val = (min_trigger + max_trigger) / 2.0
-        subtitle_html = f"<span style='font-size:11px;color:#9bb0c9'>Aguardando amostras ({unit})...</span>"
+        subtitle_html = f"<span style='font-size:11px;color:#64748b'>Aguardando amostras ({unit})...</span>"
         m_colors, m_sizes, m_symbols = line_color, 6, "circle"
 
-    # 2. Curva Principal Suavizada + Marcadores Inteligentes (Diamante Vermelho em Anomalia)
+    # 2. Curva Principal + Marcadores Inteligentes (Diamante Vermelho em Anomalia)
     fig.add_trace(
         go.Scatter(
-            x=timestamps,
-            y=values,
-            mode="lines+markers",
-            name=title,
-            fill="tozeroy",
-            fillcolor=fill_map.get(line_color, "rgba(255,255,255,0.10)"),
-            line={"color": line_color, "width": 2.8, "shape": "spline", "smoothing": 0.55},
-            marker={
-                "size": m_sizes,
-                "color": m_colors,
-                "symbol": m_symbols,
-                "line": {"width": 1.5, "color": "#0d1219"},
-            },
+            x=timestamps, y=values, mode="lines+markers", name=title, fill="tozeroy",
+            fillcolor=fill_map.get(line_color, "rgba(226, 232, 240, 0.15)"),
+            line={"color": line_color, "width": 2.6, "shape": "spline", "smoothing": 0.55},
+            marker={"size": m_sizes, "color": m_colors, "symbol": m_symbols, "line": {"width": 1.5, "color": "#ffffff"}},
             hovertemplate=(
                 f"<b>{title}</b><br>Horário: %{{x}}<br>"
                 f"Leitura: <b>%{{y:.1f}}{unit}</b><br>"
@@ -165,44 +145,30 @@ def build_sensor_figure(
     )
 
     if timestamps:
-        # 3. Linhas de Limite Superior (Máx), Limite Inferior (Mín) e Média da Série
+        # 3. Linhas de Limite Superior (Máx), Limite Inferior (Mín) e Média
         fig.add_hline(
-            y=max_trigger, line_dash="dash", line_color="#ff4d4f", line_width=1.4,
+            y=max_trigger, line_dash="dash", line_color="#ef4444", line_width=1.4,
             annotation_text=f"Máx {max_trigger:.1f}{unit}", annotation_position="top right",
-            annotation_font={"size": 10, "color": "#ff7875"},
+            annotation_font={"size": 10, "color": "#dc2626"},
         )
         fig.add_hline(
-            y=min_trigger, line_dash="dot", line_color="#38bdf8", line_width=1.4,
+            y=min_trigger, line_dash="dot", line_color="#0284c7", line_width=1.4,
             annotation_text=f"Mín {min_trigger:.1f}{unit}", annotation_position="bottom right",
-            annotation_font={"size": 10, "color": "#7dd3fc"},
+            annotation_font={"size": 10, "color": "#0369a1"},
         )
-        fig.add_hline(
-            y=avg_val, line_dash="dashdot", line_color="rgba(255,255,255,0.22)", line_width=1.0,
-        )
+        fig.add_hline(y=avg_val, line_dash="dashdot", line_color="rgba(100, 116, 139, 0.45)", line_width=1.0)
 
     fig.update_layout(
         title={"text": subtitle_html, "x": 0.02, "y": 0.96, "xanchor": "left"},
         uirevision=f"{title}_{min_trigger}_{max_trigger}",
         paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(11,16,23,0.90)",
-        font={"color": "#9bb0c9", "size": 10.5},
+        plot_bgcolor="#ffffff",
+        font={"color": "#475569", "size": 10.5},
         margin={"l": 40, "r": 14, "t": 30, "b": 30},
         hovermode="x unified",
-        hoverlabel={"bgcolor": "#161f2c", "bordercolor": "#38bdf8", "font": {"color": "#e6edf3", "size": 11}},
-        xaxis={
-            "gridcolor": "rgba(255,255,255,0.05)",
-            "nticks": 6,
-            "showspikes": True,
-            "spikemode": "across",
-            "spikecolor": "rgba(255,255,255,0.20)",
-            "spikethickness": 1,
-        },
-        yaxis={
-            "title": unit,
-            "gridcolor": "rgba(255,255,255,0.06)",
-            "zeroline": False,
-            "range": [y_min, y_max],
-        },
+        hoverlabel={"bgcolor": "#ffffff", "bordercolor": "#cbd5e1", "font": {"color": "#0f172a", "size": 11}},
+        xaxis={"gridcolor": "rgba(226, 232, 240, 0.8)", "nticks": 6, "showspikes": True, "spikemode": "across", "spikecolor": "rgba(148, 163, 184, 0.4)", "spikethickness": 1, "tickfont": {"color": "#64748b", "size": 9.5}},
+        yaxis={"title": unit, "gridcolor": "rgba(226, 232, 240, 0.8)", "zeroline": False, "range": [y_min, y_max], "tickfont": {"color": "#64748b", "size": 9.5}},
         showlegend=False,
     )
     return fig

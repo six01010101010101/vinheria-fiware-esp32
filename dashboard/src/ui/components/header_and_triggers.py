@@ -16,7 +16,7 @@ def _build_trigger_input_group(
         [
             dbc.Label(
                 [html.Img(src=icon_src, className="custom-icon"), html.Span(label)],
-                className="small fw-bold text-light mb-1 d-flex align-items-center",
+                className="small fw-bold text-secondary mb-1 d-flex align-items-center",
             ),
             dbc.InputGroup(
                 [
@@ -51,7 +51,7 @@ def render_header_and_triggers() -> html.Div:
                                             html.Img(src="/assets/icons/wine.png", className="custom-icon-lg"),
                                             html.Span("Monitoramento Global de Vinherias — FIWARE & ESP32"),
                                         ],
-                                        className="mb-1 fw-bold text-white d-flex align-items-center",
+                                        className="mb-1 fw-bold text-dark d-flex align-items-center",
                                     ),
                                     html.Div(
                                         "Check Point 5 • Controle de Temperatura, Umidade e Luminosidade com Alerta Remoto (LED Azul + Buzzer)",

@@ -19,11 +19,7 @@ from src.services.trigger_alert_service import TriggerAlertService
 from src.ui.components.charts_and_status import build_sensor_figure
 from src.ui.components.hardware_plaque import build_green_hardware_plaque
 from src.ui.components.real_vineyards_panel import build_real_vineyards_grid
-from src.ui.components.status_cards_builder import (
-    build_devices_table,
-    build_kpi_cards,
-    build_wokwi_status_bar,
-)
+from src.ui.components.status_cards_builder import build_devices_table, build_kpi_cards, build_wokwi_status_bar
 
 
 def _safe_range(v_min: Any, v_max: Any, def_min: float, def_max: float) -> Tuple[float, float]:
@@ -43,12 +39,9 @@ def register_dashboard_callbacks(app: Dash) -> None:
     """Registra todos os callbacks do Dashboard Dinâmico."""
 
     @app.callback(
-        Output("trigger-temp-min", "value"),
-        Output("trigger-temp-max", "value"),
-        Output("trigger-hum-min", "value"),
-        Output("trigger-hum-max", "value"),
-        Output("trigger-lum-min", "value"),
-        Output("trigger-lum-max", "value"),
+        Output("trigger-temp-min", "value"), Output("trigger-temp-max", "value"),
+        Output("trigger-hum-min", "value"), Output("trigger-hum-max", "value"),
+        Output("trigger-lum-min", "value"), Output("trigger-lum-max", "value"),
         Output("preset-description-text", "children"),
         Input("dropdown-wine-preset", "value"),
     )
@@ -68,11 +61,8 @@ def register_dashboard_callbacks(app: Dash) -> None:
         Input("btn-register-device", "n_clicks"),
         Input("btn-refresh-devices", "n_clicks"),
         Input("btn-delete-device", "n_clicks"),
-        State("input-fiware-host", "value"),
-        State("reg-device-id", "value"),
-        State("reg-entity-name", "value"),
-        State("reg-entity-type", "value"),
-        State("reg-api-key", "value"),
+        State("input-fiware-host", "value"), State("reg-device-id", "value"),
+        State("reg-entity-name", "value"), State("reg-entity-type", "value"), State("reg-api-key", "value"),
         prevent_initial_call=True,
     )
     def handle_device_management(
@@ -92,36 +82,20 @@ def register_dashboard_callbacks(app: Dash) -> None:
         return banner, build_devices_table(DeviceManagerService.list_registered_devices(host=clean_host))
 
     @app.callback(
-        Output("remote-alert-status-banner", "children"),
-        Output("realtime-kpi-cards", "children"),
-        Output("graph-temperature", "figure"),
-        Output("graph-humidity", "figure"),
-        Output("graph-luminosity", "figure"),
-        Output("store-local-history", "data"),
-        Output("wokwi-live-status-bar", "children"),
+        Output("remote-alert-status-banner", "children"), Output("realtime-kpi-cards", "children"),
+        Output("graph-temperature", "figure"), Output("graph-humidity", "figure"), Output("graph-luminosity", "figure"),
+        Output("store-local-history", "data"), Output("wokwi-live-status-bar", "children"),
         Output("real-vineyards-global-grid", "children"),
-        Input("interval-auto-refresh", "n_intervals"),
-        Input("dropdown-real-vineyard", "value"),
-        Input("trigger-temp-min", "value"),
-        Input("trigger-temp-max", "value"),
-        Input("trigger-hum-min", "value"),
-        Input("trigger-hum-max", "value"),
-        Input("trigger-lum-min", "value"),
-        Input("trigger-lum-max", "value"),
-        Input("switch-interactive-mode", "value"),
-        Input("sim-temp-input", "value"),
-        Input("sim-hum-input", "value"),
-        Input("sim-lum-input", "value"),
-        Input("btn-publish-mqtt-test", "n_clicks"),
-        Input("radio-wokwi-scenario", "value"),
-        State("input-wokwi-broker", "value"),
-        State("reg-device-id", "value"),
-        State("reg-api-key", "value"),
-        State("input-fiware-host", "value"),
-        State("reg-entity-name", "value"),
-        State("reg-entity-type", "value"),
-        State("input-last-n", "value"),
-        State("store-local-history", "data"),
+        Input("interval-auto-refresh", "n_intervals"), Input("dropdown-real-vineyard", "value"),
+        Input("trigger-temp-min", "value"), Input("trigger-temp-max", "value"),
+        Input("trigger-hum-min", "value"), Input("trigger-hum-max", "value"),
+        Input("trigger-lum-min", "value"), Input("trigger-lum-max", "value"),
+        Input("switch-interactive-mode", "value"), Input("sim-temp-input", "value"),
+        Input("sim-hum-input", "value"), Input("sim-lum-input", "value"),
+        Input("btn-publish-mqtt-test", "n_clicks"), Input("radio-wokwi-scenario", "value"),
+        State("input-wokwi-broker", "value"), State("reg-device-id", "value"), State("reg-api-key", "value"),
+        State("input-fiware-host", "value"), State("reg-entity-name", "value"), State("reg-entity-type", "value"),
+        State("input-last-n", "value"), State("store-local-history", "data"),
     )
     def update_monitoring_and_alerts(
         n_intervals: int, real_vineyard_id: str, t_min: float, t_max: float, h_min: float, h_max: float,
@@ -130,10 +104,8 @@ def register_dashboard_callbacks(app: Dash) -> None:
         entity_id: str, entity_type: str, last_n: int, local_store: Dict[str, List[Dict[str, Any]]],
     ) -> Tuple[Any, Any, Any, Any, Any, Dict[str, List[Dict[str, Any]]], Any, Any]:
         """Sincroniza telemetria bidirecional entre Site, Wokwi #478106752109243393, Vinícolas Reais e FIWARE."""
-        clean_host = (host or DEFAULT_FIWARE_HOST).strip()
-        clean_broker = (wokwi_broker or DEFAULT_WOKWI_BROKER).strip()
-        clean_entity = (entity_id or "urn:ngsi-ld:Vine:001").strip()
-        clean_type = (entity_type or "Vine").strip()
+        clean_host, clean_broker = (host or DEFAULT_FIWARE_HOST).strip(), (wokwi_broker or DEFAULT_WOKWI_BROKER).strip()
+        clean_entity, clean_type = (entity_id or "urn:ngsi-ld:Vine:001").strip(), (entity_type or "Vine").strip()
         n_samples = max(5, min(100, int(last_n or 30)))
 
         t_lo, t_hi = _safe_range(t_min, t_max, 12.0, 18.0)

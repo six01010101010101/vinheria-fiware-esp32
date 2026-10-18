@@ -140,8 +140,8 @@ def build_green_hardware_plaque(
                                 [
                                     html.Div(
                                         [
-                                            html.Span([html.Span(className=led_green_cls), html.Strong("Verde (GPIO 5)", className="small text-light me-2")]),
-                                            html.Span([html.Span(className=led_red_cls), html.Strong("Vermelho (GPIO 18)", className="small text-light me-2")]),
+                                            html.Span([html.Span(className=led_green_cls), html.Strong("Verde (GPIO 5)", className="small text-dark me-2")]),
+                                            html.Span([html.Span(className=led_red_cls), html.Strong("Vermelho (GPIO 18)", className="small text-dark me-2")]),
                                             html.Span([html.Span(className=led_blue_cls), html.Strong("Azul (GPIO 2)", className="small text-info")]),
                                         ],
                                         className="d-flex flex-wrap align-items-center gap-1 mb-2",
