@@ -23,6 +23,7 @@ from src.repositories.real_vineyards_repository import REAL_VINEYARDS, RealViney
 from src.repositories.supabase_repository import SupabaseRepository
 from src.repositories.wokwi_mqtt_repository import WokwiMqttRepository
 from src.services.trigger_alert_service import TriggerAlertService
+from src.ui.api_html_view import render_api_status_html
 
 GITHUB_REPO_URL = "https://github.com/six01010101010101/checkpoint5-vinheria-fiware-esp32"
 
@@ -40,46 +41,48 @@ def register_api_routes(server: Flask) -> None:
         evaluation = TriggerAlertService.evaluate_snapshot(active_snap, TriggerConfig())
         supa = SupabaseRepository.get_instance()
 
-        return jsonify(
-            {
-                "status": "online",
-                "timestamp": datetime.now().isoformat(),
-                "links": {
-                    "dashboard_local": "http://127.0.0.1:8050",
-                    "api_status": "http://127.0.0.1:8050/api/v1/status",
-                    "api_real_vineyards": "http://127.0.0.1:8050/api/v1/vineyards",
-                    "wokwi_simulation": WOKWI_PROJECT_URL,
-                    "github_repository": GITHUB_REPO_URL,
-                    "supabase_cloud": supa.project_url or "https://slqozouuqzxwmfswyroo.supabase.co",
-                },
-                "ports_and_protocols": {
-                    "dashboard_http_port": 8050,
-                    "mqtt_broker_host": DEFAULT_WOKWI_BROKER,
-                    "mqtt_port": MQTT_PORT,
-                    "fiware_host": DEFAULT_FIWARE_HOST,
-                    "fiware_orion_port": ORION_PORT,
-                    "fiware_iot_agent_port": IOT_AGENT_PORT,
-                    "fiware_sth_comet_port": STH_COMET_PORT,
-                },
-                "mqtt_realtime": meta,
-                "telemetry": {
-                    "device_id": DEFAULT_DEVICE_ID,
-                    "entity_id": DEFAULT_ENTITY_ID,
-                    "temperature_c": active_snap.temperature,
-                    "humidity_pct": active_snap.humidity,
-                    "luminosity_pct": active_snap.luminosity,
-                    "last_sample_time": active_snap.timestamp,
-                },
-                "actuators_esp32": {
-                    "command_code": evaluation.command_code,
-                    "ultralight_cmd": f"{DEFAULT_DEVICE_ID}@alert|{evaluation.command_code}",
-                    "led_blue_gpio2": evaluation.led_status_text,
-                    "buzzer_gpio4": evaluation.buzzer_pattern_text,
-                    "cellar_health_score": evaluation.cellar_health_score,
-                    "anomalies": evaluation.active_anomalies,
-                },
-            }
-        )
+        payload = {
+            "status": "online",
+            "timestamp": datetime.now().isoformat(),
+            "links": {
+                "dashboard_local": "http://127.0.0.1:8050",
+                "api_status": "http://127.0.0.1:8050/api/v1/status",
+                "api_real_vineyards": "http://127.0.0.1:8050/api/v1/vineyards",
+                "wokwi_simulation": WOKWI_PROJECT_URL,
+                "github_repository": GITHUB_REPO_URL,
+                "supabase_cloud": supa.project_url or "https://slqozouuqzxwmfswyroo.supabase.co",
+            },
+            "ports_and_protocols": {
+                "dashboard_http_port": 8050,
+                "mqtt_broker_host": DEFAULT_WOKWI_BROKER,
+                "mqtt_port": MQTT_PORT,
+                "fiware_host": DEFAULT_FIWARE_HOST,
+                "fiware_orion_port": ORION_PORT,
+                "fiware_iot_agent_port": IOT_AGENT_PORT,
+                "fiware_sth_comet_port": STH_COMET_PORT,
+            },
+            "mqtt_realtime": meta,
+            "telemetry": {
+                "device_id": DEFAULT_DEVICE_ID,
+                "entity_id": DEFAULT_ENTITY_ID,
+                "temperature_c": active_snap.temperature,
+                "humidity_pct": active_snap.humidity,
+                "luminosity_pct": active_snap.luminosity,
+                "last_sample_time": active_snap.timestamp,
+            },
+            "actuators_esp32": {
+                "command_code": evaluation.command_code,
+                "ultralight_cmd": f"{DEFAULT_DEVICE_ID}@alert|{evaluation.command_code}",
+                "led_blue_gpio2": evaluation.led_status_text,
+                "buzzer_gpio4": evaluation.buzzer_pattern_text,
+                "cellar_health_score": evaluation.cellar_health_score,
+                "anomalies": evaluation.active_anomalies,
+            },
+        }
+        accept_hdr = request.headers.get("Accept", "")
+        if "text/html" in accept_hdr and "application/json" not in accept_hdr and request.args.get("format") != "json":
+            return render_api_status_html(payload), 200, {"Content-Type": "text/html; charset=utf-8"}
+        return jsonify(payload)
 
     @server.route("/api/v1/vineyards", methods=["GET"])
     def get_real_vineyards():  # type: ignore[no-untyped-def]
