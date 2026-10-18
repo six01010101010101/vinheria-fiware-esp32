@@ -8,20 +8,20 @@
 #include <Wire.h>
 #include <math.h>
 
-const char* WIFI_SSID            = "Wokwi-GUEST";
-const char* WIFI_PASSWORD        = "";
-const char* MQTT_BROKER          = "broker.hivemq.com";
-const int   MQTT_PORT            = 1883;
-const char* TOPIC_PUBLISH_ATTRS  = "/TEF/vine001/attrs";
-const char* TOPIC_SUBSCRIBE_CMD  = "/TEF/vine001/cmd";
+const char* WIFI_SSID = "Wokwi-GUEST";
+const char* WIFI_PASSWORD = "";
+const char* MQTT_BROKER = "broker.hivemq.com";
+const int MQTT_PORT = 1883;
+const char* TOPIC_PUBLISH_ATTRS = "/TEF/vine001/attrs";
+const char* TOPIC_SUBSCRIBE_CMD = "/TEF/vine001/cmd";
 const char* TOPIC_PUBLISH_CMDEXE = "/TEF/vine001/cmdexe";
 
 #define PIN_LED_BLUE  2   // LED Azul: Pisca remotamente pelo Front-end em anomalia
-#define PIN_BUZZER    4   // Buzzer (7 Furos da Tampa): Assinatura sonora por anomalia
-#define PIN_LED_GREEN 5   // LED Verde: Aceso fixo quando a Adega esta em Operacao Normal (OK)
-#define PIN_DHT       15  // Sensor DHT-22 (6 Furos da Tampa - Temperatura e Umidade)
-#define PIN_LED_RED   18  // LED Vermelho: Acende indicando estado critico / anomalia ativa
-#define PIN_LDR       34  // Sensor LDR (Furo Optico da Tampa - Luminosidade 0-100%)
+#define PIN_BUZZER    4   // Buzzer: Assinatura sonora por tipo de anomalia
+#define PIN_LED_GREEN 5   // LED Verde: Aceso fixo em Operacao Normal (Adega 100% OK)
+#define PIN_DHT       15  // Sensor DHT-22 (Temperatura e Umidade)
+#define PIN_LED_RED   18  // LED Vermelho: Acende em estado critico / fora do trigger
+#define PIN_LDR       34  // Sensor LDR (Luminosidade 0-100%)
 #define LCD_ADDR      0x27
 
 WiFiClient espClient;
@@ -71,8 +71,7 @@ bool readDht22Safe(float &outTemp, float &outHum) {
   }
   uint8_t sum = (data[0] + data[1] + data[2] + data[3]) & 0xFF;
   if (sum != data[4] || (data[0] == 0 && data[1] == 0 && data[2] == 0 && data[3] == 0)) return false;
-  float h = ((uint16_t)(data[0] << 8) | data[1]) * 0.1f;
-  float t = ((uint16_t)((data[2] & 0x7F) << 8) | data[3]) * 0.1f;
+  float h = ((uint16_t)(data[0] << 8) | data[1]) * 0.1f, t = ((uint16_t)((data[2] & 0x7F) << 8) | data[3]) * 0.1f;
   if (data[2] & 0x80) t = -t;
   if (isnan(t) || isnan(h) || t < -40.0f || t > 80.0f || h < 0.0f || h > 100.0f) return false;
   outTemp = t; outHum = h; return true;
@@ -172,8 +171,7 @@ void handleRemoteAlertActuators() {
   }
 }
 void publishSensorsRealTime() {
-  unsigned long now = millis();
-  float hwT = lastHwTemp, hwH = lastHwHum, hwL = lastHwLum;
+  unsigned long now = millis(); float hwT = lastHwTemp, hwH = lastHwHum, hwL = lastHwLum;
   if (now - lastDhtMs >= 1400) { lastDhtMs = now; readDht22Safe(hwT, hwH); }
   if (now - lastLdrMs >= 250) {
     lastLdrMs = now; float rL = map(analogRead(PIN_LDR), 0, 4095, 100, 0);
