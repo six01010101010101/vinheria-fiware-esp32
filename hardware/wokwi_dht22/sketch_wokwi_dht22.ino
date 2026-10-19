@@ -189,12 +189,10 @@ void publishSensorsRealTime() {
   }
 }
 void setup() {
-  Serial.begin(115200);
-  pinMode(PIN_LED_GREEN, OUTPUT); pinMode(PIN_LED_RED, OUTPUT);
-  pinMode(PIN_LED_BLUE, OUTPUT);  pinMode(PIN_BUZZER, OUTPUT); pinMode(PIN_LDR, INPUT);
+  Serial.begin(115200); pinMode(PIN_LED_GREEN, OUTPUT); pinMode(PIN_LED_RED, OUTPUT);
+  pinMode(PIN_LED_BLUE, OUTPUT); pinMode(PIN_BUZZER, OUTPUT); pinMode(PIN_LDR, INPUT);
   digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW); digitalWrite(PIN_LED_BLUE, LOW);
-  lcdInit(); updateGreenScreen();
-  WiFi.mode(WIFI_STA); WiFi.setSleep(false); WiFi.begin(WIFI_SSID, WIFI_PASSWORD, 6);
+  lcdInit(); updateGreenScreen(); WiFi.mode(WIFI_STA); WiFi.setSleep(false); WiFi.begin(WIFI_SSID, WIFI_PASSWORD, 6);
   while (WiFi.status() != WL_CONNECTED) { delay(80); }
 }
 void loop() { ensureMqttConnected(); mqttLoop(); handleRemoteAlertActuators(); publishSensorsRealTime(); delay(10); }

@@ -115,9 +115,9 @@ def build_sensor_figure(
         is_cur_out = cur_v < min_trigger or cur_v > max_trigger
         cur_color = "#ef4444" if is_cur_out else "#16a34a"
         subtitle_html = (
-            f"<span style='font-size:11px;color:#64748b'>"
+            f"<span style='font-size:11px;color:#94a3b8'>"
             f"Atual: <b style='color:{cur_color}'>{cur_v:.1f}{unit}</b> • "
-            f"Média: <b style='color:#334155'>{avg_val:.1f}{unit}</b> • "
+            f"Média: <b>{avg_val:.1f}{unit}</b> • "
             f"Faixa: {min_v:.1f}–{max_v:.1f}{unit}</span>"
         )
         m_colors = ["#ef4444" if (v < min_trigger or v > max_trigger) else line_color for v in values]
@@ -126,7 +126,7 @@ def build_sensor_figure(
         m_sizes[-1] = 11
     else:
         avg_val = (min_trigger + max_trigger) / 2.0
-        subtitle_html = f"<span style='font-size:11px;color:#64748b'>Aguardando dados ({unit})...</span>"
+        subtitle_html = f"<span style='font-size:11px;color:#94a3b8'>Aguardando dados ({unit})...</span>"
         m_colors, m_sizes, m_symbols = line_color, 6, "circle"
 
     # 2. Curva Principal + Marcadores Inteligentes
@@ -156,19 +156,19 @@ def build_sensor_figure(
             annotation_text=f"Mín {min_trigger:.1f}{unit}", annotation_position="bottom right",
             annotation_font={"size": 10, "color": "#0369a1"},
         )
-        fig.add_hline(y=avg_val, line_dash="dashdot", line_color="rgba(100, 116, 139, 0.45)", line_width=1.0)
+        fig.add_hline(y=avg_val, line_dash="dashdot", line_color="rgba(148, 163, 184, 0.45)", line_width=1.0)
 
     fig.update_layout(
         title={"text": subtitle_html, "x": 0.02, "y": 0.96, "xanchor": "left"},
         uirevision=f"{title}_{min_trigger}_{max_trigger}",
         paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="#ffffff",
-        font={"color": "#475569", "size": 10.5},
+        plot_bgcolor="rgba(0,0,0,0)",
+        font={"color": "#94a3b8", "size": 10.5},
         margin={"l": 40, "r": 14, "t": 30, "b": 30},
         hovermode="x unified",
-        hoverlabel={"bgcolor": "#ffffff", "bordercolor": "#cbd5e1", "font": {"color": "#0f172a", "size": 11}},
-        xaxis={"gridcolor": "rgba(226, 232, 240, 0.8)", "nticks": 6, "showspikes": True, "spikemode": "across", "spikecolor": "rgba(148, 163, 184, 0.4)", "spikethickness": 1, "tickfont": {"color": "#64748b", "size": 9.5}},
-        yaxis={"title": unit, "gridcolor": "rgba(226, 232, 240, 0.8)", "zeroline": False, "range": [y_min, y_max], "tickfont": {"color": "#64748b", "size": 9.5}},
+        hoverlabel={"bgcolor": "rgba(30, 41, 59, 0.95)", "bordercolor": "#475569", "font": {"color": "#f8fafc", "size": 11}},
+        xaxis={"gridcolor": "rgba(148, 163, 184, 0.16)", "nticks": 6, "showspikes": True, "spikemode": "across", "spikecolor": "rgba(148, 163, 184, 0.4)", "spikethickness": 1, "tickfont": {"color": "#94a3b8", "size": 9.5}},
+        yaxis={"title": unit, "gridcolor": "rgba(148, 163, 184, 0.16)", "zeroline": False, "range": [y_min, y_max], "tickfont": {"color": "#94a3b8", "size": 9.5}},
         showlegend=False,
     )
     return fig

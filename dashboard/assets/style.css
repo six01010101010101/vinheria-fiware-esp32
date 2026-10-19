@@ -128,3 +128,42 @@ body {
 .form-control, .form-select { border-color: var(--border-input) !important; color: var(--text-primary) !important; background-color: var(--bg-card) !important; }
 .form-control:focus, .form-select:focus { border-color: var(--wine-primary) !important; box-shadow: 0 0 0 3px var(--wine-glow) !important; }
 .input-group-text { background-color: #f1f5f9 !important; border-color: var(--border-input) !important; color: var(--text-secondary) !important; font-weight: 600; }
+
+/* ==========================================================================
+   Modo Escuro (Dark Theme) — data-bs-theme="dark" (Zero Branco)
+   ========================================================================== */
+[data-bs-theme="dark"] {
+    --bg-body: #070b12;
+    --bg-card: #0f1622;
+    --border-subtle: #1e293b;
+    --border-input: #334155;
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --wine-primary: #a83d49;
+    --wine-hover: #c44755;
+    --wine-subtle: rgba(168, 61, 73, 0.22);
+    --wine-glow: rgba(168, 61, 73, 0.38);
+}
+
+[data-bs-theme="dark"] .clean-navbar { background: rgba(15, 22, 34, 0.98) !important; border-bottom-color: var(--wine-primary) !important; }
+[data-bs-theme="dark"] .card, [data-bs-theme="dark"] .clean-card, [data-bs-theme="dark"] .table,
+[data-bs-theme="dark"] .table td, [data-bs-theme="dark"] .table th, [data-bs-theme="dark"] .chart-panel-box {
+    background-color: var(--bg-card) !important; color: var(--text-primary) !important; border-color: var(--border-subtle) !important;
+}
+[data-bs-theme="dark"] .proto-thumb-box, [data-bs-theme="dark"] .trigger-addon-label,
+[data-bs-theme="dark"] .input-group-text, [data-bs-theme="dark"] .bg-light,
+[data-bs-theme="dark"] .badge.bg-light { background-color: #17202f !important; border-color: var(--border-input) !important; color: var(--text-secondary) !important; }
+[data-bs-theme="dark"] .form-control, [data-bs-theme="dark"] .form-select,
+[data-bs-theme="dark"] .Select-control { background-color: #0c131d !important; border-color: var(--border-input) !important; color: #f8fafc !important; }
+[data-bs-theme="dark"] .vineyard-card { background-color: var(--bg-card) !important; border-color: var(--border-subtle) !important; }
+[data-bs-theme="dark"] .vineyard-card-active { background: #1c1117 !important; border-color: var(--wine-primary) !important; }
+[data-bs-theme="dark"] .green-lcd-cutout-screen { border-color: var(--border-subtle) !important; }
+[data-bs-theme="dark"] .text-dark { color: #f8fafc !important; }
+[data-bs-theme="dark"] .text-muted { color: #94a3b8 !important; }
+[data-bs-theme="dark"] .border, [data-bs-theme="dark"] .border-top, [data-bs-theme="dark"] .border-bottom { border-color: var(--border-subtle) !important; }
+
+/* Botões do Seletor de Tema (Claro, Escuro e Sistema) */
+.theme-btn-group .btn { font-size: 0.74rem; font-weight: 600; padding: 3px 8px; border-radius: 6px; }
+.theme-btn-group .btn.active { background-color: var(--wine-primary) !important; border-color: var(--wine-primary) !important; color: #ffffff !important; }
+

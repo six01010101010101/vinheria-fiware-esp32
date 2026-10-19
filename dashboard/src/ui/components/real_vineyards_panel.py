@@ -9,6 +9,7 @@ import dash_bootstrap_components as dbc
 from dash import dcc, html
 from src.models.iot_models import RealVineyardTelemetry, TriggerConfig
 from src.repositories.real_vineyards_repository import REAL_VINEYARDS
+from src.repositories.wine_terroirs_repository import WineTerroirsRepository
 
 COUNTRY_FLAGS = {
     "Brasil": "🇧🇷",
@@ -107,6 +108,11 @@ def build_real_vineyards_grid(
 
         card_cls = "vineyard-card vineyard-card-active h-100" if is_selected else "vineyard-card h-100"
         day_label = "☀️ Dia" if v.is_day else "🌙 Noite"
+        t_info = WineTerroirsRepository.get_wine_aging_info(v.vineyard_id)
+        rx = WineTerroirsRepository.evaluate_wine_reaction(
+            v.temperature, v.humidity, v.luminosity,
+            triggers.temp_min, triggers.temp_max, triggers.hum_min, triggers.hum_max, triggers.lum_max,
+        )
 
         cols.append(
             dbc.Col(
@@ -125,15 +131,21 @@ def build_real_vineyards_grid(
                             className="d-flex justify-content-between align-items-center mb-1",
                         ),
                         html.Div(
-                            f"{v.region} • {day_label} ({v.local_time}) • Orv: {v.dew_point:.1f}°C",
-                            className="text-muted text-truncate mb-2",
-                            style={"fontSize": "0.70rem"},
+                            f"🌱 Solo: {t_info['soil']} ({t_info['altitude']}) • {day_label}",
+                            className="text-muted text-truncate",
+                            style={"fontSize": "0.69rem"},
+                        ),
+                        html.Div(
+                            f"🍷 {t_info['icon_wine']} • Guarda: {t_info['total_aging_display']}",
+                            className="text-dark fw-semibold text-truncate mb-1",
+                            style={"fontSize": "0.71rem"},
                         ),
                         html.Div(
                             [
-                                html.Span(f"🌡️ {v.temperature:.1f}°C", className="text-danger fw-bold me-2" if t_alert else "text-secondary fw-semibold me-2", style={"fontSize": "0.76rem"}),
-                                html.Span(f"💧 {v.humidity:.0f}%", className="text-info fw-bold me-2" if h_alert else "text-secondary fw-semibold me-2", style={"fontSize": "0.76rem"}),
-                                html.Span(f"☀️ {v.luminosity:.1f}% ({v.solar_wm2:.0f}W/m²)", className="text-warning fw-bold" if l_alert else "text-secondary fw-semibold", style={"fontSize": "0.74rem"}),
+                                html.Span(f"🌡️ {v.temperature:.1f}°C", className="text-danger fw-bold me-2" if t_alert else "text-secondary fw-semibold me-2", style={"fontSize": "0.74rem"}),
+                                html.Span(f"💧 {v.humidity:.0f}%", className="text-info fw-bold me-2" if h_alert else "text-secondary fw-semibold me-2", style={"fontSize": "0.74rem"}),
+                                html.Span(f"☀️ {v.luminosity:.1f}%", className="text-warning fw-bold" if l_alert else "text-secondary fw-semibold", style={"fontSize": "0.74rem"}),
+                                dbc.Badge(rx["phenolic_state"], color=rx["color"], className="ms-auto", style={"fontSize": "0.62rem"}),
                             ],
                             className="d-flex flex-wrap align-items-center justify-content-between",
                         ),

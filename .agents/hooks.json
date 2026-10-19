@@ -1,0 +1,11 @@
+{
+  "auto-start-vinheria-dashboard": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "powershell -ExecutionPolicy Bypass -File ./scripts/start_server.ps1 -HookMode",
+        "timeout": 15
+      }
+    ]
+  }
+}

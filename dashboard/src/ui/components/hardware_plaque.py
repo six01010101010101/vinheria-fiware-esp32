@@ -71,7 +71,7 @@ def build_green_hardware_plaque(
         dbc.CardBody(
             [
                 html.Div(
-                    "2. Protótipo 3D (Tampa + Barril) • Telinha Verde do Recorte Retangular (66×26mm) • Status dos 3 LEDs e Buzzer",
+                    "2. Protótipo 3D • Telinha Verde (66×26mm) • Diagnóstico 100% ao Vivo (LEDs & Buzzer)",
                     className="section-title",
                 ),
                 dbc.Row(
@@ -152,13 +152,13 @@ def build_green_hardware_plaque(
                                     ),
                                     html.Div(
                                         [
-                                            dbc.Badge(f"alert|{evaluation.command_code}", color=evaluation.badge_color, className="me-2"),
-                                            dbc.Badge(f"Saúde da Adega: {evaluation.cellar_health_score}%", color="success" if not evaluation.is_anomalous else "danger"),
+                                            dbc.Badge("⚡ DIAGNÓSTICO 100% AO VIVO", color="danger" if evaluation.is_anomalous else "success", className="me-2 py-1 px-2"),
+                                            dbc.Badge(f"Saúde: {evaluation.cellar_health_score}%", color="success" if not evaluation.is_anomalous else "danger"),
                                         ],
                                         className="mb-1",
                                     ),
                                     html.Small(
-                                        f"{' • '.join(evaluation.details_messages)} ({dispatch_msg})",
+                                        f"CMD: alert|{evaluation.command_code} • {' • '.join(evaluation.details_messages)}",
                                         className="text-muted d-block",
                                         style={"fontSize": "0.73rem"},
                                     ),
