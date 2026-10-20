@@ -1,9 +1,9 @@
 @echo off
 chcp 65001 >nul
-title Vinheria Agnello - Gerador de Link Publico (Compartilhar com Namorada)
+title Vinheria Agnello - Acesso Externo (Site Nuvem)
 
 echo ============================================================================
-echo   VINHERIA AGNELLO · GERADOR DE LINK PUBLICO INSTANTANEO
+echo   VINHERIA AGNELLO · LINK DO SITE NA NUVEM (ACESSO EXTERNO SEGURO)
 echo ============================================================================
 echo.
 
@@ -27,14 +27,14 @@ if "%TUNNEL_PWD%"=="" (
 
 echo.
 echo ============================================================================
-echo   INSTRUCOES PARA ENVIAR A SUA NAMORADA:
+echo   INSTRUCOES PARA ACESSO EXTERNO AO SITE NUVEM:
 echo ============================================================================
-echo   1. Envie o link gerado abaixo para ela (funciona no celular ou computador).
-echo   2. Se a tela pedir "Tunnel Password" ou "Click to Submit":
-echo      Basta ela digitar o IP: %TUNNEL_PWD% e clicar no botao azul.
-echo   3. Pronto! Ela vera o site completo da adega em tempo real.
+echo   1. Acesse ou compartilhe o link seguro gerado abaixo (celular ou computador).
+echo   2. Se a tela solicitar "Tunnel Password" ou "Click to Submit":
+echo      Basta preencher o IP da credencial: %TUNNEL_PWD% e clicar no botao azul.
+echo   3. Pronto! O site completo da adega estara acessivel em tempo real.
 echo.
-echo   IMPORTANTE: Mantenha esta janela aberta enquanto ela estiver acessando.
+echo   IMPORTANTE: Mantenha esta janela aberta enquanto o acesso estiver em uso.
 echo ============================================================================
 echo.
 echo [3/3] Criando conexao publica segura HTTPS...

@@ -157,11 +157,11 @@ O código em [`sketch.ino`](sketch.ino) e [`hardware/wokwi_dht22/`](hardware/wok
 ### Opção A: Executar em Segundo Plano (Sem Antigravity Aberto)
 Dê um duplo clique em [`INICIAR_EM_SEGUNDO_PLANO.bat`](INICIAR_EM_SEGUNDO_PLANO.bat). O servidor roda silenciosamente em `http://127.0.0.1:8050` sem janela de terminal. Para encerrar, execute [`PARAR_SERVIDOR.bat`](PARAR_SERVIDOR.bat).
 
-### Opção B: Compartilhar com Link Público Imediato
-Dê um duplo clique em [`COMPARTILHAR_COM_NAMORADA.bat`](COMPARTILHAR_COM_NAMORADA.bat). O script gera um link HTTPS seguro para acesso externo no celular ou qualquer computador.
+### Opção B: Acesso Externo com Link Público (Site Nuvem)
+Dê um duplo clique em [`SITE_NUVEM.bat`](SITE_NUVEM.bat). O script gera um link HTTPS seguro para acesso externo no celular ou qualquer computador de fora da rede local.
 
 ### Opção C: Executar Testes Automatizados (TDD)
 ```bash
 pytest dashboard/tests/ -v -p no:cacheprovider
-# 29 passed in 0.34s (100% de cobertura nos componentes e rotas)
+# 30 passed in 0.30s (100% de cobertura nos componentes e rotas)
 ```
