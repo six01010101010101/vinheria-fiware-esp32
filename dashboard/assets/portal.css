@@ -1,15 +1,15 @@
 /* Portal HTML5 Sommelier — Vinheria Agnello (Design Tokens & Glassmorphism) */
 :root {
-  --portal-bg: #f8fafc; --portal-card: #ffffff; --portal-border: #e2e8f0;
-  --portal-text: #0f172a; --portal-muted: #64748b; --portal-wine: #722F37;
-  --portal-gold: #b38738; --portal-gold-glow: rgba(179, 135, 56, 0.22);
-  --portal-wine-glow: rgba(114, 47, 55, 0.12); --portal-input-bg: #ffffff;
+  --portal-bg: #f7f4ee; --portal-card: #ffffff; --portal-border: #e8e2d8;
+  --portal-text: #261e1b; --portal-muted: #8a7b75; --portal-wine: #681f2a;
+  --portal-gold: #94713c; --portal-gold-glow: rgba(148, 113, 60, 0.16);
+  --portal-wine-glow: rgba(104, 31, 42, 0.12); --portal-input-bg: #ffffff;
 }
 [data-theme="dark"] {
-  --portal-bg: #070b12; --portal-card: #0d1420; --portal-border: #192434;
-  --portal-text: #f1f5f9; --portal-muted: #94a3b8; --portal-wine: #8b263e;
-  --portal-gold: #d4af37; --portal-gold-glow: rgba(212, 175, 55, 0.28);
-  --portal-wine-glow: rgba(139, 38, 62, 0.32); --portal-input-bg: #0c131d;
+  --portal-bg: #110d0e; --portal-card: #181315; --portal-border: #292023;
+  --portal-text: #f3ece7; --portal-muted: #7d6e69; --portal-wine: #9c3543;
+  --portal-gold: #cca76c; --portal-gold-glow: rgba(204, 167, 108, 0.22);
+  --portal-wine-glow: rgba(156, 53, 67, 0.25); --portal-input-bg: #151012;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -21,7 +21,7 @@ body {
 .portal-header {
   display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
   padding: 14px 18px; background: var(--portal-card); border: 1px solid var(--portal-border);
-  border-radius: 12px; margin-bottom: 22px; box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+  border-radius: 12px; margin-bottom: 22px; box-shadow: 0 2px 10px rgba(38, 30, 27, 0.03);
 }
 .portal-brand h1 {
   font-family: "Cinzel", Georgia, serif; font-size: 1.35rem; color: var(--portal-wine);
@@ -31,7 +31,7 @@ body {
 .portal-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .live-pill {
   display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px;
-  font-size: 0.74rem; font-weight: 600; background: rgba(34, 197, 94, 0.1); color: #16a34a;
+  font-size: 0.74rem; font-weight: 600; background: rgba(34, 197, 94, 0.10); color: #16a34a;
   border: 1px solid rgba(34, 197, 94, 0.3);
 }
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; animation: pulseDot 1.4s infinite; }
@@ -54,7 +54,7 @@ body {
   letter-spacing: 0.05em; border-left: 3px solid var(--portal-gold); padding-left: 8px; margin-bottom: 12px;
 }
 .kpi-big { font-size: 2.1rem; font-weight: 800; letter-spacing: -0.02em; }
-.kpi-temp { color: #ef4444; } .kpi-hum { color: #0284c7; } .kpi-lum { color: #f59e0b; }
+.kpi-temp { color: #d9534f; } .kpi-hum { color: #3b82a6; } .kpi-lum { color: #c28b38; }
 .sommelier-tag {
   display: inline-block; font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;
   border: 1px solid var(--portal-gold); background: var(--portal-gold-glow); color: var(--portal-gold);
@@ -94,7 +94,7 @@ body {
   background: var(--portal-card); color: var(--portal-text); padding: 0;
   max-width: 520px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.45);
 }
-.portal-modal::backdrop { background: rgba(7, 11, 18, 0.75); backdrop-filter: blur(4px); }
+.portal-modal::backdrop { background: rgba(17, 13, 14, 0.75); backdrop-filter: blur(4px); }
 .modal-box { padding: 18px 20px; }
 .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--portal-border); padding-bottom: 10px; margin-bottom: 14px; }
 .modal-close { background: transparent; border: none; font-size: 1.4rem; color: var(--portal-muted); cursor: pointer; line-height: 1; }

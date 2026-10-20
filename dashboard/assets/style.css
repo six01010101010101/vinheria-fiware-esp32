@@ -1,20 +1,20 @@
 /* ==========================================================================
-   Design Tokens & Estilo Clean Moderno com Detalhes Cor Vinho (Bordeaux)
+   Design Tokens & Estilo Sommelier Enológico (Paleta Nobre Quente & Cava)
    Vinheria Agnello — FIWARE & ESP32 Wokwi (Check Point 5)
    ========================================================================== */
 
 :root {
-    --bg-body: #f8fafc; --bg-card: #ffffff; --border-subtle: #e2e8f0; --border-input: #cbd5e1;
-    --text-primary: #0f172a; --text-secondary: #334155; --text-muted: #64748b;
-    --wine-primary: #722F37; --wine-hover: #58111A; --wine-light: #8E3A44; --wine-gold: #b38738;
-    --wine-subtle: rgba(114, 47, 55, 0.08); --wine-glow: rgba(114, 47, 55, 0.16);
-    --search-bg: #ffffff; --search-border: #cbd5e1; --search-text: #0f172a; --search-placeholder: #64748b;
-    --search-container-bg: #f8fafc; --search-menu-bg: #ffffff; --search-option-hover: #f1f5f9;
-    --search-option-hover-text: #722F37; --search-option-active: #722F37;
-    --Dash-Fill-Inverse-Strong: #ffffff !important; --Dash-Stroke-Strong: #cbd5e1 !important;
-    --Dash-Text-Primary: #0f172a !important; --Dash-Text-Strong: #0f172a !important; --Dash-Text-Weak: #64748b !important;
-    --Dash-Fill-Interactive-Strong: #722F37 !important; --Dash-Fill-Interactive-Weak: rgba(114, 47, 55, 0.08) !important;
-    --Dash-Fill-Primary-Hover: #f1f5f9 !important; --Dash-Fill-Disabled: #e2e8f0 !important;
+    --bg-body: #f7f4ee; --bg-card: #ffffff; --border-subtle: #e8e2d8; --border-input: #d9d0c3;
+    --text-primary: #261e1b; --text-secondary: #5a4d49; --text-muted: #8a7b75;
+    --wine-primary: #681f2a; --wine-hover: #4d141d; --wine-light: #852d3a; --wine-gold: #94713c;
+    --wine-subtle: rgba(104, 31, 42, 0.06); --wine-glow: rgba(104, 31, 42, 0.12);
+    --search-bg: #ffffff; --search-border: #d9d0c3; --search-text: #261e1b; --search-placeholder: #8a7b75;
+    --search-container-bg: #fbf9f5; --search-menu-bg: #ffffff; --search-option-hover: #f3eee6;
+    --search-option-hover-text: #681f2a; --search-option-active: #681f2a;
+    --Dash-Fill-Inverse-Strong: #ffffff !important; --Dash-Stroke-Strong: #d9d0c3 !important;
+    --Dash-Text-Primary: #261e1b !important; --Dash-Text-Strong: #261e1b !important; --Dash-Text-Weak: #8a7b75 !important;
+    --Dash-Fill-Interactive-Strong: #681f2a !important; --Dash-Fill-Interactive-Weak: rgba(104, 31, 42, 0.08) !important;
+    --Dash-Fill-Primary-Hover: #f3eee6 !important; --Dash-Fill-Disabled: #e8e2d8 !important;
 }
 
 body {
@@ -30,9 +30,9 @@ body {
 
 /* Status Pill Wokwi & Links Sutis na Navbar */
 .status-pill { display: inline-flex; align-items: center; font-size: 0.74rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; transition: all 0.2s ease; }
-.status-pill-live { background: rgba(22, 163, 74, 0.12); color: #16a34a; border: 1px solid rgba(22, 163, 74, 0.25); }
-.status-pill-ready { background: var(--wine-subtle); color: var(--wine-primary); border: 1px solid rgba(114, 47, 55, 0.25); }
-.status-pill-idle { background: #f1f5f9; color: var(--text-muted); border: 1px solid var(--border-subtle); }
+.status-pill-live { background: rgba(34, 197, 94, 0.10); color: #16a34a; border: 1px solid rgba(34, 197, 94, 0.25); }
+.status-pill-ready { background: var(--wine-subtle); color: var(--wine-primary); border: 1px solid rgba(104, 31, 42, 0.22); }
+.status-pill-idle { background: #efeae2; color: var(--text-muted); border: 1px solid var(--border-subtle); }
 .status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; }
 .status-dot-live { background-color: #22c55e; box-shadow: 0 0 6px rgba(34, 197, 94, 0.8); }
 .status-dot-ready { background-color: var(--wine-primary); }
@@ -41,7 +41,7 @@ body {
 .nav-ghost-link:hover { color: var(--wine-primary); background-color: var(--wine-subtle); }
 
 /* Seletor Segmentado de Tema */
-.theme-btn-group { display: inline-flex; background: #f1f5f9; padding: 2px; border-radius: 8px; border: 1px solid var(--border-subtle); }
+.theme-btn-group { display: inline-flex; background: #efeae2; padding: 2px; border-radius: 8px; border: 1px solid var(--border-subtle); }
 .theme-btn { border: none !important; background: transparent !important; font-size: 0.72rem !important; font-weight: 600 !important; padding: 2px 8px !important; border-radius: 6px !important; color: var(--text-muted) !important; box-shadow: none !important; }
 .theme-btn.active { background-color: var(--wine-primary) !important; color: #ffffff !important; }
 
@@ -54,20 +54,20 @@ body {
 /* Cartões Principais Clean */
 .clean-card {
     background: var(--bg-card) !important; border: 1px solid var(--border-subtle) !important;
-    border-radius: 12px !important; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+    border-radius: 12px !important; box-shadow: 0 1px 3px rgba(38, 30, 27, 0.04) !important;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.clean-card:hover { box-shadow: 0 6px 16px rgba(114, 47, 55, 0.08) !important; }
+.clean-card:hover { box-shadow: 0 6px 16px rgba(104, 31, 42, 0.08) !important; }
 .section-title {
     font-family: "Cinzel", "Georgia", serif; font-size: 0.85rem; font-weight: 700;
     letter-spacing: 0.08em; text-transform: uppercase; color: var(--wine-primary) !important;
     border-left: 3px solid var(--wine-gold); padding-left: 9px;
 }
-.sommelier-tag { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; border: 1px solid rgba(179, 135, 56, 0.35); background: rgba(179, 135, 56, 0.12); color: var(--wine-gold); }
+.sommelier-tag { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; border: 1px solid rgba(148, 113, 60, 0.35); background: rgba(148, 113, 60, 0.12); color: var(--wine-gold); }
 
 /* Triggers & Inputs Customizados */
-.trigger-addon-label { background-color: #f1f5f9 !important; border-color: var(--border-input) !important; color: var(--text-secondary) !important; font-size: 0.76rem !important; font-weight: 600; }
-.trigger-input-field { border-color: var(--border-input) !important; font-weight: 600; color: var(--text-primary) !important; }
+.trigger-addon-label { background-color: #f7f3ec !important; border-color: var(--border-input) !important; color: var(--text-secondary) !important; font-size: 0.76rem !important; font-weight: 600; }
+.trigger-input-field { border-color: var(--border-input) !important; font-weight: 600; color: var(--text-primary) !important; background-color: #ffffff !important; }
 
 /* Barra de Pesquisa & Dropdowns (Claro no Tema Claro, Escuro no Tema Escuro) */
 .custom-dropdown .dash-dropdown, .wine-search-bar .dash-dropdown, .dash-dropdown-trigger, .Select-control {
@@ -81,7 +81,7 @@ body {
 .dash-dropdown-search::placeholder { color: var(--search-placeholder) !important; }
 .dash-dropdown-content, .Select-menu-outer, .Select-menu {
     background-color: var(--search-menu-bg) !important; border: 1px solid var(--search-border) !important;
-    border-radius: 8px !important; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
+    border-radius: 8px !important; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18) !important;
 }
 .dash-dropdown-option, .Select-option { background-color: var(--search-menu-bg) !important; color: var(--search-text) !important; }
 .dash-dropdown-option:hover, .Select-option.is-focused { background-color: var(--search-option-hover) !important; color: var(--search-option-hover-text) !important; }
@@ -92,14 +92,14 @@ body {
 /* Cartões das 9 Vinícolas Reais do Mundo */
 .vineyard-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 10px 12px; transition: all 0.2s ease; }
 .vineyard-card:hover { border-color: var(--wine-light); box-shadow: 0 4px 12px var(--wine-glow); transform: translateY(-1px); }
-.vineyard-card-active { background: #fdfafb !important; border: 2px solid var(--wine-primary) !important; box-shadow: 0 0 0 3px var(--wine-glow) !important; }
+.vineyard-card-active { background: #faf4f5 !important; border: 2px solid var(--wine-primary) !important; box-shadow: 0 0 0 3px var(--wine-glow) !important; }
 
 /* Indicadores dos 3 LEDs Físicos do ESP32 */
 .led-indicator { display: inline-block; width: 13px; height: 13px; border-radius: 50%; vertical-align: middle; margin-right: 6px; }
 .led-green-on { background-color: #16a34a; border: 2px solid #86efac; box-shadow: 0 0 6px rgba(22, 163, 74, 0.6); }
 .led-red-on { background-color: #dc2626; border: 2px solid #fca5a5; box-shadow: 0 0 6px rgba(220, 38, 38, 0.6); }
-.led-green-off, .led-blue-off { background-color: #e2e8f0; border: 2px solid #cbd5e1; }
-.led-red-off { background-color: #f1f5f9; border: 2px solid #e2e8f0; }
+.led-green-off, .led-blue-off { background-color: #e8e2d8; border: 2px solid #d9d0c3; }
+.led-red-off { background-color: #efeae2; border: 2px solid #e8e2d8; }
 
 @keyframes pulseBlueLed {
     0% { background-color: #0284c7; box-shadow: 0 0 4px #0284c7; }
@@ -113,7 +113,7 @@ body {
 .custom-icon-sm { width: 17px; height: 17px; object-fit: contain; }
 
 /* Miniaturas Protótipos 3D (Tampa + Barril) */
-.proto-thumb-box { background-color: #f8fafc; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 8px 10px; }
+.proto-thumb-box { background-color: #f7f4ee; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 8px 10px; }
 .barrel-lid-mini { position: relative; width: 112px; height: 112px; flex-shrink: 0; }
 .barrel-lid-mini-img, .barrel-3d-mini-img { height: 112px; object-fit: contain; }
 .barrel-lid-mini-img { width: 100%; }
@@ -128,7 +128,7 @@ body {
 /* Telinha Verde no Recorte Retangular da Tampa (66x26mm) */
 .green-lcd-cutout-screen {
     background: repeating-linear-gradient(0deg, #051b0a 0px, #051b0a 2px, #07270e 2px, #07270e 4px) !important;
-    border: 3px solid #cbd5e1 !important; outline: 2px solid #22c55e !important; border-radius: 8px !important;
+    border: 3px solid #d9d0c3 !important; outline: 2px solid #22c55e !important; border-radius: 8px !important;
     padding: 10px 14px !important; width: 100%; max-width: 520px; min-height: 120px; margin: 0 auto;
     box-shadow: inset 0 0 20px rgba(34, 197, 94, 0.25) !important;
     display: flex; align-items: center; justify-content: center; overflow-x: auto;
@@ -140,49 +140,49 @@ body {
 }
 
 .chart-panel-box { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 10px; }
-.cellar-score-box { background-color: #f8fafc; border: 1px solid var(--border-subtle); }
-.kpi-range-pill { background-color: #f1f5f9; border: 1px solid var(--border-subtle); }
+.cellar-score-box { background-color: #f7f4ee; border: 1px solid var(--border-subtle); }
+.kpi-range-pill { background-color: #efeae2; border: 1px solid var(--border-subtle); }
 
 .form-control, .form-select { border-color: var(--border-input) !important; color: var(--text-primary) !important; background-color: var(--bg-card) !important; }
 .form-control:focus, .form-select:focus { border-color: var(--wine-primary) !important; box-shadow: 0 0 0 3px var(--wine-glow) !important; }
-.input-group-text { background-color: #f1f5f9 !important; border-color: var(--border-input) !important; color: var(--text-secondary) !important; font-weight: 600; }
+.input-group-text { background-color: #f7f3ec !important; border-color: var(--border-input) !important; color: var(--text-secondary) !important; font-weight: 600; }
 
 /* ==========================================================================
-   Modo Escuro (Dark Theme) — data-bs-theme="dark" (Zero Branco)
+   Modo Escuro (Cava de Guarda Subterrânea — Carvalho Tostado & Borgonha)
    ========================================================================== */
 [data-bs-theme="dark"] {
-    --bg-body: #070b12; --bg-card: #0d1420; --border-subtle: #192434; --border-input: #27364d;
-    --text-primary: #f1f5f9; --text-secondary: #94a3b8; --text-muted: #64748b;
-    --wine-primary: #8b263e; --wine-hover: #a83d49; --wine-gold: #d4af37;
-    --wine-subtle: rgba(139, 38, 62, 0.2); --wine-glow: rgba(139, 38, 62, 0.35);
-    --search-bg: #0c131d; --search-border: #27364d; --search-text: #f8fafc; --search-placeholder: #94a3b8;
-    --search-container-bg: #16202e; --search-menu-bg: #0c131d; --search-option-hover: #192434;
-    --search-option-hover-text: #d4af37; --search-option-active: #8b263e;
-    --Dash-Fill-Inverse-Strong: #0c131d !important; --Dash-Stroke-Strong: #27364d !important;
-    --Dash-Text-Primary: #f8fafc !important; --Dash-Text-Strong: #f8fafc !important;
-    --Dash-Text-Weak: #94a3b8 !important; --Dash-Text-Disabled: #64748b !important;
-    --Dash-Fill-Interactive-Strong: #8b263e !important; --Dash-Fill-Interactive-Weak: rgba(139, 38, 62, 0.25) !important;
-    --Dash-Fill-Primary-Hover: #192434 !important; --Dash-Fill-Disabled: #1e293b !important;
+    --bg-body: #110d0e; --bg-card: #181315; --border-subtle: #292023; --border-input: #382c30;
+    --text-primary: #f3ece7; --text-secondary: #baa8a1; --text-muted: #7d6e69;
+    --wine-primary: #9c3543; --wine-hover: #b54352; --wine-gold: #cca76c;
+    --wine-subtle: rgba(156, 53, 67, 0.16); --wine-glow: rgba(156, 53, 67, 0.25);
+    --search-bg: #151012; --search-border: #382c30; --search-text: #f3ece7; --search-placeholder: #7d6e69;
+    --search-container-bg: #1d1618; --search-menu-bg: #181315; --search-option-hover: #261b1e;
+    --search-option-hover-text: #cca76c; --search-option-active: #9c3543;
+    --Dash-Fill-Inverse-Strong: #151012 !important; --Dash-Stroke-Strong: #382c30 !important;
+    --Dash-Text-Primary: #f3ece7 !important; --Dash-Text-Strong: #f3ece7 !important;
+    --Dash-Text-Weak: #baa8a1 !important; --Dash-Text-Disabled: #7d6e69 !important;
+    --Dash-Fill-Interactive-Strong: #9c3543 !important; --Dash-Fill-Interactive-Weak: rgba(156, 53, 67, 0.22) !important;
+    --Dash-Fill-Primary-Hover: #261b1e !important; --Dash-Fill-Disabled: #22181b !important;
 }
 
-[data-bs-theme="dark"] .clean-navbar { background: rgba(11, 16, 25, 0.98) !important; border-bottom: 2px solid var(--wine-primary) !important; }
+[data-bs-theme="dark"] .clean-navbar { background: rgba(22, 17, 19, 0.98) !important; border-bottom: 2px solid var(--wine-primary) !important; }
 [data-bs-theme="dark"] .card, [data-bs-theme="dark"] .clean-card, [data-bs-theme="dark"] .table,
 [data-bs-theme="dark"] .table td, [data-bs-theme="dark"] .table th, [data-bs-theme="dark"] .chart-panel-box { background-color: var(--bg-card) !important; color: var(--text-primary) !important; border-color: var(--border-subtle) !important; }
 [data-bs-theme="dark"] .proto-thumb-box, [data-bs-theme="dark"] .trigger-addon-label,
 [data-bs-theme="dark"] .input-group-text, [data-bs-theme="dark"] .bg-light,
-[data-bs-theme="dark"] .badge.bg-light, [data-bs-theme="dark"] .badge-light { background-color: #16202e !important; border-color: var(--border-input) !important; color: var(--text-secondary) !important; }
-[data-bs-theme="dark"] .form-control, [data-bs-theme="dark"] .form-select { background-color: #0c131d !important; border-color: var(--border-input) !important; color: #f8fafc !important; }
+[data-bs-theme="dark"] .badge.bg-light, [data-bs-theme="dark"] .badge-light { background-color: #20181b !important; border-color: var(--border-input) !important; color: var(--text-secondary) !important; }
+[data-bs-theme="dark"] .form-control, [data-bs-theme="dark"] .form-select { background-color: #151012 !important; border-color: var(--border-input) !important; color: #f3ece7 !important; }
 [data-bs-theme="dark"] .vineyard-card { background-color: var(--bg-card) !important; border-color: var(--border-subtle) !important; }
-[data-bs-theme="dark"] .vineyard-card-active { background: #1c1117 !important; border-color: var(--wine-primary) !important; }
+[data-bs-theme="dark"] .vineyard-card-active { background: #23161a !important; border-color: var(--wine-primary) !important; }
 [data-bs-theme="dark"] .green-lcd-cutout-screen { border-color: var(--border-subtle) !important; }
-[data-bs-theme="dark"] .cellar-score-box { background-color: #0f1622 !important; border-color: var(--border-subtle) !important; }
-[data-bs-theme="dark"] .kpi-range-pill { background-color: #16202e !important; border-color: var(--border-subtle) !important; color: var(--text-secondary) !important; }
-[data-bs-theme="dark"] .theme-btn-group { background: #0c131d !important; border-color: var(--border-subtle) !important; }
+[data-bs-theme="dark"] .cellar-score-box { background-color: #1c1517 !important; border-color: var(--border-subtle) !important; }
+[data-bs-theme="dark"] .kpi-range-pill { background-color: #20181b !important; border-color: var(--border-subtle) !important; color: var(--text-secondary) !important; }
+[data-bs-theme="dark"] .theme-btn-group { background: #151012 !important; border-color: var(--border-subtle) !important; }
 [data-bs-theme="dark"] .status-pill-live { background: rgba(34, 197, 94, 0.15) !important; color: #4ade80 !important; border-color: rgba(34, 197, 94, 0.3) !important; }
-[data-bs-theme="dark"] .status-pill-ready { background: rgba(168, 61, 73, 0.2) !important; color: #f87171 !important; border-color: rgba(168, 61, 73, 0.35) !important; }
-[data-bs-theme="dark"] .status-pill-idle { background: #131b26 !important; color: #94a3b8 !important; border-color: var(--border-subtle) !important; }
+[data-bs-theme="dark"] .status-pill-ready { background: rgba(181, 67, 82, 0.2) !important; color: #fca5a5 !important; border-color: rgba(181, 67, 82, 0.35) !important; }
+[data-bs-theme="dark"] .status-pill-idle { background: #1c1618 !important; color: #baa8a1 !important; border-color: var(--border-subtle) !important; }
 [data-bs-theme="dark"] .nav-ghost-link { color: var(--text-secondary) !important; }
-[data-bs-theme="dark"] .nav-ghost-link:hover { color: #f8fafc !important; background-color: rgba(255, 255, 255, 0.08) !important; }
-[data-bs-theme="dark"] .text-dark { color: #f8fafc !important; }
-[data-bs-theme="dark"] .text-muted { color: #94a3b8 !important; }
+[data-bs-theme="dark"] .nav-ghost-link:hover { color: #f3ece7 !important; background-color: rgba(255, 255, 255, 0.08) !important; }
+[data-bs-theme="dark"] .text-dark { color: #f3ece7 !important; }
+[data-bs-theme="dark"] .text-muted { color: #7d6e69 !important; }
 [data-bs-theme="dark"] .border, [data-bs-theme="dark"] .border-top, [data-bs-theme="dark"] .border-bottom { border-color: var(--border-subtle) !important; }
