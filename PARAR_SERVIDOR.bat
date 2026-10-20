@@ -3,7 +3,7 @@ chcp 65001 >nul
 title Vinheria Agnello - Encerrar Servidor
 
 echo ============================================================================
-echo   VINHERIA AGNELLO · PARANDO SERVIDOR LOCAL (PORTA 8050)
+echo   VINHERIA AGNELLO - PARANDO SERVIDOR LOCAL (PORTA 8050)
 echo ============================================================================
 
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr :8050 ^| findstr LISTENING') do (
@@ -13,4 +13,4 @@ for /f "tokens=5" %%a in ('netstat -ano ^| findstr :8050 ^| findstr LISTENING') 
 
 echo.
 echo [OK] Servidor da Vinheria Agnello finalizado com sucesso.
-timeout /t 3
+ping -n 3 127.0.0.1 >nul

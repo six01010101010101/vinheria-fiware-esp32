@@ -3,7 +3,7 @@ chcp 65001 >nul
 title Vinheria Agnello - Inicializacao em Segundo Plano (Sem Antigravity)
 
 echo ============================================================================
-echo   VINHERIA AGNELLO · INICIANDO SERVIDOR EM SEGUNDO PLANO
+echo   VINHERIA AGNELLO - INICIANDO SERVIDOR EM SEGUNDO PLANO
 echo   (Nao precisa do Antigravity ou janela aberta para continuar rodando)
 echo ============================================================================
 
@@ -37,7 +37,7 @@ if not errorlevel 1 (
 ) else (
     echo [1/2] Iniciando processo em segundo plano com %PY_EXE%...
     start "" "%PY_EXE%" app.py
-    timeout /t 2 /nobreak >nul
+    ping -n 3 127.0.0.1 >nul
 )
 
 echo [2/2] Abrindo navegador em http://127.0.0.1:8050...
@@ -49,4 +49,4 @@ echo   SUCESSO! O site esta rodando em segundo plano.
 echo   Voce pode fechar esta janela e o Antigravity que o site continuara ativo.
 echo   Para parar o site quando quiser, execute PARAR_SERVIDOR.bat
 echo ============================================================================
-timeout /t 5
+ping -n 4 127.0.0.1 >nul
