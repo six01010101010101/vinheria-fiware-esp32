@@ -23,7 +23,10 @@ def create_app() -> Dash:
     """Instancia e configura a aplicação Dash com layout modular limpo, API REST e callbacks reativos."""
     app = Dash(
         __name__,
-        external_stylesheets=[dbc.themes.FLATLY],
+        external_stylesheets=[
+            dbc.themes.FLATLY,
+            "https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap",
+        ],
         title="Vinheria Agnello · Gestão de Adega, Lotes & Terroirs IoT",
         meta_tags=[
             {"name": "viewport", "content": "width=device-width, initial-scale=1"},

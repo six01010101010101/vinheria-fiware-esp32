@@ -124,7 +124,7 @@ def build_real_vineyards_grid(
                     [
                         html.Div(
                             [
-                                html.Span(f"{flag} {v.name}", className="fw-bold text-dark small text-truncate"),
+                                html.Span(f"{flag} {v.name}", className="lot-wine-title text-truncate"),
                                 dbc.Badge(
                                     "Painel Ativo" if is_selected else ("Desvio" if any_alert else "Faixa Ideal"),
                                     color="success" if is_selected else ("warning" if any_alert else "secondary"),
