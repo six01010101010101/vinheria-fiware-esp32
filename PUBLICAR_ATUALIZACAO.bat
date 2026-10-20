@@ -53,7 +53,7 @@ echo.
 echo ============================================================================
 echo   SUCESSO! O Render.com recebeu os arquivos e esta compilando a atualizacao.
 echo   Link do Web Service: https://vinheria-agnello-iot.onrender.com
-echo   Repositório:         https://github.com/six01010101010101/checkpoint5-vinheria-fiware-esp32
+echo   Repositório:         https://github.com/six01010101010101/vinheria-fiware-esp32
 echo ============================================================================
 echo.
 timeout /t 5

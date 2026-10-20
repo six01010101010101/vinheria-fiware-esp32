@@ -21,7 +21,7 @@ from src.ui.api_html_view import render_api_status_html
 from src.ui.api_lots_routes import register_lots_routes
 from src.ui.api_openapi import register_openapi_routes
 
-GITHUB_REPO_URL = "https://github.com/six01010101010101/checkpoint5-vinheria-fiware-esp32"
+GITHUB_REPO_URL = "https://github.com/six01010101010101/vinheria-fiware-esp32"
 
 
 def register_api_routes(server: Flask) -> None:

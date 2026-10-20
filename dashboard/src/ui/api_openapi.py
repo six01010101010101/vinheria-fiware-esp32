@@ -15,7 +15,7 @@ def get_openapi_spec() -> Dict[str, Any]:
             "title": "Vinheria Agnello — REST IoT & Enological API",
             "version": "1.2.0",
             "description": "API REST de alta performance para monitoramento de Adegas, Lotes de Vinho, Terroirs Globais e Integração ESP32/FIWARE.",
-            "contact": {"name": "Vinheria Agnello CP5", "url": "https://github.com/six01010101010101/checkpoint5-vinheria-fiware-esp32"},
+            "contact": {"name": "Vinheria Agnello CP5", "url": "https://github.com/six01010101010101/vinheria-fiware-esp32"},
         },
         "servers": [{"url": "http://127.0.0.1:8050", "description": "Servidor Local Dash/Flask"}],
         "paths": {

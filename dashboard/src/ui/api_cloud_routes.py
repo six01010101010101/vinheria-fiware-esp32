@@ -9,7 +9,7 @@ from flask import Flask, jsonify
 import requests
 from src.repositories.supabase_repository import SupabaseRepository
 
-GITHUB_REPO_URL = "https://github.com/six01010101010101/checkpoint5-vinheria-fiware-esp32"
+GITHUB_REPO_URL = "https://github.com/six01010101010101/vinheria-fiware-esp32"
 RENDER_DEFAULT_URL = "https://vinheria-agnello-iot.onrender.com"
 
 
