@@ -170,8 +170,16 @@ async function fetchLots() {
   }
 }
 
+function initDashboardLink() {
+  const btn = document.getElementById("btn-dash-link");
+  if (!btn) return;
+  btn.href = window.location.protocol === "file:" ? "http://127.0.0.1:8050/" : "/";
+  if (window.location.protocol !== "file:") btn.removeAttribute("target");
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
+  initDashboardLink();
   document.getElementById("theme-toggle-btn")?.addEventListener("click", toggleTheme);
   document.getElementById("audio-toggle-btn")?.addEventListener("click", toggleAudio);
   document.getElementById("modal-close-btn")?.addEventListener("click", () => document.getElementById("lot-detail-modal")?.close());

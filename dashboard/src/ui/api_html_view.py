@@ -43,7 +43,7 @@ def render_api_status_html(data: Dict[str, Any]) -> str:
       <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-3 border-bottom">
         <div>
           <span class="badge bg-success me-2">{status_str}</span>
-          <span class="badge bg-secondary border">Porta 8050 REST API</span>
+          <span class="badge bg-secondary border">REST API Ativa</span>
           <h4 class="fw-bold mt-2 mb-0" style="color: #681f2a;">Vinheria Agnello — REST API Diagnostic</h4>
           <small class="text-muted">Endpoints para Lotes, Vinícolas, ESP32, Wokwi, FIWARE e OpenAPI 3.0.</small>
         </div>

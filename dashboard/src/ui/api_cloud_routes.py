@@ -26,6 +26,12 @@ def register_cloud_routes(server: Flask) -> None:
             return root_html.read_text(encoding="utf-8"), 200, {"Content-Type": "text/html; charset=utf-8"}
         return "Portal HTML5 em preparação.", 404
 
+    @server.route("/dashboard", methods=["GET"])
+    def redirect_dashboard():  # type: ignore[no-untyped-def]
+        """Redireciona amigavelmente a rota /dashboard para o Dashboard principal na raiz /."""
+        from flask import redirect
+        return redirect("/")
+
     @server.route("/api/v1/cloud/info", methods=["GET"])
     def get_cloud_info():  # type: ignore[no-untyped-def]
         """Retorna o estado da sincronização em nuvem (Render.com + GitHub + Supabase)."""

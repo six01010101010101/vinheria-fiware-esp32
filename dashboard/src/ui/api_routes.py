@@ -4,6 +4,7 @@ entre o Dashboard Web, o Simulador Wokwi ESP32, o Protótipo Físico em Caixa (E
 as 9 Vinícolas Reais do Mundo (Open-Meteo), FIWARE (1026, 4041, 8666, 1883) e Supabase SQL.
 """
 
+import os
 from datetime import datetime
 from flask import Flask, jsonify, request
 from src.config.settings import (
@@ -40,22 +41,25 @@ def register_api_routes(server: Flask) -> None:
         evaluation = TriggerAlertService.evaluate_snapshot(active_snap, TriggerConfig())
         supa = SupabaseRepository.get_instance()
 
+        base_url = request.host_url.rstrip("/") if request else "http://127.0.0.1:8050"
+        server_port = int(request.environ.get("SERVER_PORT", os.getenv("PORT", "8050"))) if request else 8050
         payload = {
             "status": "online",
             "timestamp": datetime.now().isoformat(),
             "links": {
-                "dashboard_local": "http://127.0.0.1:8050",
-                "api_status": "http://127.0.0.1:8050/api/v1/status",
-                "api_cellar_lots": "http://127.0.0.1:8050/api/v1/lots",
-                "api_real_vineyards": "http://127.0.0.1:8050/api/v1/vineyards",
-                "api_cloud_info": "http://127.0.0.1:8050/api/v1/cloud/info",
-                "api_openapi_spec": "http://127.0.0.1:8050/api/v1/openapi.json",
+                "dashboard": f"{base_url}/",
+                "dashboard_local": f"{base_url}/",
+                "api_status": f"{base_url}/api/v1/status",
+                "api_cellar_lots": f"{base_url}/api/v1/lots",
+                "api_real_vineyards": f"{base_url}/api/v1/vineyards",
+                "api_cloud_info": f"{base_url}/api/v1/cloud/info",
+                "api_openapi_spec": f"{base_url}/api/v1/openapi.json",
                 "wokwi_simulation": WOKWI_PROJECT_URL,
                 "github_repository": GITHUB_REPO_URL,
                 "supabase_cloud": supa.project_url or "https://slqozouuqzxwmfswyroo.supabase.co",
             },
             "ports_and_protocols": {
-                "dashboard_http_port": 8050,
+                "dashboard_http_port": server_port,
                 "mqtt_broker_host": DEFAULT_WOKWI_BROKER,
                 "mqtt_port": MQTT_PORT,
                 "fiware_host": DEFAULT_FIWARE_HOST,

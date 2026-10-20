@@ -122,6 +122,9 @@ def test_portal_html5_route() -> None:
         assert "Vinheria Agnello" in text
         assert "lots-container" in text
 
+    res_dash = client.get("/dashboard")
+    assert res_dash.status_code in (301, 302)
+
 
 def test_api_v1_health_check() -> None:
     """Valida endpoints de health check para Render.com e monitoramento contínuo."""
