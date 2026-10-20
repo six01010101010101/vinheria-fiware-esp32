@@ -26,9 +26,15 @@ function playAcousticChime(freq = 523.25, dur = 0.18) {
   } catch (_) {}
 }
 
+function updateThemeMeta(t) {
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", t === "dark" ? "#09090b" : "#f8fafc");
+}
+
 function initTheme() {
   const saved = localStorage.getItem("portal_theme") || "dark";
   document.documentElement.setAttribute("data-theme", saved);
+  updateThemeMeta(saved);
   updateThemeIcon(saved);
 }
 
@@ -37,6 +43,7 @@ function toggleTheme() {
   const next = current === "dark" ? "light" : "dark";
   document.documentElement.setAttribute("data-theme", next);
   localStorage.setItem("portal_theme", next);
+  updateThemeMeta(next);
   updateThemeIcon(next);
   playAcousticChime(659.25, 0.12);
 }

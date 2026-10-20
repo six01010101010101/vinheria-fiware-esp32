@@ -1,67 +1,63 @@
-/* Portal HTML5 Sommelier — Vinheria Agnello (Design Tokens & Glassmorphism) */
-@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+/* Portal HTML5 Sommelier — Vinheria Agnello (Minimalista Executivo) */
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
 
 :root {
-  --portal-bg: #f7f4ee; --portal-card: #ffffff; --portal-border: #e8e2d8;
-  --portal-text: #261e1b; --portal-muted: #8a7b75; --portal-wine: #681f2a;
-  --portal-gold: #94713c; --portal-gold-glow: rgba(148, 113, 60, 0.16);
-  --portal-wine-glow: rgba(104, 31, 42, 0.12); --portal-input-bg: #ffffff;
+  --portal-bg: #f8fafc; --portal-card: #ffffff; --portal-border: #e2e8f0;
+  --portal-text: #0f172a; --portal-muted: #64748b; --portal-wine: #72202b;
+  --portal-gold: #b08d4b; --portal-gold-glow: rgba(176, 141, 75, 0.12);
+  --portal-wine-glow: rgba(114, 32, 43, 0.12); --portal-input-bg: #ffffff;
 }
 [data-theme="dark"] {
-  --portal-bg: #110d0e; --portal-card: #181315; --portal-border: #292023;
-  --portal-text: #f3ece7; --portal-muted: #7d6e69; --portal-wine: #9c3543;
-  --portal-gold: #cca76c; --portal-gold-glow: rgba(204, 167, 108, 0.22);
-  --portal-wine-glow: rgba(156, 53, 67, 0.25); --portal-input-bg: #151012;
+  --portal-bg: #09090b; --portal-card: #121215; --portal-border: #27272a;
+  --portal-text: #f4f4f5; --portal-muted: #71717a; --portal-wine: #a82b3d;
+  --portal-gold: #d4af62; --portal-gold-glow: rgba(212, 175, 98, 0.15);
+  --portal-wine-glow: rgba(168, 43, 61, 0.22); --portal-input-bg: #121215;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  background: radial-gradient(circle at 50% 0%, #fdfbf7 0%, #f7f4ee 65%, #eee8de 100%) !important;
-  background-attachment: fixed !important; color: var(--portal-text);
-  font-family: "Plus Jakarta Sans", "Inter", -apple-system, sans-serif;
+  background-color: var(--portal-bg); color: var(--portal-text);
+  font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
   line-height: 1.5; -webkit-font-smoothing: antialiased;
 }
-[data-theme="dark"] body {
-  background: radial-gradient(circle at 50% 0%, #1c1517 0%, #110d0e 65%, #0a0808 100%) !important;
-  background-attachment: fixed !important;
-}
+[data-theme="dark"] body { background-color: #09090b; }
 .portal-container { max-width: 1200px; margin: 0 auto; padding: 20px 16px; }
 .portal-header {
   display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
   padding: 14px 18px; background: var(--portal-card); border: 1px solid var(--portal-border);
-  border-radius: 12px; margin-bottom: 22px; box-shadow: 0 2px 10px rgba(38, 30, 27, 0.03);
+  border-radius: 12px; margin-bottom: 22px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 .portal-brand h1 {
   font-family: "Cinzel", Georgia, serif; font-size: 1.35rem; color: var(--portal-wine);
-  letter-spacing: 0.08em; display: flex; align-items: center; gap: 8px;
+  letter-spacing: 0.06em; display: flex; align-items: center; gap: 8px;
 }
-.portal-brand p { font-size: 0.72rem; color: var(--portal-gold); font-weight: 600; letter-spacing: 0.1em; }
+.portal-brand p { font-size: 0.72rem; color: var(--portal-gold); font-weight: 700; letter-spacing: 0.08em; }
 .portal-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .live-pill {
   display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px;
   font-size: 0.74rem; font-weight: 600; background: rgba(34, 197, 94, 0.10); color: #16a34a;
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  border: 1px solid rgba(34, 197, 94, 0.25);
 }
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; animation: pulseDot 1.4s infinite; }
 @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
 
 .kpi-summary-pills { display: flex; gap: 6px; align-items: center; }
 .summary-pill { font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; border: 1px solid var(--portal-border); color: var(--portal-muted); }
-.summary-pill-ok { color: #16a34a; border-color: rgba(34, 197, 94, 0.3); background: rgba(34, 197, 94, 0.08); }
-.summary-pill-alert { color: #dc2626; border-color: rgba(220, 38, 38, 0.3); background: rgba(220, 38, 38, 0.08); }
+.summary-pill-ok { color: #16a34a; border-color: rgba(34, 197, 94, 0.25); background: rgba(34, 197, 94, 0.08); }
+.summary-pill-alert { color: #dc2626; border-color: rgba(220, 38, 38, 0.25); background: rgba(220, 38, 38, 0.08); }
 
 .portal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 14px; margin-bottom: 22px; }
 .portal-card {
   background: var(--portal-card); border: 1px solid var(--portal-border); border-radius: 12px;
   padding: 16px; transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
-.portal-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--portal-wine-glow); border-color: var(--portal-wine); }
+.portal-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08); border-color: var(--portal-wine); }
 .card-clickable { cursor: pointer; }
 .card-title {
-  font-family: "Cinzel", serif; font-size: 0.85rem; font-weight: 700; color: var(--portal-wine);
-  letter-spacing: 0.05em; border-left: 3px solid var(--portal-gold); padding-left: 8px; margin-bottom: 12px;
+  font-family: "Plus Jakarta Sans", sans-serif; font-size: 0.85rem; font-weight: 700; color: var(--portal-wine);
+  letter-spacing: 0.02em; border-left: 3px solid var(--portal-wine); padding-left: 8px; margin-bottom: 12px;
 }
 .kpi-big { font-size: 2.1rem; font-weight: 800; letter-spacing: -0.02em; }
-.kpi-temp { color: #d9534f; } .kpi-hum { color: #3b82a6; } .kpi-lum { color: #c28b38; }
+.kpi-temp { color: #ef4444; } .kpi-hum { color: #0284c7; } .kpi-lum { color: #f59e0b; }
 .sommelier-tag {
   display: inline-block; font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;
   border: 1px solid var(--portal-gold); background: var(--portal-gold-glow); color: var(--portal-gold);
@@ -97,19 +93,19 @@ body {
 
 /* Modal Enológico */
 .portal-modal {
-  margin: auto; border: 1px solid var(--portal-gold); border-radius: 12px;
+  margin: auto; border: 1px solid var(--portal-border); border-radius: 12px;
   background: var(--portal-card); color: var(--portal-text); padding: 0;
-  max-width: 520px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+  max-width: 520px; width: 90%; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
 }
-.portal-modal::backdrop { background: rgba(17, 13, 14, 0.75); backdrop-filter: blur(4px); }
+.portal-modal::backdrop { background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(4px); }
 .modal-box { padding: 18px 20px; }
 .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--portal-border); padding-bottom: 10px; margin-bottom: 14px; }
 .modal-close { background: transparent; border: none; font-size: 1.4rem; color: var(--portal-muted); cursor: pointer; line-height: 1; }
 .modal-close:hover { color: var(--portal-wine); }
 .modal-body { font-size: 0.82rem; line-height: 1.6; }
 
-/* Scrollbar Sommelier */
+/* Scrollbar Minimalista */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--portal-bg); }
 ::-webkit-scrollbar-thumb { background: var(--portal-border); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--portal-gold); }
+::-webkit-scrollbar-thumb:hover { background: var(--portal-muted); }

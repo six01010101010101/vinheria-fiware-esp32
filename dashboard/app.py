@@ -30,7 +30,7 @@ def create_app() -> Dash:
         title="Vinheria Agnello · Gestão de Adega, Lotes & Terroirs IoT",
         meta_tags=[
             {"name": "viewport", "content": "width=device-width, initial-scale=1"},
-            {"name": "theme-color", "content": "#110d0e"},
+            {"name": "theme-color", "content": "#09090b"},
         ],
     )
 

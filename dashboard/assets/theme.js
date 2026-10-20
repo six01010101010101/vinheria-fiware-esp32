@@ -29,7 +29,7 @@
     document.documentElement.setAttribute("data-bs-theme", effectiveTheme);
     var meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
-      meta.setAttribute("content", effectiveTheme === "dark" ? "#110d0e" : "#f7f4ee");
+      meta.setAttribute("content", effectiveTheme === "dark" ? "#09090b" : "#f8fafc");
     }
     localStorage.setItem("vinheria_theme", preference);
     updateButtons(preference);
