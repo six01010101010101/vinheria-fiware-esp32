@@ -1,6 +1,8 @@
 """
 Repositório MQTT Real-Time Bidirecional para integração Plug-and-Play entre o Site e o Wokwi ESP32
 (#478106752109243393) sobre o Broker FIWARE / HiveMQ (Protocolo Ultralight 2.0 na porta 1883).
+Detecta se o Wokwi está realmente AO VIVO (pacotes recentes) e envia diagnóstico/espelhamento sem retain,
+limpando mensagens retidas antigas para que o ESP32 nunca receba estados obsoletos.
 """
 
 from collections import deque
@@ -12,8 +14,11 @@ import threading
 import time
 from typing import Deque, Dict, Optional, Tuple
 import paho.mqtt.client as mqtt
-from src.config.settings import DEFAULT_API_KEY, DEFAULT_DEVICE_ID, DEFAULT_WOKWI_BROKER, MQTT_PORT
+from src.config.settings import (
+    DEFAULT_API_KEY, DEFAULT_DEVICE_ID, DEFAULT_WOKWI_BROKER, DIAG_KEEPALIVE_S, MQTT_PORT, WOKWI_LIVE_TIMEOUT_S,
+)
 from src.models.iot_models import HistoricalSeries, SensorSnapshot, TimeSeriesPoint
+from src.repositories import wokwi_protocol as proto
 
 
 def _detect_wokwi_token() -> bool:
@@ -38,9 +43,9 @@ class WokwiMqttRepository:
         self.broker_host, self.broker_port = DEFAULT_WOKWI_BROKER, MQTT_PORT
         self.api_key, self.device_id = DEFAULT_API_KEY, DEFAULT_DEVICE_ID
         self.is_connected, self.has_token = False, _detect_wokwi_token()
-        self.last_ack_message, self.last_packet_time = "Wokwi Sincronizado", "--:--:--"
-        self.packets_received, self.last_hw_packet_ts = 0, 0.0
-        self.last_sent_cmd, self.last_sent_ts = "", 0.0
+        self.last_ack_message, self.last_packet_time = "Aguardando ACK do Wokwi", "--:--:--"
+        self.packets_received, self.last_hw_packet_ts, self.device_mirroring = 0, 0.0, False
+        self.last_diag, self.last_diag_ts = "", 0.0
         self.temp_buffer: Deque[TimeSeriesPoint] = deque(maxlen=100)
         self.hum_buffer: Deque[TimeSeriesPoint] = deque(maxlen=100)
         self.lum_buffer: Deque[TimeSeriesPoint] = deque(maxlen=100)
@@ -58,54 +63,41 @@ class WokwiMqttRepository:
     @staticmethod
     def parse_ultralight_payload(payload: str, timestamp: str) -> Optional[SensorSnapshot]:
         """Converte payload Ultralight 2.0 ('t|15.5|h|68.0|l|12.0') validando limites físicos."""
-        try:
-            parts = [p.strip() for p in payload.strip().split("|") if p.strip()]
-            if len(parts) < 2 or len(parts) % 2 != 0:
-                return None
-            kv: Dict[str, float] = {parts[i].lower(): float(parts[i + 1]) for i in range(0, len(parts), 2)}
-            t_val, h_val, l_val = kv.get("t"), kv.get("h"), kv.get("l")
-            if t_val is not None and not (-40.0 <= t_val <= 80.0):
-                return None
-            if h_val is not None and not (0.0 <= h_val <= 100.0):
-                return None
-            if l_val is not None and not (0.0 <= l_val <= 100.0):
-                return None
-            if t_val is None and h_val is None and l_val is None:
-                return None
-            return SensorSnapshot(t_val, h_val, l_val, timestamp)
-        except (ValueError, IndexError):
-            return None
+        kv = proto.parse_ultralight_kv(payload)
+        return proto.snapshot_from_kv(kv, timestamp) if kv is not None else None
+
+    @property
+    def cmd_topic(self) -> str:
+        return f"/{self.api_key}/{self.device_id}/cmd"
 
     def ensure_connected(
         self, broker_host: str = DEFAULT_WOKWI_BROKER, device_id: str = DEFAULT_DEVICE_ID, api_key: str = DEFAULT_API_KEY
     ) -> None:
         """Inicia ou reconecta o cliente MQTT em background via IPv4 direto."""
-        clean_broker, clean_dev, clean_key = (broker_host or DEFAULT_WOKWI_BROKER).strip(), (device_id or DEFAULT_DEVICE_ID).strip(), (api_key or DEFAULT_API_KEY).strip()
-        if self.client is not None and self.broker_host == clean_broker and self.device_id == clean_dev and self.api_key == clean_key:
+        clean_broker = (broker_host or DEFAULT_WOKWI_BROKER).strip()
+        clean_dev, clean_key = (device_id or DEFAULT_DEVICE_ID).strip(), (api_key or DEFAULT_API_KEY).strip()
+        if self.client is not None and (self.broker_host, self.device_id, self.api_key) == (clean_broker, clean_dev, clean_key):
             return
         if self.client is not None:
-            try:
-                self.client.loop_stop()
-                self.client.disconnect()
-            except Exception:
-                pass
-
+            self.client.loop_stop()
+            self.client.disconnect()
         self.broker_host, self.device_id, self.api_key = clean_broker, clean_dev, clean_key
-        self.is_connected, self.has_token = False, _detect_wokwi_token()
+        self.is_connected = False
         client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         client.on_connect, client.on_disconnect, client.on_message = self._on_connect, self._on_disconnect, self._on_message
+        client.reconnect_delay_set(min_delay=1, max_delay=8)
         try:
-            ipv4_target = socket.gethostbyname(self.broker_host)
-            client.connect_async(ipv4_target, self.broker_port, keepalive=20)
-            client.loop_start()
-            self.client = client
-        except Exception:
-            self.is_connected = False
+            client.connect_async(socket.gethostbyname(self.broker_host), self.broker_port, keepalive=20)
+        except OSError:
+            return
+        client.loop_start()
+        self.client = client
 
     def _on_connect(self, client: mqtt.Client, _u: object, _f: object, rc: object, _p: object = None) -> None:
         if rc == 0:
             self.is_connected = True
             client.subscribe([(f"/{self.api_key}/{self.device_id}/attrs", 0), (f"/{self.api_key}/{self.device_id}/cmdexe", 0)])
+            client.publish(self.cmd_topic, payload=None, qos=0, retain=True)  # limpa estados retidos antigos
 
     def _on_disconnect(self, *_args: object) -> None:
         self.is_connected = False
@@ -117,60 +109,74 @@ class WokwiMqttRepository:
             with self.data_lock:
                 self.last_ack_message = f"ACK ({now_str}): {raw_text}"
             return
-        snapshot = self.parse_ultralight_payload(raw_text, now_str)
-        if snapshot is not None:
-            with self.data_lock:
-                self.latest_snapshot, self.last_packet_time, self.last_hw_packet_ts = snapshot, now_str, time.time()
-                self.packets_received += 1
-                if snapshot.temperature is not None:
-                    self.temp_buffer.append(TimeSeriesPoint(now_str, snapshot.temperature))
-                if snapshot.humidity is not None:
-                    self.hum_buffer.append(TimeSeriesPoint(now_str, snapshot.humidity))
-                if snapshot.luminosity is not None:
-                    self.lum_buffer.append(TimeSeriesPoint(now_str, snapshot.luminosity))
+        kv = proto.parse_ultralight_kv(raw_text)
+        snapshot = proto.snapshot_from_kv(kv, now_str) if kv is not None else None
+        if snapshot is not None and kv is not None:
+            self._store_snapshot(snapshot, mirroring=kv.get("r", 0.0) >= 1.0)
 
-    def get_realtime_series_and_snapshot(
-        self, last_n: int = 30
-    ) -> Tuple[HistoricalSeries, Optional[SensorSnapshot], Dict[str, object]]:
-        """Retorna as séries recebidas do Wokwi em tempo real e metadados da conexão."""
+    def _store_snapshot(self, snapshot: SensorSnapshot, mirroring: bool) -> None:
         with self.data_lock:
-            series = HistoricalSeries(
-                temperature=list(self.temp_buffer)[-last_n:],
-                humidity=list(self.hum_buffer)[-last_n:],
-                luminosity=list(self.lum_buffer)[-last_n:],
-            )
-            meta = {
-                "connected": self.is_connected,
-                "has_token": self.has_token,
-                "broker": self.broker_host,
-                "last_packet_time": self.last_packet_time,
-                "packets_received": self.packets_received,
-                "last_hw_packet_ts": self.last_hw_packet_ts,
-                "last_ack": self.last_ack_message,
+            self.latest_snapshot, self.last_packet_time = snapshot, snapshot.timestamp
+            self.last_hw_packet_ts, self.device_mirroring = time.time(), mirroring
+            self.packets_received += 1
+            for buf, val in ((self.temp_buffer, snapshot.temperature), (self.hum_buffer, snapshot.humidity), (self.lum_buffer, snapshot.luminosity)):
+                if val is not None:
+                    buf.append(TimeSeriesPoint(snapshot.timestamp, val))
+
+    def ingest_external_snapshot(self, snapshot: SensorSnapshot) -> None:
+        """Registra leitura recebida via HTTP POST (ESP32 físico) como pacote ao vivo."""
+        self._store_snapshot(snapshot, mirroring=False)
+
+    def is_live(self) -> bool:
+        """True somente se o Wokwi/ESP32 enviou pacote nos últimos WOKWI_LIVE_TIMEOUT_S segundos."""
+        with self.data_lock:
+            return self.last_hw_packet_ts > 0 and (time.time() - self.last_hw_packet_ts) <= WOKWI_LIVE_TIMEOUT_S
+
+    def get_realtime_series_and_snapshot(self, last_n: int = 30) -> Tuple[HistoricalSeries, Optional[SensorSnapshot], Dict[str, object]]:
+        """Retorna as séries recebidas do Wokwi, o último pacote e metadados de conexão/vivacidade."""
+        live = self.is_live()
+        with self.data_lock:
+            series = HistoricalSeries(list(self.temp_buffer)[-last_n:], list(self.hum_buffer)[-last_n:], list(self.lum_buffer)[-last_n:])
+            age = round(time.time() - self.last_hw_packet_ts, 1) if self.last_hw_packet_ts else None
+            meta: Dict[str, object] = {
+                "connected": self.is_connected, "live": live, "has_token": self.has_token, "broker": self.broker_host,
+                "last_packet_time": self.last_packet_time, "packets_received": self.packets_received,
+                "seconds_since_packet": age, "device_mirroring": self.device_mirroring, "last_ack": self.last_ack_message,
             }
-            return series, self.latest_snapshot, meta
+            return series, (self.latest_snapshot if live else None), meta
 
-    def publish_alert_command(self, command_code: str, force: bool = False) -> Tuple[bool, str]:
-        """Publica 'vine001@alert|<cmd>' com retain=True em /TEF/vine001/cmd para sincronia imediata com o Wokwi."""
-        if self.client is None or not self.is_connected:
-            return False, f"Broker MQTT ({self.broker_host}) conectando..."
-        now = time.time()
-        if not force and command_code == self.last_sent_cmd and (now - self.last_sent_ts) < 0.85:
-            return True, f"Sincronizado no Wokwi ({self.device_id}@alert|{command_code})"
-        cmd_topic = f"/{self.api_key}/{self.device_id}/cmd"
-        cmd_payload = f"{self.device_id}@alert|{command_code}"
-        info = self.client.publish(cmd_topic, cmd_payload, qos=0, retain=True)
-        if info.rc == mqtt.MQTT_ERR_SUCCESS:
-            self.last_sent_cmd, self.last_sent_ts = command_code, now
-            return True, f"Comando Ativo no Wokwi ({cmd_topic}): {cmd_payload}"
-        return False, f"Falha ao publicar comando MQTT em {cmd_topic}"
-
-    def publish_test_telemetry(self, temp: float, hum: float, lum: float, cmd_code: str = "") -> bool:
-        """Sincroniza valores de Temperatura, Umidade e Luminosidade do Site direto para a Tela Verde e LEDs do Wokwi."""
+    def _publish(self, payload: str) -> bool:
         if self.client is None or not self.is_connected:
             return False
-        mode = cmd_code or self.last_sent_cmd or "normal"
-        cmd_topic = f"/{self.api_key}/{self.device_id}/cmd"
-        sync_payload = f"{self.device_id}@alert|{mode}|{temp:.1f}|{hum:.1f}|{lum:.1f}"
-        info = self.client.publish(cmd_topic, sync_payload, qos=0, retain=True)
-        return info.rc == mqtt.MQTT_ERR_SUCCESS
+        return self.client.publish(self.cmd_topic, payload, qos=0, retain=False).rc == mqtt.MQTT_ERR_SUCCESS
+
+    def publish_alert_command(self, command_code: str) -> Tuple[bool, str]:
+        """Publica 'vine001@alert|<cmd>' (mesmo formato do IoT Agent FIWARE)."""
+        payload = proto.build_alert(self.device_id, command_code)
+        ok = self._publish(payload)
+        return ok, (f"Comando enviado ao Wokwi: {payload}" if ok else f"Broker MQTT ({self.broker_host}) conectando...")
+
+    def publish_diagnostic(self, mode: str, health: int, verdict_code: str, preset_lcd: str, force: bool = False) -> Tuple[bool, str]:
+        """Envia o diagnóstico ao ESP32 quando muda ou a cada DIAG_KEEPALIVE_S (keepalive do LCD)."""
+        payload = proto.build_diag(self.device_id, mode, health, verdict_code, preset_lcd)
+        now = time.time()
+        with self.data_lock:
+            if not force and payload == self.last_diag and (now - self.last_diag_ts) < DIAG_KEEPALIVE_S:
+                return True, f"Diagnóstico sincronizado no Wokwi ({payload})"
+        if not self._publish(payload):
+            return False, f"Broker MQTT ({self.broker_host}) conectando..."
+        with self.data_lock:
+            self.last_diag, self.last_diag_ts = payload, now
+        return True, f"Diagnóstico enviado ao Wokwi ({payload})"
+
+    def publish_sync(self, temp: float, hum: float, lum: float) -> bool:
+        """Espelha valores de Temperatura, Umidade e Luminosidade no LCD do Wokwi."""
+        return self._publish(proto.build_sync(self.device_id, temp, hum, lum))
+
+    def publish_test_telemetry(self, temp: float, hum: float, lum: float, cmd_code: str = "") -> bool:
+        """Compatibilidade: espelha valores de Temperatura, Umidade e Luminosidade no Wokwi."""
+        return self.publish_sync(temp, hum, lum)
+
+    def release_remote_sync(self) -> bool:
+        """Faz o Wokwi voltar imediatamente para os sensores físicos (DHT22 + LDR)."""
+        return self._publish(proto.build_live(self.device_id))

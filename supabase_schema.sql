@@ -27,16 +27,12 @@ CREATE TABLE IF NOT EXISTS public.vine_telemetry (
     recorded_at timestamp with time zone NOT NULL DEFAULT now()
 );
 
--- Índices B-Tree Compostos e Parciais para Time-Series de Baixa Latência
 CREATE INDEX IF NOT EXISTS idx_vine_telemetry_device_recorded
     ON public.vine_telemetry USING btree (device_id, recorded_at DESC);
-
 CREATE INDEX IF NOT EXISTS idx_vine_telemetry_recorded_desc
     ON public.vine_telemetry USING btree (recorded_at DESC);
-
 CREATE INDEX IF NOT EXISTS idx_vine_telemetry_anomalies
-    ON public.vine_telemetry USING btree (recorded_at DESC)
-    WHERE alert_mode <> 'normal';
+    ON public.vine_telemetry USING btree (recorded_at DESC) WHERE alert_mode <> 'normal';
 
 -- 3. Tabela de Status Ao Vivo das 9 Vinícolas Reais do Mundo (Open-Meteo Satélite)
 CREATE TABLE IF NOT EXISTS public.real_vineyards_status (
@@ -59,7 +55,33 @@ CREATE TABLE IF NOT EXISTS public.real_vineyards_status (
 CREATE INDEX IF NOT EXISTS idx_real_vineyards_country
     ON public.real_vineyards_status USING btree (country);
 
--- 4. Tabela de Presets de Conservação por Tipo de Vinho (Triggers)
+-- 4. Tabela de Cavas de Guarda & Lotes Mundiais do Sommelier
+CREATE TABLE IF NOT EXISTS public.cellar_lots (
+    lot_code text PRIMARY KEY,
+    winery_name text NOT NULL,
+    wine_name text NOT NULL,
+    style text NOT NULL,
+    country text NOT NULL,
+    region text NOT NULL,
+    vintage integer NOT NULL,
+    bottling_date text NOT NULL,
+    expiration_date text NOT NULL,
+    barrel_type text NOT NULL,
+    soil_type text NOT NULL,
+    target_temp_min numeric(5,2) NOT NULL,
+    target_temp_max numeric(5,2) NOT NULL,
+    target_hum_min numeric(5,2) NOT NULL,
+    target_hum_max numeric(5,2) NOT NULL,
+    target_lum_max numeric(5,2) NOT NULL,
+    health_score integer NOT NULL DEFAULT 100,
+    verdict text NOT NULL DEFAULT 'Equilíbrio Ideal',
+    updated_at timestamp with time zone NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_cellar_lots_style ON public.cellar_lots USING btree (style);
+CREATE INDEX IF NOT EXISTS idx_cellar_lots_country ON public.cellar_lots USING btree (country);
+
+-- 5. Tabela de Presets de Conservação Enológica (Triggers)
 CREATE TABLE IF NOT EXISTS public.vine_trigger_configs (
     preset_key text PRIMARY KEY,
     name text NOT NULL,
@@ -73,20 +95,38 @@ CREATE TABLE IF NOT EXISTS public.vine_trigger_configs (
     updated_at timestamp with time zone NOT NULL DEFAULT now()
 );
 
--- 5. View Analítica Otimizada (security_invoker = true) para Resumo de Telemetria
+-- 6. Políticas RLS (Row Level Security) - Leitura e Escrita Públicas para Anon Key
+ALTER TABLE public.vine_devices ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.vine_telemetry ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.real_vineyards_status ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.cellar_lots ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.vine_trigger_configs ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow anon all vine_devices') THEN
+        CREATE POLICY "Allow anon all vine_devices" ON public.vine_devices FOR ALL TO anon USING (true) WITH CHECK (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow anon all vine_telemetry') THEN
+        CREATE POLICY "Allow anon all vine_telemetry" ON public.vine_telemetry FOR ALL TO anon USING (true) WITH CHECK (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow anon all real_vineyards') THEN
+        CREATE POLICY "Allow anon all real_vineyards" ON public.real_vineyards_status FOR ALL TO anon USING (true) WITH CHECK (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow anon all cellar_lots') THEN
+        CREATE POLICY "Allow anon all cellar_lots" ON public.cellar_lots FOR ALL TO anon USING (true) WITH CHECK (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow anon all triggers') THEN
+        CREATE POLICY "Allow anon all triggers" ON public.vine_trigger_configs FOR ALL TO anon USING (true) WITH CHECK (true);
+    END IF;
+END $$;
+
+-- 7. View Analítica Otimizada (security_invoker = true) para Resumo de Telemetria
 CREATE OR REPLACE VIEW public.v_vine_telemetry_summary
 WITH (security_invoker = true) AS
 SELECT
-    device_id,
-    source,
-    COUNT(*) AS total_readings,
-    ROUND(AVG(temperature), 2) AS avg_temp_c,
-    ROUND(MIN(temperature), 2) AS min_temp_c,
-    ROUND(MAX(temperature), 2) AS max_temp_c,
-    ROUND(AVG(humidity), 2) AS avg_humidity_pct,
-    ROUND(AVG(luminosity), 2) AS avg_luminosity_pct,
-    ROUND(AVG(cellar_health_score), 1) AS avg_health_score,
-    COUNT(*) FILTER (WHERE alert_mode <> 'normal') AS anomaly_count,
-    MAX(recorded_at) AS last_recorded_at
-FROM public.vine_telemetry
-GROUP BY device_id, source;
+    device_id, source, COUNT(*) AS total_readings,
+    ROUND(AVG(temperature), 2) AS avg_temp_c, ROUND(MIN(temperature), 2) AS min_temp_c,
+    ROUND(MAX(temperature), 2) AS max_temp_c, ROUND(AVG(humidity), 2) AS avg_humidity_pct,
+    ROUND(AVG(luminosity), 2) AS avg_luminosity_pct, ROUND(AVG(cellar_health_score), 1) AS avg_health_score,
+    COUNT(*) FILTER (WHERE alert_mode <> 'normal') AS anomaly_count, MAX(recorded_at) AS last_recorded_at
+FROM public.vine_telemetry GROUP BY device_id, source;

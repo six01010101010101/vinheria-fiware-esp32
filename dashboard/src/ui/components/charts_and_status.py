@@ -49,9 +49,9 @@ def render_charts_and_status() -> html.Div:
                     [
                         html.Div(
                             [
-                                html.Span("3. Gráficos Analíticos em Tempo Real (Curva Ao Vivo • Faixa Ideal • Detecção de Anomalias)"),
+                                html.Span("CURVAS HISTÓRICAS DE CLIMATIZAÇÃO & PENUMBRA"),
                                 html.Small(
-                                    "🟢 Faixa Ideal | ◆ Anomalia | — Média",
+                                    "Apogeu Enológico · Faixa Ideal · Média Histórica",
                                     className="text-muted fw-normal d-none d-xl-inline",
                                     style={"fontSize": "0.72rem", "textTransform": "none"},
                                 ),
@@ -60,9 +60,9 @@ def render_charts_and_status() -> html.Div:
                         ),
                         dbc.Row(
                             [
-                                _graph_col("graph-temperature", "/assets/icons/temperature.png", "TEMPERATURA (°C)", "text-danger"),
-                                _graph_col("graph-humidity", "/assets/icons/humidity.png", "UMIDADE RELATIVA (%)", "text-info"),
-                                _graph_col("graph-luminosity", "/assets/icons/luminosity.png", "LUMINOSIDADE (LDR / SOLAR %)", "text-warning"),
+                                _graph_col("graph-temperature", "/assets/icons/temperature.png", "TEMPERATURA DA CAVA (°C)", "text-danger"),
+                                _graph_col("graph-humidity", "/assets/icons/humidity.png", "HIGROMETRIA DA CORTIÇA (%)", "text-info"),
+                                _graph_col("graph-luminosity", "/assets/icons/luminosity.png", "PENUMBRA ENOLÓGICA (%)", "text-warning"),
                             ],
                             className="g-3",
                         ),
@@ -105,7 +105,7 @@ def build_sensor_figure(
     fig.add_hrect(
         y0=min_trigger, y1=max_trigger, fillcolor="rgba(34, 197, 94, 0.08)",
         line_width=1, line_color="rgba(34, 197, 94, 0.25)",
-        annotation_text="ZONA IDEAL", annotation_position="top left",
+        annotation_text="ZONA DO SOMMELIER", annotation_position="top left",
         annotation_font={"size": 9, "color": "rgba(22, 163, 74, 0.9)"},
     )
 

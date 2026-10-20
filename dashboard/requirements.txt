@@ -24,3 +24,8 @@ paho-mqtt>=2.1.0
 
 # Suite de testes automatizados (TDD - Unitarios e Integracao)
 pytest>=8.3.0
+
+# Servidores WSGI de producao (Gunicorn para Nuvem/Linux e Waitress para Windows Local)
+gunicorn>=22.0.0
+waitress>=3.0.0
+

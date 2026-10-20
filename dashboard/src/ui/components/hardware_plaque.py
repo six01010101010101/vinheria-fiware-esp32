@@ -5,21 +5,18 @@ Painel Integrado Compacto (Grid Perfeito):
 - Coluna 3 (lg=4): Status ao vivo dos 3 LEDs (Verde GPIO 5, Vermelho GPIO 18, Azul GPIO 2) + Buzzer + Saúde da Adega
 """
 
-from typing import Optional
+from typing import Optional, Tuple
 import dash_bootstrap_components as dbc
 from dash import html
 from src.models.iot_models import AnomalyEvaluation, SensorSnapshot, TriggerConfig
 
 
-def _sensor_short_status(val: Optional[float], min_lim: float, max_lim: float) -> str:
-    """Retorna texto curto de status para a escrita da telinha verde."""
+def _metric_cols(val: Optional[float], unit: str, low: float, high: float) -> Tuple[str, str, str]:
+    """Retorna leitura formatada, faixa alvo e status enológico limpo."""
     if val is None:
-        return "AGUARD."
-    if val < min_lim:
-        return "BAIXO! "
-    if val > max_lim:
-        return "ALTO!  "
-    return "OK     "
+        return "--.-", f"{low:.1f} a {high:.1f} {unit}", "Aguard."
+    st = "Baixo" if val < low else ("Alto" if val > high else "Ideal")
+    return f"{val:4.1f} {unit}", f"{low:.1f} - {high:.1f} {unit}", st
 
 
 def build_green_hardware_plaque(
@@ -30,36 +27,26 @@ def build_green_hardware_plaque(
     source_label: str,
 ) -> dbc.Card:
     """Renderiza o painel compacto com protótipos pequenos, telinha verde no formato do recorte e 3 LEDs."""
-    t_st = _sensor_short_status(snapshot.temperature, triggers.temp_min, triggers.temp_max)
-    h_st = _sensor_short_status(snapshot.humidity, triggers.hum_min, triggers.hum_max)
-    l_st = _sensor_short_status(snapshot.luminosity, triggers.lum_min, triggers.lum_max)
-
-    t_v = f"{snapshot.temperature:4.1f}C" if snapshot.temperature is not None else "--.-C"
-    h_v = f"{snapshot.humidity:4.1f}%" if snapshot.humidity is not None else "--.-%"
-    l_v = f"{snapshot.luminosity:4.1f}%" if snapshot.luminosity is not None else "--.-%"
+    t_v, t_rng, t_st = _metric_cols(snapshot.temperature, "°C", triggers.temp_min, triggers.temp_max)
+    h_v, h_rng, h_st = _metric_cols(snapshot.humidity, "%", triggers.hum_min, triggers.hum_max)
+    l_v, l_rng, l_st = _metric_cols(snapshot.luminosity, "%", triggers.lum_min, triggers.lum_max)
 
     # Escrita compacta dentro da miniatura da tampa (112px)
-    mini_row1 = f"T:{t_v} U:{snapshot.humidity or 0:2.0f}%"
-    mini_row2 = "STATUS: OK" if not evaluation.is_anomalous else f"ALERTA:{evaluation.command_code.upper()}"
+    mini_row1 = f"T:{snapshot.temperature or 0:4.1f}C U:{snapshot.humidity or 0:2.0f}%"
+    mini_row2 = f"S:{evaluation.cellar_health_score}% {evaluation.verdict_code}"
 
-    # Escrita pura dentro da Telinha Verde Retangular (proporção do buraco retangular 66x26mm da tampa)
-    led_line = (
-        "LED_VERDE:OFF | LED_VERM:ON  | LED_AZUL:PISCANDO"
-        if evaluation.is_anomalous
-        else "LED_VERDE:ON  | LED_VERM:OFF | LED_AZUL:OFF     "
-    )
-    state_line = (
-        f"ESTADO: ALERTA ATIVO (CMD: alert|{evaluation.command_code}) [{snapshot.timestamp}]"
-        if evaluation.is_anomalous
-        else f"ESTADO: OPERACAO NORMAL - ADEGA 100% OK [{snapshot.timestamp}]"
-    )
+    # Escrita clean dentro da Telinha Verde Retangular (66x26mm)
+    v_clean = evaluation.verdict.split("—")[0].strip().title()
+    ts = snapshot.timestamp or "--:--:--"
 
     screen_lines = [
-        f"TEMP (DHT) : {t_v} ({triggers.temp_min:.0f}-{triggers.temp_max:.0f}C) [{t_st}] | UMID: {h_v} [{h_st}]",
-        f"LUMI (LDR) : {l_v} ({triggers.lum_min:.0f}-{triggers.lum_max:.0f}%) [{l_st}] | SAUDE ADEGA: {evaluation.cellar_health_score}%",
-        "--------------------------------------------------------",
-        led_line,
-        state_line,
+        f"  VINHERIA AGNELLO · CAVA DO SOMMELIER         {ts}  ",
+        "  ──────────────────────────────────────────────────────",
+        f"  TEMPERATURA     {t_v:<9}    FAIXA: {t_rng:<12}  [{t_st}]",
+        f"  UMIDADE         {h_v:<9}    FAIXA: {h_rng:<12}  [{h_st}]",
+        f"  LUMINOSIDADE    {l_v:<9}    FAIXA: {l_rng:<12}  [{t_st}]",
+        "  ──────────────────────────────────────────────────────",
+        f"  ESTADO: {v_clean.upper():<14}      APOGEU ENOLÓGICO: {evaluation.cellar_health_score:>3}%",
     ]
 
     led_green_cls = "led-indicator led-green-off" if evaluation.is_anomalous else "led-indicator led-green-on"
@@ -71,8 +58,15 @@ def build_green_hardware_plaque(
         dbc.CardBody(
             [
                 html.Div(
-                    "2. Protótipo 3D • Telinha Verde (66×26mm) • Diagnóstico 100% ao Vivo (LEDs & Buzzer)",
-                    className="section-title",
+                    [
+                        html.Span("MONITORAMENTO DA CAVA & PROTÓTIPO DO BARRIL"),
+                        html.Small(
+                            "Painel LCD 16x2 simulado, atuadores sensoriais de alarme e barrica inteligente.",
+                            className="text-muted fw-normal d-block mt-1",
+                            style={"fontSize": "0.78rem", "textTransform": "none"},
+                        ),
+                    ],
+                    className="section-title mb-3 pb-2 border-bottom",
                 ),
                 dbc.Row(
                     [
@@ -147,13 +141,14 @@ def build_green_hardware_plaque(
                                         className="d-flex flex-wrap align-items-center gap-1 mb-2",
                                     ),
                                     html.Div(
-                                        f"🔊 {evaluation.buzzer_pattern_text}",
+                                        f"Buzzer: {evaluation.buzzer_pattern_text}",
                                         className="small fw-semibold text-warning mb-1",
                                     ),
                                     html.Div(
                                         [
-                                            dbc.Badge("⚡ DIAGNÓSTICO 100% AO VIVO", color="danger" if evaluation.is_anomalous else "success", className="me-2 py-1 px-2"),
-                                            dbc.Badge(f"Saúde: {evaluation.cellar_health_score}%", color="success" if not evaluation.is_anomalous else "danger"),
+                                            dbc.Badge("DIAGNÓSTICO AO VIVO", color="danger" if evaluation.is_anomalous else "success", className="me-2 py-1 px-2"),
+                                            dbc.Badge(f"Saúde: {evaluation.cellar_health_score}%", color="success" if not evaluation.is_anomalous else "danger", className="me-2"),
+                                            dbc.Badge(evaluation.verdict, color=evaluation.badge_color),
                                         ],
                                         className="mb-1",
                                     ),

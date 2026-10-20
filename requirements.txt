@@ -1,0 +1,2 @@
+# Dependencias do Dashboard Vinheria Agnello para Deploy em Nuvem (Render / Railway)
+-r dashboard/requirements.txt

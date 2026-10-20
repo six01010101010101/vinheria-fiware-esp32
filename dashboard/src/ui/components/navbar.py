@@ -9,36 +9,30 @@ from dash import html
 
 
 def _build_theme_switcher() -> dbc.ButtonGroup:
-    """Cria os 3 botões seletores de tema: Claro (☀️), Escuro (🌙) e Sistema (💻)."""
+    """Cria os 3 botões seletores de tema minimalistas: Claro, Escuro e Auto."""
     return dbc.ButtonGroup(
         [
             dbc.Button(
-                "☀️ Claro",
+                "Claro",
                 id="theme-btn-light",
                 size="sm",
-                outline=True,
-                color="secondary",
                 className="theme-btn",
             ),
             dbc.Button(
-                "🌙 Escuro",
+                "Escuro",
                 id="theme-btn-dark",
                 size="sm",
-                outline=True,
-                color="secondary",
                 className="theme-btn",
             ),
             dbc.Button(
-                "💻 Sistema",
+                "Auto",
                 id="theme-btn-system",
                 size="sm",
-                outline=True,
-                color="secondary",
                 className="theme-btn active btn-wine",
             ),
         ],
         size="sm",
-        className="theme-btn-group ms-md-2",
+        className="theme-btn-group ms-md-3",
     )
 
 
@@ -57,8 +51,8 @@ def render_navbar() -> dbc.Navbar:
                         className="navbar-brand-title fw-bold lh-1",
                     ),
                     html.Small(
-                        "Monitoramento IoT • FIWARE & ESP32 Wokwi",
-                        className="navbar-brand-sub text-muted",
+                        "CARTA DA ADEGA · RESERVA DO SOMMELIER",
+                        className="navbar-brand-sub",
                     ),
                 ],
                 width="auto",

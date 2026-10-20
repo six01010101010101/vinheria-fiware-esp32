@@ -17,10 +17,8 @@
       if (btn) {
         if (t === preference) {
           btn.classList.add("active", "btn-wine");
-          btn.classList.remove("btn-outline-secondary");
         } else {
           btn.classList.remove("active", "btn-wine");
-          btn.classList.add("btn-outline-secondary");
         }
       }
     });
@@ -29,6 +27,10 @@
   function applyTheme(preference) {
     var effectiveTheme = preference === "system" ? getSystemTheme() : preference;
     document.documentElement.setAttribute("data-bs-theme", effectiveTheme);
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      meta.setAttribute("content", effectiveTheme === "dark" ? "#070b12" : "#ffffff");
+    }
     localStorage.setItem("vinheria_theme", preference);
     updateButtons(preference);
   }

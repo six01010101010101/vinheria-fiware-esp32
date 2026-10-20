@@ -10,6 +10,7 @@ import dash_bootstrap_components as dbc
 from dash import Dash, html
 from src.ui.api_routes import register_api_routes
 from src.ui.callbacks.dashboard_callbacks import register_dashboard_callbacks
+from src.ui.components.cellar_lots_panel import render_cellar_lots_panel
 from src.ui.components.charts_and_status import render_charts_and_status
 from src.ui.components.device_management import render_device_management
 from src.ui.components.header_and_triggers import render_header_and_triggers
@@ -23,7 +24,11 @@ def create_app() -> Dash:
     app = Dash(
         __name__,
         external_stylesheets=[dbc.themes.FLATLY],
-        title="Vinheria Agnello | Monitoramento Global IoT & FIWARE",
+        title="Vinheria Agnello · Gestão de Adega, Lotes & Terroirs IoT",
+        meta_tags=[
+            {"name": "viewport", "content": "width=device-width, initial-scale=1"},
+            {"name": "theme-color", "content": "#070b12"},
+        ],
     )
 
     app.layout = html.Div(
@@ -32,6 +37,7 @@ def create_app() -> Dash:
             dbc.Container(
                 [
                     render_header_and_triggers(),
+                    render_cellar_lots_panel(),
                     render_real_vineyards_panel(),
                     render_charts_and_status(),
                     render_device_management(),
@@ -56,6 +62,9 @@ def create_app() -> Dash:
 
 
 app = create_app()
+server = app.server
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8050, debug=True)
+    import os
+    port = int(os.getenv("PORT", "8050"))
+    app.run(host="0.0.0.0", port=port, debug=False)

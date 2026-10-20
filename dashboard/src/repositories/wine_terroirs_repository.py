@@ -1,151 +1,112 @@
 """
 Repositório de Terroirs, Solos, Guarda dos Vinhos e Reações Físico-Químicas em Tempo Real.
 Vinheria Agnello — FIWARE & ESP32 Wokwi.
+Integra o catálogo dinâmico de 9 Vinícolas x 4 Estilos (Tinto, Rosé, Branco, Espumante),
+recalculando características de solo, safra, tempo de guarda e reação enológica ao vivo.
 """
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, Dict
-
-
-TERROIR_KNOWLEDGE_BASE: Dict[str, Dict[str, Any]] = {
-    "miolo_br": {
-        "soil": "Basáltico-Argiloso com Cascalho",
-        "altitude": "640m",
-        "icon_wine": "Miolo Lote 43 (Merlot / Cabernet Sauvignon)",
-        "vintage": 2018,
-        "barrel_months": 12,
-        "wood_type": "Carvalho Francês Allier",
-    },
-    "francioni_br": {
-        "soil": "Vulcânico e Franco-Argiloso de Altitude",
-        "altitude": "1280m",
-        "icon_wine": "Villa Francioni Tinto D.O.",
-        "vintage": 2017,
-        "barrel_months": 14,
-        "wood_type": "Carvalho Francês Tronçais",
-    },
-    "guaspari_br": {
-        "soil": "Granítico de Degradação (Pedregoso)",
-        "altitude": "1050m",
-        "icon_wine": "Guaspari Vista da Serra Syrah",
-        "vintage": 2019,
-        "barrel_months": 18,
-        "wood_type": "Carvalho Francês Vosges",
-    },
-    "catena_ar": {
-        "soil": "Aluvial de Origem Andina (Calcário e Areia)",
-        "altitude": "1450m",
-        "icon_wine": "Nicolás Catena Zapata (Malbec / Cabernet)",
-        "vintage": 2018,
-        "barrel_months": 18,
-        "wood_type": "Carvalho Francês Novo",
-    },
-    "concha_cl": {
-        "soil": "Franco-Aluvial Pedregoso do Rio Maipo",
-        "altitude": "650m",
-        "icon_wine": "Don Melchor Cabernet Sauvignon",
-        "vintage": 2019,
-        "barrel_months": 15,
-        "wood_type": "Carvalho Francês Nevers",
-    },
-    "margaux_fr": {
-        "soil": "Cascalho Günziense Branco e Argila Calcária",
-        "altitude": "32m",
-        "icon_wine": "Château Margaux Premier Grand Cru Classé",
-        "vintage": 2015,
-        "barrel_months": 24,
-        "wood_type": "Carvalho Francês 100% Novo",
-    },
-    "antinori_it": {
-        "soil": "Galestro (Xisto Fendido) e Alberese (Calcário Duro)",
-        "altitude": "390m",
-        "icon_wine": "Tignanello IGT (Sangiovese / Cabernet)",
-        "vintage": 2016,
-        "barrel_months": 16,
-        "wood_type": "Carvalho Francês e Húngaro",
-    },
-    "crasto_pt": {
-        "soil": "Xisto Pré-Cambriano em Socalcos Verticais",
-        "altitude": "280m",
-        "icon_wine": "Quinta do Crasto Vinha Maria Teresa",
-        "vintage": 2017,
-        "barrel_months": 20,
-        "wood_type": "Carvalho Francês",
-    },
-    "opus_us": {
-        "soil": "Aluvial Sedimentar do Cone de Oakville",
-        "altitude": "150m",
-        "icon_wine": "Opus One Proprietary Red",
-        "vintage": 2018,
-        "barrel_months": 18,
-        "wood_type": "Carvalho Francês Novo",
-    },
-}
+from src.models.wine_models import WineAging, WineProfile, WineReaction
+from src.repositories.wine_catalog_data import get_profile
 
 
 class WineTerroirsRepository:
-    """Calcula informações de terras, tempo de guarda e reação físico-química dos vinhos."""
+    """Calcula informações de terras, tempo de guarda e reação físico-química dos vinhos por terroir e estilo."""
 
     @staticmethod
-    def get_wine_aging_info(vineyard_key: str) -> Dict[str, Any]:
-        """Calcula o tempo decorrido da safra, envelhecimento em barrica e guarda total."""
-        data = TERROIR_KNOWLEDGE_BASE.get(vineyard_key, TERROIR_KNOWLEDGE_BASE["miolo_br"])
-        current_year = datetime.now().year
-        vintage = int(data["vintage"])
-        years = max(1, current_year - vintage)
-        months = datetime.now().month
+    def get_profile(vineyard_key: str, style: str = "tinto") -> WineProfile:
+        """Retorna o perfil tipado do vinho para a vinícola e estilo escolhidos."""
+        return get_profile(vineyard_key, style)
 
+    @classmethod
+    def get_aging(cls, profile: WineProfile) -> WineAging:
+        """Calcula o tempo decorrido desde a safra e a posição na curva de maturidade enológica."""
+        today = date.today()
+        harvest = date(profile.vintage, profile.harvest_month, 15)
+        total_days = max(1, (today - harvest).days)
+        years = total_days // 365
+        rem_days = total_days % 365
+        months = rem_days // 30
+        days = rem_days % 30
+
+        w_start = profile.vintage + (2 if profile.barrel_months > 6 else 1)
+        w_end = profile.vintage + profile.aging_potential_years
+        progress = int(min(100, max(0, ((today.year - profile.vintage) / max(1, profile.aging_potential_years)) * 100)))
+
+        if today.year < w_start:
+            w_status, w_color = "Jovem — Taninos e Acidez em Afinação", "info"
+        elif today.year <= w_end:
+            w_status, w_color = "No Apogeu da Guarda — Máxima Complexidade", "success"
+        else:
+            w_status, w_color = "Maturo Avançado — Consumo Imediato", "warning"
+
+        return WineAging(years, months, days, total_days, w_start, w_end, w_status, w_color, progress)
+
+    @classmethod
+    def get_wine_aging_info(cls, vineyard_key: str, style: str = "tinto") -> Dict[str, Any]:
+        """Dicionário consolidado para renderização imediata na UI."""
+        prof = cls.get_profile(vineyard_key, style)
+        ag = cls.get_aging(prof)
+        barrel_desc = f"{prof.barrel_months}m em Carvalho" if prof.barrel_months > 0 else "Sem carvalho (Inox)"
         return {
-            "icon_wine": data["icon_wine"],
-            "soil": data["soil"],
-            "altitude": data["altitude"],
-            "vintage": vintage,
-            "barrel_months": data["barrel_months"],
-            "wood_type": data["wood_type"],
-            "total_aging_display": f"{years} anos e {months} meses ({vintage} ➔ {current_year})",
-            "aging_regime": f"{data['barrel_months']}m em {data['wood_type']} + guarda climatizada",
+            "icon_wine": prof.label,
+            "style": prof.style,
+            "grapes": prof.grapes,
+            "soil": prof.soil,
+            "altitude": f"{prof.altitude_m}m",
+            "vintage": prof.vintage,
+            "barrel_months": prof.barrel_months,
+            "wood_type": barrel_desc,
+            "serving_temp": prof.serving_temp,
+            "aromas": prof.aromas,
+            "total_aging_display": f"{ag.years}a {ag.months}m (Safra {prof.vintage})",
+            "aging_regime": f"{barrel_desc} • Guarda {ag.window_start}–{ag.window_end}",
+            "window_status": ag.window_status,
+            "window_color": ag.window_color,
+            "aging_progress_pct": ag.progress_pct,
         }
 
     @staticmethod
-    def evaluate_wine_reaction(temp: float, hum: float, lum: float, t_min: float, t_max: float, h_min: float, h_max: float, l_max: float) -> Dict[str, Any]:
+    def evaluate_wine_reaction(
+        temp: float, hum: float, lum: float,
+        t_min: float, t_max: float, h_min: float, h_max: float, l_max: float,
+    ) -> Dict[str, Any]:
         """Determina a reação físico-química e enológica ativa do vinho frente ao ambiente atual."""
         reactions = []
         status = "ideal"
         color = "success"
 
         if temp > t_max:
-            status = "critico"
-            color = "danger"
+            status, color = "critico", "danger"
             diff = temp - t_max
-            reactions.append(f"Aceleração oxidativa (+{diff:.1f}°C): polimerização precoce de antocianinas e degradação de aromas voláteis primários.")
+            reactions.append(f"Aceleração oxidativa (+{diff:.1f}°C): degradação de antocianinas e perda de frescor.")
         elif temp < t_min:
-            status = "alerta"
-            color = "warning"
-            reactions.append("Resfriamento excessivo: lentidão cinética extrema e risco de precipitação de cristais de tartarato.")
+            status = "alerta" if status == "ideal" else status
+            color = "warning" if color == "success" else color
+            reactions.append("Lentidão cinética: inibição de bouquet e risco de precipitação de tartaratos.")
         else:
-            reactions.append("Maturação fenólica estável: polimerização harmoniosa dos taninos e conservação integral do bouquet terciário.")
+            reactions.append("Cinética perfeita: polimerização estável de taninos e proteção dos ésteres terciários.")
 
         if hum < h_min:
-            status = "critico"
-            color = "danger"
-            reactions.append("Secamento dos poros da rolha: retração da cortiça natural gerando micro-oxigenação anômala.")
+            status, color = "critico", "danger"
+            reactions.append("Retração da rolha: poros ressecados provocam micro-oxigenação anômala.")
         elif hum > h_max:
-            status = "alerta"
-            color = "warning"
-            reactions.append("Saturação de umidade: risco de fungos superficiais no lacre; taxa de transpiração da barrica reduzida a zero.")
+            status = "alerta" if status == "ideal" else status
+            color = "warning" if color == "success" else color
+            reactions.append("Saturação de umidade: risco de fungos no lacre; transpiração anulada.")
         else:
-            reactions.append("Vedação hidrofóbica intacta: elasticidade perfeita da cortiça e transpiração anual controlada (<1.8%).")
+            reactions.append("Vedação elástica: cortiça hidratada e transpiração anual controlada (<1.8%).")
 
         if lum > l_max:
-            status = "critico"
-            color = "danger"
-            reactions.append("Reação fotoquímica (Goût de Lumière): radiação solar excitando riboflavinas e degradando sulfetos.")
+            status, color = "critico", "danger"
+            reactions.append("Fotólise (Goût de Lumière): radiação fotoquímica excitando riboflavinas.")
         else:
-            reactions.append("Penumbra de preservação: ausência de degradação UV protegendo flavonoides e cor natural.")
+            reactions.append("Penumbra de proteção: flavonoides e cor preservados contra raios UV.")
 
         return {
             "status": status,
             "color": color,
             "summary": " • ".join(reactions),
-            "phenolic_state": "Estável / Equilibrado" if status == "ideal" else "Em Reação de Estresse",
+            "phenolic_state": "Equilíbrio Enológico Perfeito" if status == "ideal" else "Em Reação de Estresse",
         }

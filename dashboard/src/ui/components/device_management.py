@@ -57,15 +57,15 @@ def render_device_management() -> html.Div:
                                 [
                                     html.Div(
                                         [
-                                            html.Span("4. Operação em Tempo Real & Cenários Wokwi (MQTT :1883)"),
+                                            html.Span("OPERAÇÃO EM TEMPO REAL & CENÁRIOS WOKWI"),
                                             html.A(
-                                                "🔗 Wokwi #478106752109243393",
+                                                "Wokwi #478106752109243393",
                                                 href=WOKWI_PROJECT_URL,
                                                 target="_blank",
-                                                className="text-info text-decoration-none small ms-2",
+                                                className="nav-ghost-link ms-2",
                                             ),
                                         ],
-                                        className="section-title d-flex justify-content-between align-items-center",
+                                        className="section-title d-flex justify-content-between align-items-center mb-3",
                                     ),
                                     dbc.RadioItems(
                                         id="radio-wokwi-scenario",
@@ -81,7 +81,7 @@ def render_device_management() -> html.Div:
                                             dbc.Col(
                                                 [
                                                     dbc.Label("Sincronizar", className="small text-muted mb-1 d-block"),
-                                                    dbc.Button("📤 Enviar ao Wokwi", id="btn-publish-mqtt-test", color="warning", size="sm", className="w-100 fw-semibold", n_clicks=0),
+                                                    dbc.Button("Sincronizar Wokwi", id="btn-publish-mqtt-test", color="warning", size="sm", className="w-100 fw-semibold", n_clicks=0),
                                                 ],
                                                 md=3,
                                             ),
@@ -98,8 +98,8 @@ def render_device_management() -> html.Div:
                                                     dbc.Select(
                                                         id="switch-interactive-mode",
                                                         options=[
-                                                            {"label": "⚡ Automático + Wokwi MQTT", "value": "wokwi"},
-                                                            {"label": "🏛️ STH-Comet (:8666)", "value": "sth"},
+                                                            {"label": "Automático (MQTT Wokwi)", "value": "wokwi"},
+                                                            {"label": "Histórico STH-Comet (:8666)", "value": "sth"},
                                                         ],
                                                         value="wokwi",
                                                         size="sm",
@@ -119,7 +119,7 @@ def render_device_management() -> html.Div:
                         dbc.Card(
                             dbc.CardBody(
                                 [
-                                    html.Div("5. Cadastro e Gerenciamento de IoT Devices (FIWARE :4041 / :8666)", className="section-title"),
+                                    html.Div("GERENCIAMENTO DE DISPOSITIVOS FIWARE", className="section-title mb-3"),
                                     dbc.Row(
                                         [
                                             _input_col("Host / IP FIWARE", "input-fiware-host", DEFAULT_FIWARE_HOST, md=4),
@@ -144,9 +144,9 @@ def render_device_management() -> html.Div:
                                     ),
                                     html.Div(
                                         [
-                                            dbc.Button("➕ Cadastrar Device + STH-Comet", id="btn-register-device", color="success", size="sm", className="me-2", n_clicks=0),
-                                            dbc.Button("🔄 Atualizar Lista", id="btn-refresh-devices", color="info", outline=True, size="sm", className="me-2", n_clicks=0),
-                                            dbc.Button("🗑️ Remover Device", id="btn-delete-device", color="danger", outline=True, size="sm", n_clicks=0),
+                                            dbc.Button("Cadastrar Dispositivo", id="btn-register-device", color="success", size="sm", className="me-2", n_clicks=0),
+                                            dbc.Button("Atualizar Lista", id="btn-refresh-devices", color="info", outline=True, size="sm", className="me-2", n_clicks=0),
+                                            dbc.Button("Remover Dispositivo", id="btn-delete-device", color="danger", outline=True, size="sm", n_clicks=0),
                                         ],
                                         className="mb-2",
                                     ),

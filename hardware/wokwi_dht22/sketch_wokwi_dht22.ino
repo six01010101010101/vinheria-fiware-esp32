@@ -1,198 +1,203 @@
-/*
- * CHECK POINT 5 - MONITORAMENTO GLOBAL DE VINHERIAS (WOKWI ESP32 - ZERO LIBS)
- * Hardware Barril 3D: ESP32 + Tela Verde LCD 16x2 I2C (SDA 21/SCL 22) + DHT22 (15) + LDR (34)
- * Atuadores: LED Verde OK (GPIO 5) | LED Vermelho Alerta (GPIO 18) | LED Azul Remoto (GPIO 2) + Buzzer (4)
- * Sincronia Bidirecional em Tempo Real: Wokwi <-> Site Web (MQTT :1883 & Cloud API)
- */
+// ==============================================================================
+// CP5 VINHERIA AGNELLO · ESP32 WOKWI MQTT ULTRA-FLUIDO (:1883)
+// LCD 16x2 I2C (21/22), DHT22 (15), LDR (34), LEDs (5/18/2), Buzzer (4)
+// ==============================================================================
 #include <WiFi.h>
 #include <Wire.h>
 #include <math.h>
 
-const char* WIFI_SSID = "Wokwi-GUEST";
-const char* WIFI_PASSWORD = "";
-const char* MQTT_BROKER = "broker.hivemq.com";
+const char *WIFI_SSID = "Wokwi-GUEST", *WIFI_PASSWORD = "", *MQTT_BROKER = "broker.hivemq.com";
 const int MQTT_PORT = 1883;
-const char* TOPIC_PUBLISH_ATTRS = "/TEF/vine001/attrs";
-const char* TOPIC_SUBSCRIBE_CMD = "/TEF/vine001/cmd";
-const char* TOPIC_PUBLISH_CMDEXE = "/TEF/vine001/cmdexe";
+const char *TOPIC_ATTRS = "/TEF/vine001/attrs", *TOPIC_CMD = "/TEF/vine001/cmd", *TOPIC_CMDEXE = "/TEF/vine001/cmdexe";
 
-#define PIN_LED_BLUE  2   // LED Azul: Pisca remotamente pelo Front-end em anomalia
-#define PIN_BUZZER    4   // Buzzer: Assinatura sonora por tipo de anomalia
-#define PIN_LED_GREEN 5   // LED Verde: Aceso fixo em Operacao Normal (Adega 100% OK)
-#define PIN_DHT       15  // Sensor DHT-22 (Temperatura e Umidade)
-#define PIN_LED_RED   18  // LED Vermelho: Acende em estado critico / fora do trigger
-#define PIN_LDR       34  // Sensor LDR (Luminosidade 0-100%)
-#define LCD_ADDR      0x27
+#define PIN_LED_BLUE 2
+#define PIN_BUZZER 4
+#define PIN_LED_GREEN 5
+#define PIN_DHT 15
+#define PIN_LED_RED 18
+#define PIN_LDR 34
+#define LCD_ADDR 0x27
 
 WiFiClient espClient;
-String currentAlertMode = "normal", lastRow0 = "", lastRow1 = "";
-unsigned long lastDhtMs = 0, lastLdrMs = 0, lastPublishMs = 0, lastBlinkMs = 0, lastPingMs = 0, lastRetryMs = 0, remoteSyncUntilMs = 0;
-float validTemp = 15.5f, validHum = 68.0f, validLum = 12.0f, lastHwTemp = 15.5f, lastHwHum = 68.0f, lastHwLum = 12.0f;
-bool ledState = false;
-int soundStep = 0;
+String curMode = "normal", curPreset = "TINTO", curVerdict = "OK", lastR0 = "", lastR1 = "";
+int curHealth = 100, soundStep = 0;
+bool ledState = false, remoteSync = false;
+unsigned long lastDhtMs = 0, lastLdrMs = 0, lastPubMs = 0, lastBlinkMs = 0, lastPingMs = 0, lastRetryMs = 0;
+float validTemp = 15.5f, validHum = 68.0f, validLum = 12.0f, hwTemp = 15.5f, hwHum = 68.0f, hwLum = 12.0f;
 
-void lcdExpanderWrite(uint8_t data) { Wire.beginTransmission(LCD_ADDR); Wire.write(data | 0x08); Wire.endTransmission(); }
-void lcdWrite4Bits(uint8_t val) {
-  lcdExpanderWrite(val); lcdExpanderWrite(val | 0x04); delayMicroseconds(2);
-  lcdExpanderWrite(val & ~0x04); delayMicroseconds(45);
-}
-void lcdSend(uint8_t val, uint8_t mode) { lcdWrite4Bits((val & 0xF0) | mode); lcdWrite4Bits(((val << 4) & 0xF0) | mode); }
+void lcdExpanderWrite(uint8_t d) { Wire.beginTransmission(LCD_ADDR); Wire.write(d | 0x08); Wire.endTransmission(); }
+void lcdWrite4(uint8_t v) { lcdExpanderWrite(v); lcdExpanderWrite(v | 0x04); delayMicroseconds(2); lcdExpanderWrite(v & ~0x04); delayMicroseconds(40); }
+void lcdSend(uint8_t v, uint8_t m) { lcdWrite4((v & 0xF0) | m); lcdWrite4(((v << 4) & 0xF0) | m); }
 void lcdInit() {
-  Wire.begin(21, 22); Wire.setClock(400000); delay(50); lcdExpanderWrite(0x00); delay(20);
-  lcdWrite4Bits(0x30); delayMicroseconds(4500); lcdWrite4Bits(0x30); delayMicroseconds(4500);
-  lcdWrite4Bits(0x30); delayMicroseconds(150);  lcdWrite4Bits(0x20); delayMicroseconds(150);
+  Wire.begin(21, 22); Wire.setClock(400000); delay(40); lcdExpanderWrite(0x00); delay(15);
+  lcdWrite4(0x30); delayMicroseconds(4500); lcdWrite4(0x30); delayMicroseconds(4500);
+  lcdWrite4(0x30); delayMicroseconds(150);  lcdWrite4(0x20); delayMicroseconds(150);
   lcdSend(0x28, 0); lcdSend(0x0C, 0); lcdSend(0x06, 0); lcdSend(0x01, 0); delay(3);
 }
-void lcdPrintRow16(uint8_t row, String txt) {
+void lcdPrint(uint8_t row, String txt) {
   lcdSend((row == 0) ? 0x80 : 0xC0, 0);
   while (txt.length() < 16) txt += " ";
   if (txt.length() > 16) txt = txt.substring(0, 16);
   for (int i = 0; i < 16; i++) lcdSend((uint8_t)txt[i], 1);
 }
-void updateGreenScreen() {
-  String r0 = "T:" + String(validTemp, 1) + "C U:" + String(validHum, 0) + "%";
-  String r1 = "L:" + String(validLum, 0) + "% " + ((currentAlertMode == "normal") ? "ADEGA:OK" : ("ALR:" + currentAlertMode));
-  if (r0 != lastRow0) { lastRow0 = r0; lcdPrintRow16(0, r0); }
-  if (r1 != lastRow1) { lastRow1 = r1; lcdPrintRow16(1, r1); }
+void updateLcd() {
+  String r0 = "T:" + String(validTemp, 1) + "C U:" + String(validHum, 0) + "%" + (remoteSync ? " *" : "");
+  String r1 = "L:" + String((int)validLum) + "% ";
+  if (curMode == "normal") {
+    r1 += curPreset + " " + String(curHealth) + "%";
+  } else {
+    r1 += "ALR:" + curMode.substring(0, 4) + " " + String(curHealth) + "%";
+  }
+  if (r0 != lastR0) { lastR0 = r0; lcdPrint(0, r0); }
+  if (r1 != lastR1) { lastR1 = r1; lcdPrint(1, r1); }
 }
-bool readDht22Safe(float &outTemp, float &outHum) {
-  uint8_t data[5] = {0, 0, 0, 0, 0};
-  pinMode(PIN_DHT, OUTPUT); digitalWrite(PIN_DHT, LOW); delayMicroseconds(1150);
+bool readDht22(float &tOut, float &hOut) {
+  uint8_t d[5] = {0, 0, 0, 0, 0};
+  pinMode(PIN_DHT, OUTPUT); digitalWrite(PIN_DHT, LOW); delayMicroseconds(1100);
   pinMode(PIN_DHT, INPUT_PULLUP);
   unsigned long t0 = micros();
-  while (digitalRead(PIN_DHT) == HIGH) { if (micros() - t0 > 200) return false; }
-  t0 = micros(); while (digitalRead(PIN_DHT) == LOW)  { if (micros() - t0 > 200) return false; }
-  t0 = micros(); while (digitalRead(PIN_DHT) == HIGH) { if (micros() - t0 > 200) return false; }
+  while (digitalRead(PIN_DHT) == HIGH) { if (micros() - t0 > 180) return false; }
+  t0 = micros(); while (digitalRead(PIN_DHT) == LOW)  { if (micros() - t0 > 180) return false; }
+  t0 = micros(); while (digitalRead(PIN_DHT) == HIGH) { if (micros() - t0 > 180) return false; }
   for (int i = 0; i < 40; i++) {
-    t0 = micros(); while (digitalRead(PIN_DHT) == LOW) { if (micros() - t0 > 130) return false; }
-    unsigned long highStart = micros();
-    while (digitalRead(PIN_DHT) == HIGH) { if (micros() - highStart > 140) return false; }
-    if ((micros() - highStart) > 42) data[i / 8] |= (1 << (7 - (i % 8)));
+    t0 = micros(); while (digitalRead(PIN_DHT) == LOW) { if (micros() - t0 > 120) return false; }
+    unsigned long hStart = micros();
+    while (digitalRead(PIN_DHT) == HIGH) { if (micros() - hStart > 130) return false; }
+    if ((micros() - hStart) > 40) d[i / 8] |= (1 << (7 - (i % 8)));
   }
-  uint8_t sum = (data[0] + data[1] + data[2] + data[3]) & 0xFF;
-  if (sum != data[4] || (data[0] == 0 && data[1] == 0 && data[2] == 0 && data[3] == 0)) return false;
-  float h = ((uint16_t)(data[0] << 8) | data[1]) * 0.1f, t = ((uint16_t)((data[2] & 0x7F) << 8) | data[3]) * 0.1f;
-  if (data[2] & 0x80) t = -t;
+  uint8_t sum = (d[0] + d[1] + d[2] + d[3]) & 0xFF;
+  if (sum != d[4] || (d[0] == 0 && d[1] == 0 && d[2] == 0 && d[3] == 0)) return false;
+  float h = ((uint16_t)(d[0] << 8) | d[1]) * 0.1f, t = ((uint16_t)((d[2] & 0x7F) << 8) | d[3]) * 0.1f;
+  if (d[2] & 0x80) t = -t;
   if (isnan(t) || isnan(h) || t < -40.0f || t > 80.0f || h < 0.0f || h > 100.0f) return false;
-  outTemp = t; outHum = h; return true;
+  tOut = t; hOut = h; return true;
 }
-void mqttPublish(const char* topic, const String &payload) {
+void mqttPub(const char* top, const String &pl) {
   if (!espClient.connected()) return;
-  uint16_t tLen = strlen(topic), pLen = payload.length(); uint32_t remLen = 2 + tLen + pLen;
+  uint16_t tl = strlen(top), plLen = pl.length(); uint32_t rem = 2 + tl + plLen;
   espClient.write((uint8_t)0x30);
-  do { uint8_t enc = remLen % 128; remLen /= 128; if (remLen > 0) enc |= 128; espClient.write(enc); } while (remLen > 0);
-  espClient.write((uint8_t)(tLen >> 8)); espClient.write((uint8_t)(tLen & 0xFF));
-  espClient.print(topic); espClient.print(payload);
+  do { uint8_t enc = rem % 128; rem /= 128; if (rem > 0) enc |= 128; espClient.write(enc); } while (rem > 0);
+  espClient.write((uint8_t)(tl >> 8)); espClient.write((uint8_t)(tl & 0xFF));
+  espClient.print(top); espClient.print(pl);
 }
-void mqttSubscribe(const char* topic) {
-  uint16_t tLen = strlen(topic);
-  uint8_t pkt[6] = {0x82, (uint8_t)(5 + tLen), 0x00, 0x01, (uint8_t)(tLen >> 8), (uint8_t)(tLen & 0xFF)};
-  espClient.write(pkt, 6); espClient.print(topic); espClient.write((uint8_t)0x00);
+void mqttSub(const char* top) {
+  uint16_t tl = strlen(top);
+  uint8_t pkt[6] = {0x82, (uint8_t)(5 + tl), 0x00, 0x01, (uint8_t)(tl >> 8), (uint8_t)(tl & 0xFF)};
+  espClient.write(pkt, 6); espClient.print(top); espClient.write((uint8_t)0x00);
 }
-void parseAndApplyCommand(String rawMsg) {
-  int p1 = rawMsg.indexOf('|');
-  String rest = (p1 != -1) ? rawMsg.substring(p1 + 1) : rawMsg;
-  int p2 = rest.indexOf('|');
-  String mode = (p2 != -1) ? rest.substring(0, p2) : rest;
-  if (p2 != -1) {
-    String vals = rest.substring(p2 + 1);
-    int p3 = vals.indexOf('|'), p4 = vals.lastIndexOf('|');
-    if (p3 != -1 && p4 > p3) {
-      validTemp = vals.substring(0, p3).toFloat();
-      validHum  = vals.substring(p3 + 1, p4).toFloat();
-      validLum  = vals.substring(p4 + 1).toFloat();
-      remoteSyncUntilMs = millis() + 12000;
+void applyCommand(String msg) {
+  int at = msg.indexOf('@'); if (at != -1) msg = msg.substring(at + 1);
+  int sep = msg.indexOf('|'); if (sep == -1) return;
+  String cmd = msg.substring(0, sep), args = msg.substring(sep + 1);
+  if (cmd == "live") {
+    remoteSync = false; validTemp = hwTemp; validHum = hwHum; validLum = hwLum;
+  } else if (cmd == "sync") {
+    int p1 = args.indexOf('|'), p2 = args.lastIndexOf('|');
+    if (p1 != -1 && p2 > p1) {
+      validTemp = args.substring(0, p1).toFloat();
+      validHum  = args.substring(p1 + 1, p2).toFloat();
+      validLum  = args.substring(p2 + 1).toFloat();
+      remoteSync = true;
     }
+  } else if (cmd == "diag") {
+    int p1 = args.indexOf('|');
+    if (p1 != -1) {
+      curMode = args.substring(0, p1); String rest = args.substring(p1 + 1);
+      int p2 = rest.indexOf('|');
+      if (p2 != -1) {
+        curHealth = rest.substring(0, p2).toInt(); String rest2 = rest.substring(p2 + 1);
+        int p3 = rest2.indexOf('|');
+        if (p3 != -1) { curVerdict = rest2.substring(0, p3); curPreset = rest2.substring(p3 + 1); }
+      }
+    }
+  } else if (cmd == "alert") {
+    int p1 = args.indexOf('|'); curMode = (p1 != -1) ? args.substring(0, p1) : args;
   }
-  mode.trim(); if (mode.length() == 0) return;
-  bool changed = (mode != currentAlertMode); currentAlertMode = mode;
-  if (currentAlertMode == "normal") {
+  curMode.trim(); if (curMode.length() == 0) curMode = "normal";
+  if (curMode == "normal") {
     digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW);
-    digitalWrite(PIN_LED_BLUE, LOW);   noTone(PIN_BUZZER); ledState = false;
+    digitalWrite(PIN_LED_BLUE, LOW); noTone(PIN_BUZZER); ledState = false;
   } else {
-    digitalWrite(PIN_LED_GREEN, LOW);  digitalWrite(PIN_LED_RED, HIGH);
-    if (changed) { ledState = false; lastBlinkMs = 0; }
+    digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH);
   }
-  updateGreenScreen();
+  updateLcd();
 }
-void ensureMqttConnected() {
+void checkMqtt() {
   if (espClient.connected()) return;
-  unsigned long now = millis(); if (now - lastRetryMs < 1500) return; lastRetryMs = now;
+  unsigned long now = millis(); if (now - lastRetryMs < 2000) return; lastRetryMs = now;
   if (!espClient.connect(MQTT_BROKER, MQTT_PORT)) return;
   espClient.setNoDelay(true);
-  String cid = "wokwi_vine_" + String(random(10000, 99999)); uint16_t cLen = cid.length();
-  uint8_t connHdr[12] = {0x10, (uint8_t)(12 + cLen), 0x00, 0x04, 'M', 'Q', 'T', 'T', 0x04, 0x02, 0x00, 0x1E};
-  espClient.write(connHdr, 12); espClient.write((uint8_t)(cLen >> 8)); espClient.write((uint8_t)(cLen & 0xFF)); espClient.print(cid);
-  unsigned long t0 = millis(); while (espClient.available() < 4 && (millis() - t0) < 1200) { delay(5); }
+  String cid = "wokwi_v_" + String(random(10000, 99999)); uint16_t cLen = cid.length();
+  uint8_t hdr[12] = {0x10, (uint8_t)(12 + cLen), 0x00, 0x04, 'M', 'Q', 'T', 'T', 0x04, 0x02, 0x00, 0x1E};
+  espClient.write(hdr, 12); espClient.write((uint8_t)(cLen >> 8)); espClient.write((uint8_t)(cLen & 0xFF)); espClient.print(cid);
+  unsigned long t0 = millis(); while (espClient.available() < 4 && (millis() - t0) < 800) yield();
   for (int i = 0; i < 4 && espClient.available(); i++) espClient.read();
-  mqttSubscribe(TOPIC_SUBSCRIBE_CMD);
+  mqttSub(TOPIC_CMD);
 }
 void mqttLoop() {
   if (!espClient.connected()) return;
-  if (millis() - lastPingMs > 8000) { lastPingMs = millis(); uint8_t ping[2] = {0xC0, 0x00}; espClient.write(ping, 2); }
+  if (millis() - lastPingMs > 8000) { lastPingMs = millis(); uint8_t p[2] = {0xC0, 0x00}; espClient.write(p, 2); }
   while (espClient.available() >= 2) {
-    uint8_t hdr = espClient.read(), enc = 0; uint32_t remLen = 0, mult = 1;
+    uint8_t hdr = espClient.read(), enc = 0; uint32_t rem = 0, mult = 1;
     do {
-      unsigned long t0 = millis(); while (!espClient.available() && (millis() - t0) < 150) { delay(1); }
       if (!espClient.available()) return;
-      enc = espClient.read(); remLen += (enc & 127) * mult; mult *= 128;
+      enc = espClient.read(); rem += (enc & 127) * mult; mult *= 128;
     } while ((enc & 128) != 0);
     uint8_t pkt[256]; uint16_t idx = 0;
-    for (uint32_t i = 0; i < remLen; i++) {
-      unsigned long t0 = millis(); while (!espClient.available() && (millis() - t0) < 150) { delay(1); }
-      if (espClient.available()) { uint8_t b = espClient.read(); if (idx < 255) pkt[idx++] = b; }
+    while (idx < rem && idx < 255 && espClient.available()) {
+      pkt[idx++] = espClient.read();
     }
     pkt[idx] = 0;
     if ((hdr & 0xF0) == 0x30 && idx > 2) {
-      uint16_t tLen = ((uint16_t)pkt[0] << 8) | pkt[1];
-      if (idx >= (uint16_t)(2 + tLen)) {
-        parseAndApplyCommand(String((char*)(pkt + 2 + tLen)));
-        mqttPublish(TOPIC_PUBLISH_CMDEXE, "vine001@alert|OK_" + currentAlertMode);
+      uint16_t tl = ((uint16_t)pkt[0] << 8) | pkt[1];
+      if (idx >= (uint16_t)(2 + tl)) {
+        applyCommand(String((char*)(pkt + 2 + tl)));
+        mqttPub(TOPIC_CMDEXE, "vine001@ack|OK");
       }
     }
   }
 }
-void handleRemoteAlertActuators() {
-  if (currentAlertMode == "normal") {
+void handleActuators() {
+  if (curMode == "normal") {
     digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW);
     if (ledState) { digitalWrite(PIN_LED_BLUE, LOW); noTone(PIN_BUZZER); ledState = false; }
     return;
   }
   digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH);
-  unsigned long now = millis(), interval = (currentAlertMode == "multi") ? 180 : 320;
-  if (lastBlinkMs == 0 || (now - lastBlinkMs >= interval)) {
+  unsigned long now = millis(), iv = (curMode == "multi") ? 180 : 320;
+  if (lastBlinkMs == 0 || (now - lastBlinkMs >= iv)) {
     lastBlinkMs = (now == 0) ? 1 : now; ledState = !ledState;
     digitalWrite(PIN_LED_BLUE, ledState ? HIGH : LOW); soundStep = (soundStep + 1) % 3;
     if (!ledState) { noTone(PIN_BUZZER); return; }
-    if (currentAlertMode == "temp")       tone(PIN_BUZZER, 2000, 150);
-    else if (currentAlertMode == "hum")   tone(PIN_BUZZER, 850, 220);
-    else if (currentAlertMode == "lum")   tone(PIN_BUZZER, (soundStep % 2 == 0) ? 1200 : 1700, 180);
-    else if (currentAlertMode == "multi") { int f[3] = {1000, 1800, 2500}; tone(PIN_BUZZER, f[soundStep], 130); }
+    if (curMode == "temp") tone(PIN_BUZZER, 2000, 140);
+    else if (curMode == "hum") tone(PIN_BUZZER, 850, 200);
+    else if (curMode == "lum") tone(PIN_BUZZER, (soundStep % 2 == 0) ? 1200 : 1700, 160);
+    else if (curMode == "multi") { int f[3] = {1000, 1800, 2500}; tone(PIN_BUZZER, f[soundStep], 120); }
   }
 }
-void publishSensorsRealTime() {
-  unsigned long now = millis(); float hwT = lastHwTemp, hwH = lastHwHum, hwL = lastHwLum;
-  if (now - lastDhtMs >= 1400) { lastDhtMs = now; readDht22Safe(hwT, hwH); }
-  if (now - lastLdrMs >= 250) {
-    lastLdrMs = now; float rL = map(analogRead(PIN_LDR), 0, 4095, 100, 0);
-    if (rL >= 0.0f && rL <= 100.0f) hwL = rL;
+void readAndPubSensors() {
+  unsigned long now = millis(); float t = hwTemp, h = hwHum, l = hwLum;
+  if (now - lastDhtMs >= 1400) { lastDhtMs = now; readDht22(t, h); }
+  if (now - lastLdrMs >= 200) {
+    lastLdrMs = now; float rl = map(analogRead(PIN_LDR), 0, 4095, 100, 0);
+    if (rl >= 0.0f && rl <= 100.0f) l = rl;
   }
-  bool hwMoved = (fabs(hwT - lastHwTemp) >= 0.2f) || (fabs(hwH - lastHwHum) >= 0.5f) || (fabs(hwL - lastHwLum) >= 1.0f);
-  if (hwMoved) { lastHwTemp = hwT; lastHwHum = hwH; lastHwLum = hwL; remoteSyncUntilMs = 0; }
-  if (now >= remoteSyncUntilMs) { validTemp = lastHwTemp; validHum = lastHwHum; validLum = lastHwLum; }
-  if (hwMoved || (now - lastPublishMs >= 1500)) {
-    lastPublishMs = now;
-    if (now >= remoteSyncUntilMs) {
-      mqttPublish(TOPIC_PUBLISH_ATTRS, "t|" + String(validTemp, 1) + "|h|" + String(validHum, 1) + "|l|" + String(validLum, 1));
-    }
-    updateGreenScreen();
+  bool moved = (fabs(t - hwTemp) >= 0.2f) || (fabs(h - hwHum) >= 0.5f) || (fabs(l - hwLum) >= 1.0f);
+  if (moved) { hwTemp = t; hwHum = h; hwLum = l; remoteSync = false; }
+  if (!remoteSync) { validTemp = hwTemp; validHum = hwHum; validLum = hwLum; }
+  if (moved || (now - lastPubMs >= 1500)) {
+    lastPubMs = now;
+    String rFlag = remoteSync ? "|r|1" : "|r|0";
+    mqttPub(TOPIC_ATTRS, "t|" + String(validTemp, 1) + "|h|" + String(validHum, 1) + "|l|" + String(validLum, 1) + rFlag);
+    updateLcd();
   }
 }
 void setup() {
-  Serial.begin(115200); pinMode(PIN_LED_GREEN, OUTPUT); pinMode(PIN_LED_RED, OUTPUT);
-  pinMode(PIN_LED_BLUE, OUTPUT); pinMode(PIN_BUZZER, OUTPUT); pinMode(PIN_LDR, INPUT);
+  Serial.begin(115200);
+  pinMode(PIN_LED_GREEN, OUTPUT); pinMode(PIN_LED_RED, OUTPUT); pinMode(PIN_LED_BLUE, OUTPUT);
+  pinMode(PIN_BUZZER, OUTPUT); pinMode(PIN_LDR, INPUT);
   digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW); digitalWrite(PIN_LED_BLUE, LOW);
-  lcdInit(); updateGreenScreen(); WiFi.mode(WIFI_STA); WiFi.setSleep(false); WiFi.begin(WIFI_SSID, WIFI_PASSWORD, 6);
-  while (WiFi.status() != WL_CONNECTED) { delay(80); }
+  lcdInit(); updateLcd(); WiFi.mode(WIFI_STA); WiFi.setSleep(false); WiFi.begin(WIFI_SSID, WIFI_PASSWORD, 6);
+  while (WiFi.status() != WL_CONNECTED) delay(60);
 }
-void loop() { ensureMqttConnected(); mqttLoop(); handleRemoteAlertActuators(); publishSensorsRealTime(); delay(10); }
+void loop() { checkMqtt(); mqttLoop(); handleActuators(); readAndPubSensors(); delay(2); }

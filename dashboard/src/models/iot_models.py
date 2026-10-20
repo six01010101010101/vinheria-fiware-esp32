@@ -79,6 +79,9 @@ class AnomalyEvaluation:
     led_status_text: str
     buzzer_pattern_text: str
     badge_color: str
+    verdict: str = ""
+    verdict_code: str = "OK"
+    has_data: bool = True
 
 
 @dataclass(frozen=True)

@@ -54,9 +54,9 @@ def render_header_and_triggers() -> html.Div:
                             [
                                 html.Div(
                                     [
-                                        html.Span("1. Configuração de Triggers & Perfil de Conservação (Diferencial)"),
+                                        html.Span("CARTA DE PRESETS ENOLÓGICOS & CONTROLE DO SOMMELIER"),
                                         html.Small(
-                                            "Ajuste os parâmetros ideais ou escolha um preset homologado para aplicar no ESP32.",
+                                            "Calibração de faixas térmicas, higrometria de cortiça e penumbra por casta e estilo.",
                                             className="text-muted fw-normal d-block mt-1",
                                             style={"fontSize": "0.78rem", "textTransform": "none"},
                                         ),
@@ -72,7 +72,7 @@ def render_header_and_triggers() -> html.Div:
                                         dbc.Label(
                                             [
                                                 html.Img(src="/assets/icons/wine.png", className="custom-icon me-2"),
-                                                html.Span("Preset por Tipo de Vinho", className="fw-semibold text-wine"),
+                                                html.Span("Estilo de Vinho & Casta", className="fw-semibold text-wine"),
                                             ],
                                             className="small mb-1 d-flex align-items-center",
                                         ),
@@ -81,7 +81,9 @@ def render_header_and_triggers() -> html.Div:
                                             options=preset_options,
                                             value="tinto",
                                             clearable=False,
-                                            className="text-dark small custom-dropdown",
+                                            searchable=True,
+                                            className="small custom-dropdown wine-search-bar",
+                                            placeholder="Buscar estilo de vinho ou casta...",
                                         ),
                                         html.Div(
                                             default_preset["description"],
@@ -97,7 +99,7 @@ def render_header_and_triggers() -> html.Div:
                                 ),
                                 _build_trigger_input_group(
                                     "/assets/icons/temperature.png",
-                                    "Temperatura (°C)",
+                                    "Temperatura da Cava (°C)",
                                     "trigger-temp-min",
                                     "trigger-temp-max",
                                     default_preset["temp_min"],
@@ -106,7 +108,7 @@ def render_header_and_triggers() -> html.Div:
                                 ),
                                 _build_trigger_input_group(
                                     "/assets/icons/humidity.png",
-                                    "Umidade Relativa (%)",
+                                    "Higrometria da Rolha (%)",
                                     "trigger-hum-min",
                                     "trigger-hum-max",
                                     default_preset["hum_min"],
@@ -115,7 +117,7 @@ def render_header_and_triggers() -> html.Div:
                                 ),
                                 _build_trigger_input_group(
                                     "/assets/icons/luminosity.png",
-                                    "Luminosidade (%)",
+                                    "Penumbra da Adega (%)",
                                     "trigger-lum-min",
                                     "trigger-lum-max",
                                     default_preset["lum_min"],

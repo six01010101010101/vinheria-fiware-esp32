@@ -7,29 +7,28 @@ as 9 Vinícolas Reais do Mundo (Open-Meteo), FIWARE (1026, 4041, 8666, 1883) e S
 from datetime import datetime
 from flask import Flask, jsonify, request
 from src.config.settings import (
-    DEFAULT_API_KEY,
-    DEFAULT_DEVICE_ID,
-    DEFAULT_ENTITY_ID,
-    DEFAULT_FIWARE_HOST,
-    DEFAULT_WOKWI_BROKER,
-    IOT_AGENT_PORT,
-    MQTT_PORT,
-    ORION_PORT,
-    STH_COMET_PORT,
-    WOKWI_PROJECT_URL,
+    DEFAULT_API_KEY, DEFAULT_DEVICE_ID, DEFAULT_ENTITY_ID, DEFAULT_FIWARE_HOST,
+    DEFAULT_WOKWI_BROKER, IOT_AGENT_PORT, MQTT_PORT, ORION_PORT,
+    STH_COMET_PORT, WOKWI_PROJECT_URL,
 )
 from src.models.iot_models import SensorSnapshot, TimeSeriesPoint, TriggerConfig
 from src.repositories.real_vineyards_repository import REAL_VINEYARDS, RealVineyardsRepository
 from src.repositories.supabase_repository import SupabaseRepository
 from src.repositories.wokwi_mqtt_repository import WokwiMqttRepository
 from src.services.trigger_alert_service import TriggerAlertService
+from src.ui.api_cloud_routes import register_cloud_routes
 from src.ui.api_html_view import render_api_status_html
+from src.ui.api_lots_routes import register_lots_routes
+from src.ui.api_openapi import register_openapi_routes
 
 GITHUB_REPO_URL = "https://github.com/six01010101010101/checkpoint5-vinheria-fiware-esp32"
 
 
 def register_api_routes(server: Flask) -> None:
     """Registra rotas REST JSON de baixa latência no servidor Flask subjacente ao Dash."""
+    register_lots_routes(server)
+    register_openapi_routes(server)
+    register_cloud_routes(server)
 
     @server.route("/api/v1/status", methods=["GET"])
     def get_system_status():  # type: ignore[no-untyped-def]
@@ -47,7 +46,10 @@ def register_api_routes(server: Flask) -> None:
             "links": {
                 "dashboard_local": "http://127.0.0.1:8050",
                 "api_status": "http://127.0.0.1:8050/api/v1/status",
+                "api_cellar_lots": "http://127.0.0.1:8050/api/v1/lots",
                 "api_real_vineyards": "http://127.0.0.1:8050/api/v1/vineyards",
+                "api_cloud_info": "http://127.0.0.1:8050/api/v1/cloud/info",
+                "api_openapi_spec": "http://127.0.0.1:8050/api/v1/openapi.json",
                 "wokwi_simulation": WOKWI_PROJECT_URL,
                 "github_repository": GITHUB_REPO_URL,
                 "supabase_cloud": supa.project_url or "https://slqozouuqzxwmfswyroo.supabase.co",

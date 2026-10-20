@@ -28,10 +28,9 @@ def _load_env_vars() -> Dict[str, str]:
     if env_file.exists():
         try:
             for line in env_file.read_text(encoding="utf-8").splitlines():
-                clean = line.strip()
-                if clean and not clean.startswith("#") and "=" in clean:
-                    k, v = clean.split("=", 1)
-                    values[k.strip()] = v.strip().strip('"').strip("'")
+                if "=" in line and not line.strip().startswith("#"):
+                    k, v = line.strip().split("=", 1)
+                    values[k.strip()] = v.strip().strip("\"'")
         except OSError:
             pass
     return values
@@ -45,14 +44,9 @@ class SupabaseRepository:
 
     def __init__(self) -> None:
         env_map = _load_env_vars()
-        self.project_url: str = os.getenv(
-            "SUPABASE_URL", env_map.get("SUPABASE_URL", DEFAULT_SUPABASE_URL)
-        ).rstrip("/")
-        self.api_key: str = os.getenv(
-            "SUPABASE_ANON_KEY", env_map.get("SUPABASE_ANON_KEY", DEFAULT_SUPABASE_ANON_KEY)
-        )
-        self.last_sync_ts: float = 0.0
-        self.last_vineyards_sync_ts: float = 0.0
+        self.project_url = os.getenv("SUPABASE_URL", env_map.get("SUPABASE_URL", DEFAULT_SUPABASE_URL)).rstrip("/")
+        self.api_key = os.getenv("SUPABASE_ANON_KEY", env_map.get("SUPABASE_ANON_KEY", DEFAULT_SUPABASE_ANON_KEY))
+        self.last_sync_ts = self.last_vineyards_sync_ts = self.last_lots_sync_ts = 0.0
         self.last_alert_mode: str = ""
         self._session = requests.Session()
         adapter = HTTPAdapter(pool_connections=8, pool_maxsize=16)
@@ -129,6 +123,40 @@ class SupabaseRepository:
         ]
         prefer = "resolution=merge-duplicates,return=minimal"
         threading.Thread(target=self._post_json, args=("real_vineyards_status", rows, prefer), daemon=True).start()
+
+    def sync_cellar_lots_async(self, evaluations: List[object]) -> None:
+        """Sincroniza os lotes e notas organolépticas no Supabase Cloud a cada 60s."""
+        if not self.is_configured() or not evaluations:
+            return
+        now = time.time()
+        if (now - self.last_lots_sync_ts) < 60.0:
+            return
+        self.last_lots_sync_ts = now
+        rows = [
+            {
+                "lot_code": getattr(getattr(e, "lot", None), "lot_code", ""),
+                "winery_name": getattr(getattr(e, "lot", None), "winery_name", ""),
+                "wine_name": getattr(getattr(e, "lot", None), "wine_name", ""),
+                "style": getattr(getattr(e, "lot", None), "style", ""),
+                "country": getattr(getattr(e, "lot", None), "country", ""),
+                "region": getattr(getattr(e, "lot", None), "region", ""),
+                "vintage": getattr(getattr(e, "lot", None), "vintage", 2020),
+                "bottling_date": getattr(getattr(e, "lot", None), "bottling_date", ""),
+                "expiration_date": getattr(getattr(e, "lot", None), "expiration_date", ""),
+                "barrel_type": getattr(getattr(e, "lot", None), "barrel_type", ""),
+                "soil_type": getattr(getattr(e, "lot", None), "soil_type", ""),
+                "target_temp_min": getattr(getattr(e, "lot", None), "target_temp_min", 13.0),
+                "target_temp_max": getattr(getattr(e, "lot", None), "target_temp_max", 18.0),
+                "target_hum_min": getattr(getattr(e, "lot", None), "target_hum_min", 60.0),
+                "target_hum_max": getattr(getattr(e, "lot", None), "target_hum_max", 75.0),
+                "target_lum_max": getattr(getattr(e, "lot", None), "target_lum_max", 20.0),
+                "health_score": getattr(e, "health_score", 100),
+                "verdict": getattr(e, "verdict", "Equilíbrio Ideal"),
+            }
+            for e in evaluations if getattr(e, "lot", None) is not None
+        ]
+        if rows:
+            threading.Thread(target=self._post_json, args=("cellar_lots", rows, "resolution=merge-duplicates,return=minimal"), daemon=True).start()
 
     def register_device_async(self, spec: DeviceProvisionSpec) -> None:
         """Persiste ou atualiza um IoT Device na tabela public.vine_devices do Supabase."""

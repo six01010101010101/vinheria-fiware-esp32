@@ -14,59 +14,37 @@ from src.models.iot_models import AnomalyEvaluation, RegisteredDeviceInfo, Senso
 
 
 def build_wokwi_status_bar(meta: Dict[str, object]) -> html.Div:
-    """Exibe links rápidos (Wokwi, API REST, GitHub) e status MQTT/Portas em tempo real na Navbar."""
+    """Status consolidado do Wokwi e links essenciais em formato minimalista e limpo."""
     connected = bool(meta.get("connected", False))
-    packets = int(meta.get("packets_received", 0))
+    is_live = bool(meta.get("live", False))
     last_time = str(meta.get("last_packet_time", "--:--:--"))
+
+    if is_live:
+        dot_cls = "status-dot status-dot-live"
+        status_txt = f"Wokwi Ao Vivo ({last_time})"
+        pill_cls = "status-pill status-pill-live text-decoration-none"
+    elif connected:
+        dot_cls = "status-dot status-dot-ready"
+        status_txt = "MQTT Conectado"
+        pill_cls = "status-pill status-pill-ready text-decoration-none"
+    else:
+        dot_cls = "status-dot status-dot-idle"
+        status_txt = "Wokwi Aguardando..."
+        pill_cls = "status-pill status-pill-idle text-decoration-none"
 
     return html.Div(
         [
-            dbc.Button(
-                "⚡ Wokwi ESP32 #478106752109243393",
+            html.A(
+                [html.Span(className=dot_cls), html.Span(status_txt)],
                 href=WOKWI_PROJECT_URL,
                 target="_blank",
-                size="sm",
-                className="btn-wine fw-semibold px-2 py-1 me-1 shadow-none",
+                className=pill_cls,
+                title="Simulador Wokwi ESP32 (#478106752109243393)",
             ),
-            dbc.Button(
-                "API Status",
-                href="/api/v1/status",
-                target="_blank",
-                color="secondary",
-                outline=True,
-                size="sm",
-                className="px-2 py-1 me-1 shadow-none",
-            ),
-            dbc.Button(
-                "🌍 Vinícolas",
-                href="/api/v1/vineyards",
-                target="_blank",
-                color="secondary",
-                outline=True,
-                size="sm",
-                className="px-2 py-1 me-1 shadow-none",
-            ),
-            dbc.Button(
-                "GitHub",
-                href="https://github.com/six01010101010101/checkpoint5-vinheria-fiware-esp32",
-                target="_blank",
-                color="dark",
-                outline=True,
-                size="sm",
-                className="px-2 py-1 me-1 shadow-none",
-            ),
-            dbc.Badge(
-                "🟢 MQTT :1883 Ativo" if connected else "🟡 MQTT :1883...",
-                color="success" if connected else "warning",
-                className="px-2 py-2 me-1 font-monospace",
-            ),
-            dbc.Badge(
-                f"📡 {packets} pkts ({last_time})",
-                color="light",
-                className="px-2 py-2 border border-secondary text-dark font-monospace",
-            ),
+            html.A("API", href="/api/v1/status", target="_blank", className="nav-ghost-link ms-2"),
+            html.A("GitHub", href="https://github.com/six01010101010101/checkpoint5-vinheria-fiware-esp32", target="_blank", className="nav-ghost-link ms-2"),
         ],
-        className="d-flex flex-wrap gap-1 align-items-center",
+        className="d-flex align-items-center",
     )
 
 
@@ -85,18 +63,18 @@ def build_remote_alert_banner(
                 [
                     dbc.Col(
                         [
-                            html.Div("2. Status dos 3 LEDs Físicos & Buzzer no ESP32 (Wokwi & Caixa)", className="section-title"),
+                            html.Div("CENTRAL DE ALERTA & CLIMATIZAÇÃO DA CAVA (ESP32)", className="section-title"),
                             html.Div(
                                 [
                                     html.Span([html.Span(className=led_green_cls), html.Strong("Verde (GPIO 5): Normal OK" if not evaluation.is_anomalous else "Verde (GPIO 5): OFF", className="text-dark me-3")]),
                                     html.Span([html.Span(className=led_red_cls), html.Strong("Vermelho (GPIO 18): ALERTA" if evaluation.is_anomalous else "Vermelho (GPIO 18): OFF", className="text-dark me-3")]),
                                     html.Span([html.Span(className=led_blue_cls), html.Strong(evaluation.led_status_text, className="text-info me-3")]),
                                     dbc.Badge(f"CMD: alert|{evaluation.command_code}", color=evaluation.badge_color, className="p-2 me-2"),
-                                    dbc.Badge(source_label, color="light", className="p-2 border border-secondary text-dark"),
+                                    dbc.Badge(source_label, color="secondary", className="p-2 border border-secondary bg-transparent text-secondary"),
                                 ],
                                 className="mb-2 d-flex align-items-center flex-wrap gap-1",
                             ),
-                            html.Div(f"🔊 {evaluation.buzzer_pattern_text}", className="fw-semibold text-warning mb-1"),
+                            html.Div(f"Buzzer: {evaluation.buzzer_pattern_text}", className="fw-semibold text-warning mb-1"),
                             html.Div(" • ".join(evaluation.details_messages), className="small text-dark mb-1"),
                             html.Small(f"Sincronização: {dispatch_msg}", className="text-muted"),
                         ],
@@ -105,18 +83,17 @@ def build_remote_alert_banner(
                     dbc.Col(
                         html.Div(
                             [
-                                html.Div("QUALIDADE DA ADEGA", className="small text-muted fw-bold"),
+                                html.Div("APOGEU & CONSERVAÇÃO", className="small text-muted fw-bold"),
                                 html.Div(
                                     f"{evaluation.cellar_health_score}%",
                                     className="kpi-value text-success" if evaluation.cellar_health_score >= 85 else "kpi-value text-danger",
                                 ),
                                 html.Small(
-                                    "Operação Normal (LED Verde ON)" if not evaluation.is_anomalous else "Anomalia (Vermelho ON + Azul Pisca)",
+                                    "Equilíbrio Enológico (Cava Preservada)" if not evaluation.is_anomalous else "Risco Organoléptico (Alerta Ativo)",
                                     className="text-secondary small",
                                 ),
                             ],
-                            className="text-center p-3 rounded",
-                            style={"backgroundColor": "#f8fafc", "border": "1px solid #e2e8f0"},
+                            className="cellar-score-box text-center p-3 rounded",
                         ),
                         md=3,
                     ),
@@ -134,7 +111,7 @@ def _single_kpi_col(
     """Constrói um cartão KPI individual com ícone customizado indicando se está dentro do Trigger."""
     val_str = f"{value:.1f} {unit}" if value is not None else f"-- {unit}"
     is_out = value is not None and (value < min_lim or value > max_lim)
-    status_badge = dbc.Badge("⚠️ Fora" if is_out else "✅ Ideal", color="danger" if is_out else "success", className="px-2 py-1")
+    status_badge = dbc.Badge("Desvio Enológico" if is_out else "Equilíbrio Ideal", color="danger" if is_out else "success", className="px-2 py-1")
 
     return dbc.Col(
         dbc.Card(
@@ -152,8 +129,8 @@ def _single_kpi_col(
                     ),
                     html.Div(val_str, className=f"kpi-value {color_cls} mb-1"),
                     html.Div(
-                        f"Faixa ideal: {min_lim:.1f}{unit} a {max_lim:.1f}{unit}",
-                        className="small text-muted bg-light px-2 py-1 rounded d-inline-block",
+                        f"Alvo enológico: {min_lim:.1f}{unit} a {max_lim:.1f}{unit}",
+                        className="small text-muted kpi-range-pill px-2 py-1 rounded d-inline-block",
                         style={"fontSize": "0.74rem"},
                     ),
                 ]
@@ -170,9 +147,9 @@ def build_kpi_cards(snapshot: SensorSnapshot, triggers: TriggerConfig) -> dbc.Ro
     """Constrói os 3 cartões de leitura instantânea comparados aos Triggers ativos com grid alinhado."""
     return dbc.Row(
         [
-            _single_kpi_col("/assets/icons/temperature.png", "TEMPERATURA (DHT)", snapshot.temperature, "°C", triggers.temp_min, triggers.temp_max, "text-danger"),
-            _single_kpi_col("/assets/icons/humidity.png", "UMIDADE RELATIVA (DHT)", snapshot.humidity, "%", triggers.hum_min, triggers.hum_max, "text-info"),
-            _single_kpi_col("/assets/icons/luminosity.png", "LUMINOSIDADE (LDR)", snapshot.luminosity, "%", triggers.lum_min, triggers.lum_max, "text-warning"),
+            _single_kpi_col("/assets/icons/temperature.png", "TEMPERATURA DA CAVA", snapshot.temperature, "°C", triggers.temp_min, triggers.temp_max, "text-danger"),
+            _single_kpi_col("/assets/icons/humidity.png", "HIGROMETRIA DA ROLHA", snapshot.humidity, "%", triggers.hum_min, triggers.hum_max, "text-info"),
+            _single_kpi_col("/assets/icons/luminosity.png", "PENUMBRA DA ADEGA", snapshot.luminosity, "%", triggers.lum_min, triggers.lum_max, "text-warning"),
         ],
         className="g-3",
     )

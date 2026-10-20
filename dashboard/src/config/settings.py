@@ -80,46 +80,37 @@ ANOMALY_SOUND_DESCRIPTIONS: Dict[str, Dict[str, str]] = {
     },
 }
 
+# Tempo máximo sem pacotes do Wokwi para considerá-lo AO VIVO e keepalive do diagnóstico enviado ao ESP32
+WOKWI_LIVE_TIMEOUT_S: float = float(os.getenv("WOKWI_LIVE_TIMEOUT_S", "6"))
+DIAG_KEEPALIVE_S: float = 3.0
+SYNC_PUSH_EVERY_S: float = 5.0
+
 # Presets Automáticos de Triggers por Tipo de Vinho (Diferencial - 10% da Nota)
+# "style" indica o estilo usado no catálogo de vinhos por terroir; "lcd" é o código exibido no LCD 16x2.
 WINE_PRESETS: Dict[str, Dict[str, Any]] = {
     "tinto": {
-        "name": "Vinho Tinto Encorpado",
-        "description": "Faixa ideal para maturação de tintos (Cabernet, Malbec, Tannat).",
-        "temp_min": 14.0,
-        "temp_max": 18.0,
-        "hum_min": 60.0,
-        "hum_max": 75.0,
-        "lum_min": 0.0,
-        "lum_max": 25.0,
+        "name": "Vinho Tinto Encorpado", "style": "tinto", "lcd": "TINTO",
+        "description": "Maturação de tintos (Cabernet, Malbec, Tannat): taninos estáveis e oxidação lenta.",
+        "temp_min": 14.0, "temp_max": 18.0, "hum_min": 60.0, "hum_max": 75.0, "lum_min": 0.0, "lum_max": 25.0,
+    },
+    "rose": {
+        "name": "Vinho Rosé", "style": "rose", "lcd": "ROSE",
+        "description": "Garrafa clara e baixa extração: frio moderado e mínima luz preservam cor e frescor.",
+        "temp_min": 10.0, "temp_max": 13.0, "hum_min": 60.0, "hum_max": 75.0, "lum_min": 0.0, "lum_max": 12.0,
     },
     "branco": {
-        "name": "Vinho Branco & Rosé",
-        "description": "Refrigeração controlada para preservação de acidez e aromas florais.",
-        "temp_min": 8.0,
-        "temp_max": 12.0,
-        "hum_min": 60.0,
-        "hum_max": 75.0,
-        "lum_min": 0.0,
-        "lum_max": 20.0,
+        "name": "Vinho Branco", "style": "branco", "lcd": "BRANC",
+        "description": "Refrigeração controlada para preservar acidez, aromas florais e evitar acastanhamento.",
+        "temp_min": 8.0, "temp_max": 12.0, "hum_min": 60.0, "hum_max": 75.0, "lum_min": 0.0, "lum_max": 15.0,
     },
     "espumante": {
-        "name": "Espumante & Champagne",
-        "description": "Baixa temperatura e alta proteção luminosa para preservar o perlage.",
-        "temp_min": 6.0,
-        "temp_max": 9.0,
-        "hum_min": 65.0,
-        "hum_max": 80.0,
-        "lum_min": 0.0,
-        "lum_max": 15.0,
+        "name": "Espumante & Champagne", "style": "espumante", "lcd": "ESPUM",
+        "description": "Baixa temperatura e escuridão para manter a pressão de CO2 e a finesse do perlage.",
+        "temp_min": 6.0, "temp_max": 9.0, "hum_min": 65.0, "hum_max": 80.0, "lum_min": 0.0, "lum_max": 10.0,
     },
     "envelhecimento": {
-        "name": "Cave de Envelhecimento (Guarda)",
-        "description": "Estabilidade térmica rigorosa e escuridão para proteção da rolha.",
-        "temp_min": 12.0,
-        "temp_max": 15.0,
-        "hum_min": 65.0,
-        "hum_max": 75.0,
-        "lum_min": 0.0,
-        "lum_max": 10.0,
+        "name": "Cave de Envelhecimento (Guarda)", "style": "tinto", "lcd": "GUARD",
+        "description": "Estabilidade térmica rigorosa e escuridão para proteção da rolha em guarda longa.",
+        "temp_min": 12.0, "temp_max": 15.0, "hum_min": 65.0, "hum_max": 75.0, "lum_min": 0.0, "lum_max": 10.0,
     },
 }

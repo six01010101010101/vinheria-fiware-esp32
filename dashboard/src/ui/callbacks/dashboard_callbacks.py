@@ -14,8 +14,10 @@ from src.models.iot_models import SensorSnapshot, TimeSeriesPoint, TriggerConfig
 from src.repositories.real_vineyards_repository import REAL_VINEYARDS
 from src.repositories.supabase_repository import SupabaseRepository
 from src.repositories.wokwi_mqtt_repository import WokwiMqttRepository
+from src.services.cellar_lots_service import CellarLotsService
 from src.services.device_manager_service import DeviceManagerService
 from src.services.trigger_alert_service import TriggerAlertService
+from src.ui.components.cellar_lots_panel import build_cellar_lots_grid
 from src.ui.components.charts_and_status import build_sensor_figure
 from src.ui.components.hardware_plaque import build_green_hardware_plaque
 from src.ui.components.real_vineyards_panel import build_real_vineyards_grid
@@ -85,8 +87,9 @@ def register_dashboard_callbacks(app: Dash) -> None:
         Output("remote-alert-status-banner", "children"), Output("realtime-kpi-cards", "children"),
         Output("graph-temperature", "figure"), Output("graph-humidity", "figure"), Output("graph-luminosity", "figure"),
         Output("store-local-history", "data"), Output("wokwi-live-status-bar", "children"),
-        Output("real-vineyards-global-grid", "children"),
+        Output("real-vineyards-global-grid", "children"), Output("cellar-lots-reactive-grid", "children"),
         Input("interval-auto-refresh", "n_intervals"), Input("dropdown-real-vineyard", "value"),
+        Input("dropdown-wine-preset", "value"), Input("dropdown-cellar-lot", "value"),
         Input("trigger-temp-min", "value"), Input("trigger-temp-max", "value"),
         Input("trigger-hum-min", "value"), Input("trigger-hum-max", "value"),
         Input("trigger-lum-min", "value"), Input("trigger-lum-max", "value"),
@@ -98,15 +101,18 @@ def register_dashboard_callbacks(app: Dash) -> None:
         State("input-last-n", "value"), State("store-local-history", "data"),
     )
     def update_monitoring_and_alerts(
-        n_intervals: int, real_vineyard_id: str, t_min: float, t_max: float, h_min: float, h_max: float,
-        l_min: float, l_max: float, source_mode: str, sim_temp: float, sim_hum: float, sim_lum: float,
-        _pub_clicks: int, scenario_mode: str, wokwi_broker: str, device_id: str, api_key: str, host: str,
-        entity_id: str, entity_type: str, last_n: int, local_store: Dict[str, List[Dict[str, Any]]],
-    ) -> Tuple[Any, Any, Any, Any, Any, Dict[str, List[Dict[str, Any]]], Any, Any]:
+        n_intervals: int, real_vineyard_id: str, wine_preset: str, cellar_lot_code: str, t_min: float, t_max: float,
+        h_min: float, h_max: float, l_min: float, l_max: float, source_mode: str,
+        sim_temp: float, sim_hum: float, sim_lum: float, _pub_clicks: int, scenario_mode: str,
+        wokwi_broker: str, device_id: str, api_key: str, host: str, entity_id: str,
+        entity_type: str, last_n: int, local_store: Dict[str, List[Dict[str, Any]]],
+    ) -> Tuple[Any, Any, Any, Any, Any, Dict[str, List[Dict[str, Any]]], Any, Any, Any]:
         """Sincroniza telemetria bidirecional entre Site, Wokwi #478106752109243393, Vinícolas Reais e FIWARE."""
         clean_host, clean_broker = (host or DEFAULT_FIWARE_HOST).strip(), (wokwi_broker or DEFAULT_WOKWI_BROKER).strip()
         clean_entity, clean_type = (entity_id or "urn:ngsi-ld:Vine:001").strip(), (entity_type or "Vine").strip()
         n_samples = max(5, min(100, int(last_n or 30)))
+        preset_cfg = WINE_PRESETS.get(wine_preset, WINE_PRESETS["tinto"])
+        wine_style, preset_lcd = str(preset_cfg.get("style", "tinto")), str(preset_cfg.get("lcd", "TINTO"))
 
         t_lo, t_hi = _safe_range(t_min, t_max, 12.0, 18.0)
         h_lo, h_hi = _safe_range(h_min, h_max, 60.0, 75.0)
@@ -126,6 +132,9 @@ def register_dashboard_callbacks(app: Dash) -> None:
         store = local_store or {"temperature": [], "humidity": [], "luminosity": []}
         push_to_wokwi_lcd = False
 
+        if ctx.triggered_id == "dropdown-real-vineyard" and real_vineyard_id == "wokwi_only":
+            WokwiMqttRepository.get_instance().release_remote_sync()
+
         if source_mode == "sth":
             sth_series, fiware_snap, _ = DeviceManagerService.get_historical_and_latest_data(
                 host=clean_host, entity_type=clean_type, entity_id=clean_entity, last_n=n_samples
@@ -137,12 +146,12 @@ def register_dashboard_callbacks(app: Dash) -> None:
             v_series, v_snap, v_info = DeviceManagerService.get_real_vineyard_data(real_vineyard_id, last_n=n_samples)
             active_snapshot = v_snap or SensorSnapshot(cur_t, cur_h, cur_l, now_str)
             temp_pts, hum_pts, lum_pts = v_series.temperature, v_series.humidity, v_series.luminosity
-            source_label = f"🌍 {v_info.name} ({v_info.region} - {v_info.country})" if v_info else "Vinícola Real"
-            push_to_wokwi_lcd = ctx.triggered_id == "dropdown-real-vineyard" or (tick % 6 == 0)
+            source_label = f"{v_info.name} • {preset_cfg['name']}" if v_info else "Vinícola Real"
+            push_to_wokwi_lcd = ctx.triggered_id in ("dropdown-real-vineyard", "dropdown-wine-preset") or (tick % 5 == 0)
         elif scenario_mode == "wokwi_live" and wokwi_snap is not None:
             active_snapshot = wokwi_snap
             temp_pts, hum_pts, lum_pts = wokwi_series.temperature, wokwi_series.humidity, wokwi_series.luminosity
-            source_label = "⚡ Wokwi #478106752109243393 ↔ Site Ao Vivo"
+            source_label = f"Wokwi #478106752109243393 ↔ Site [{preset_lcd}]"
         else:
             cloud_snap = SupabaseRepository.get_instance().fetch_latest_cloud_telemetry() if scenario_mode == "wokwi_live" and tick == 0 else None
             active_snapshot = cloud_snap or SensorSnapshot(cur_t, cur_h, cur_l, now_str)
@@ -152,18 +161,19 @@ def register_dashboard_callbacks(app: Dash) -> None:
             temp_pts = [TimeSeriesPoint(d["t"], float(d["v"])) for d in store["temperature"]]
             hum_pts = [TimeSeriesPoint(d["t"], float(d["v"])) for d in store["humidity"]]
             lum_pts = [TimeSeriesPoint(d["t"], float(d["v"])) for d in store["luminosity"]]
-            source_label = "Sincronizado ↔ Wokwi #478106752109243393"
+            source_label = f"Sincronizado ↔ Wokwi [{preset_lcd}]"
             push_to_wokwi_lcd = scenario_mode != "wokwi_live" and (ctx.triggered_id != "interval-auto-refresh" or tick % 5 == 0)
 
-        is_user_action = ctx.triggered_id != "interval-auto-refresh"
+        is_user_action = ctx.triggered_id not in (None, "interval-auto-refresh")
         evaluation, _, dispatch_msg = TriggerAlertService.evaluate_and_dispatch_remote_alert(
             host=clean_host, entity_id=clean_entity, snapshot=active_snapshot,
             triggers=triggers, use_fiware_http=(source_mode == "sth"), force=is_user_action,
+            preset_lcd=preset_lcd,
         )
         if push_to_wokwi_lcd and active_snapshot.temperature is not None:
-            WokwiMqttRepository.get_instance().publish_test_telemetry(
+            WokwiMqttRepository.get_instance().publish_sync(
                 float(active_snapshot.temperature), float(active_snapshot.humidity or 65.0),
-                float(active_snapshot.luminosity or 15.0), evaluation.command_code,
+                float(active_snapshot.luminosity or 15.0),
             )
 
         banner = build_green_hardware_plaque(active_snapshot, triggers, evaluation, dispatch_msg, source_label)
@@ -171,6 +181,9 @@ def register_dashboard_callbacks(app: Dash) -> None:
         fig_t = build_sensor_figure("Temperatura", "°C", temp_pts, triggers.temp_min, triggers.temp_max, "#ff7875")
         fig_h = build_sensor_figure("Umidade Relativa", "%", hum_pts, triggers.hum_min, triggers.hum_max, "#40a9ff")
         fig_l = build_sensor_figure("Luminosidade (LDR / Solar)", "%", lum_pts, triggers.lum_min, triggers.lum_max, "#ffd666")
-        vine_grid = build_real_vineyards_grid(DeviceManagerService.get_all_real_vineyards_overview(), real_vineyard_id, triggers)
+        vine_grid = build_real_vineyards_grid(DeviceManagerService.get_all_real_vineyards_overview(), real_vineyard_id, triggers, wine_style=wine_style)
+        lot_evals = CellarLotsService.evaluate_all_lots(float(active_snapshot.temperature or cur_t), float(active_snapshot.humidity or cur_h), float(active_snapshot.luminosity or cur_l))
+        SupabaseRepository.get_instance().sync_cellar_lots_async(lot_evals)
+        lots_grid = build_cellar_lots_grid(lot_evals, active_lot_code=str(cellar_lot_code or "all"))
 
-        return banner, kpis, fig_t, fig_h, fig_l, store, build_wokwi_status_bar(wokwi_meta), vine_grid
+        return banner, kpis, fig_t, fig_h, fig_l, store, build_wokwi_status_bar(wokwi_meta), vine_grid, lots_grid
