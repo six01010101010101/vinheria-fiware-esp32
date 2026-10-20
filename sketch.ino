@@ -79,7 +79,7 @@ void mqttSub(const char* top) {
 void applyCommand(String msg) {
   int at = msg.indexOf('@'); if (at != -1) msg = msg.substring(at + 1);
   int sep = msg.indexOf('|'); if (sep == -1) return;
-  String cmd = msg.substring(0, sep), args = msg.substring(sep + 1);
+  String cmd = msg.substring(0, sep), args = msg.substring(sep + 1), prev = curMode;
   if (cmd == "live") {
     remoteSync = false; validTemp = hwTemp; validHum = hwHum; validLum = hwLum;
   } else if (cmd == "sync") {
@@ -108,6 +108,7 @@ void applyCommand(String msg) {
   if (curMode == "normal") {
     digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW);
     digitalWrite(PIN_LED_BLUE, LOW); noTone(PIN_BUZZER); ledState = false;
+    if (prev != "normal") { tone(PIN_BUZZER, 1046, 80); }
   } else {
     digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH);
   }
@@ -155,15 +156,15 @@ void handleActuators() {
     return;
   }
   digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH);
-  unsigned long now = millis(), iv = (curMode == "multi") ? 180 : 320;
+  unsigned long now = millis(), iv = (curMode == "multi") ? 160 : 300;
   if (lastBlinkMs == 0 || (now - lastBlinkMs >= iv)) {
     lastBlinkMs = (now == 0) ? 1 : now; ledState = !ledState;
-    digitalWrite(PIN_LED_BLUE, ledState ? HIGH : LOW); soundStep = (soundStep + 1) % 3;
+    digitalWrite(PIN_LED_BLUE, ledState ? HIGH : LOW); soundStep = (soundStep + 1) % 4;
     if (!ledState) { noTone(PIN_BUZZER); return; }
-    if (curMode == "temp") tone(PIN_BUZZER, 2000, 140);
-    else if (curMode == "hum") tone(PIN_BUZZER, 850, 200);
-    else if (curMode == "lum") tone(PIN_BUZZER, (soundStep % 2 == 0) ? 1200 : 1700, 160);
-    else if (curMode == "multi") { int f[3] = {1000, 1800, 2500}; tone(PIN_BUZZER, f[soundStep], 120); }
+    if (curMode == "temp") tone(PIN_BUZZER, (soundStep % 2 == 0) ? 2200 : 1800, 130);
+    else if (curMode == "hum") tone(PIN_BUZZER, (soundStep % 2 == 0) ? 740 : 880, 180);
+    else if (curMode == "lum") tone(PIN_BUZZER, (soundStep % 2 == 0) ? 1320 : 1650, 140);
+    else if (curMode == "multi") { int f[4] = {880, 1320, 1760, 2200}; tone(PIN_BUZZER, f[soundStep], 110); }
   }
 }
 void readAndPubSensors() {
@@ -189,6 +190,7 @@ void setup() {
   pinMode(PIN_BUZZER, OUTPUT); pinMode(PIN_LDR, INPUT);
   digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW); digitalWrite(PIN_LED_BLUE, LOW);
   lcdInit(); updateLcd(); WiFi.mode(WIFI_STA); WiFi.setSleep(false); WiFi.begin(WIFI_SSID, WIFI_PASSWORD, 6);
+  tone(PIN_BUZZER, 523, 70); delay(80); tone(PIN_BUZZER, 659, 70); delay(80); tone(PIN_BUZZER, 784, 100);
   while (WiFi.status() != WL_CONNECTED) delay(60);
 }
 void loop() { checkMqtt(); mqttLoop(); handleActuators(); readAndPubSensors(); delay(2); }

@@ -19,6 +19,12 @@ def get_openapi_spec() -> Dict[str, Any]:
         },
         "servers": [{"url": "http://127.0.0.1:8050", "description": "Servidor Local Dash/Flask"}],
         "paths": {
+            "/api/v1/health": {
+                "get": {
+                    "summary": "Health-check do Serviço e Conectividade de Nuvem",
+                    "responses": {"200": {"description": "Status healthy e conectividade Supabase"}},
+                }
+            },
             "/api/v1/status": {
                 "get": {
                     "summary": "Diagnóstico do Sistema e Telemetria em Tempo Real",

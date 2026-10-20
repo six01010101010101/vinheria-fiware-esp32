@@ -19,7 +19,8 @@ def register_lots_routes(server: Flask) -> None:
         """Retorna lista de lotes da adega avaliados em tempo real com suporte a filtros."""
         style = str(request.args.get("style", "")).strip().lower()
         country = str(request.args.get("country", "")).strip()
-        search = str(request.args.get("search", "")).strip().lower()
+        search = str(request.args.get("search") or request.args.get("q") or "").strip().lower()
+        min_health = request.args.get("min_score")
 
         wokwi_repo = WokwiMqttRepository.get_instance()
         wokwi_repo.ensure_connected()
@@ -31,6 +32,12 @@ def register_lots_routes(server: Flask) -> None:
         evals = CellarLotsService.evaluate_all_lots(cur_t, cur_h, cur_l, style=style, country=country)
         if search:
             evals = [e for e in evals if search in e.lot.name.lower() or search in e.lot.winery_name.lower() or search in e.lot.lot_code.lower()]
+        if min_health:
+            try:
+                min_sc = int(min_health)
+                evals = [e for e in evals if e.health_score >= min_sc]
+            except (ValueError, TypeError):
+                pass
 
         items = [
             {

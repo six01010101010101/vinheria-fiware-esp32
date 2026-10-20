@@ -49,6 +49,19 @@ def register_cloud_routes(server: Flask) -> None:
             }
         )
 
+    @server.route("/api/v1/health", methods=["GET"])
+    @server.route("/healthz", methods=["GET"])
+    def get_health_check():  # type: ignore[no-untyped-def]
+        """Health-check oficial para monitoramento do Render.com e orquestradores de nuvem."""
+        supa = SupabaseRepository.get_instance()
+        return jsonify({
+            "status": "healthy",
+            "service": "vinheria-agnello-iot",
+            "timestamp": datetime.now().isoformat(),
+            "cloud_provider": "Render.com",
+            "database_connected": supa.is_configured(),
+        }), 200
+
     @server.route("/api/v1/cloud/trigger-deploy", methods=["POST"])
     def trigger_cloud_deploy():  # type: ignore[no-untyped-def]
         """Dispara imediatamente o Deploy Hook do Render.com caso configurado em ambiente."""

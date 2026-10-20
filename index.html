@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Vinheria Agnello - Portal Sommelier HTML5 para monitoramento da cava e lotes mundiais.">
+  <meta name="theme-color" content="#070b12">
   <title>Vinheria Agnello · Portal HTML5 Sommelier</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍷</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -18,6 +21,7 @@
       </div>
       <div class="portal-actions">
         <span class="live-pill"><span class="live-dot"></span> Wokwi & Cloud Ao Vivo</span>
+        <button id="audio-toggle-btn" class="btn-portal btn-outline" type="button" title="Sintetizador acústico de alertas">🔊 Som: Off</button>
         <button id="theme-toggle-btn" class="btn-portal btn-outline" type="button">☀️ Tema Claro</button>
         <a href="http://127.0.0.1:8050" class="btn-portal" target="_blank">Abrir Dashboard Dash</a>
       </div>
@@ -26,7 +30,14 @@
     <main>
       <!-- Seção 1: KPIs da Cava -->
       <section style="margin-bottom: 24px;">
-        <h2 class="card-title">Monitoramento Organoléptico da Cava</h2>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
+          <h2 class="card-title" style="margin-bottom:0;">Monitoramento Organoléptico da Cava</h2>
+          <div class="kpi-summary-pills">
+            <span class="summary-pill">Total: <strong id="lots-total-count">8</strong> Lotes</span>
+            <span class="summary-pill summary-pill-ok">Preservados: <strong id="lots-ok-count">8</strong></span>
+            <span class="summary-pill summary-pill-alert">Atenção: <strong id="lots-alert-count">0</strong></span>
+          </div>
+        </div>
         <div class="portal-grid">
           <div class="portal-card">
             <span style="font-size:0.75rem;font-weight:600;color:var(--portal-muted);">TEMPERATURA DA CAVA</span>
@@ -64,14 +75,20 @@
 
       <!-- Seção 3: Cavas de Guarda & Lotes Mundiais -->
       <section>
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:12px;">
-          <h2 class="card-title" style="margin-bottom:0;">Cavas de Guarda & Lotes do Sommelier</h2>
-          <div class="filter-bar">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:12px;">
+          <div>
+            <h2 class="card-title" style="margin-bottom:2px;">Cavas de Guarda & Lotes do Sommelier</h2>
+            <small class="text-muted" style="font-size:0.74rem;">Clique em qualquer lote para abrir o laudo organoléptico detalhado.</small>
+          </div>
+          <div class="filter-bar" style="margin-bottom:0;">
             <button class="filter-btn active" data-filter="all">Todos os Lotes</button>
             <button class="filter-btn" data-filter="tinto">Tintos de Guarda</button>
             <button class="filter-btn" data-filter="branco">Brancos Nobres</button>
             <button class="filter-btn" data-filter="espumante">Espumantes Brut</button>
           </div>
+        </div>
+        <div style="margin-bottom: 16px;">
+          <input type="search" id="wine-search-input" class="portal-search-input" placeholder="🔍 Filtrar por código, vinícola, rótulo, país ou safra..." autocomplete="off">
         </div>
         <div id="lots-container" class="portal-grid">
           <!-- Renderizado dinamicamente pelo portal.js -->
@@ -85,6 +102,7 @@
           <a href="https://wokwi.com/projects/478106752109243393" target="_blank" class="btn-portal btn-outline">Simulador ESP32 Wokwi</a>
           <a href="/api/v1/status" target="_blank" class="btn-portal btn-outline">API REST v1 (Status)</a>
           <a href="/api/v1/lots" target="_blank" class="btn-portal btn-outline">API REST v1 (Lotes)</a>
+          <a href="/api/v1/cloud/info" target="_blank" class="btn-portal btn-outline">API REST v1 (Cloud)</a>
           <a href="/api/v1/openapi.json" target="_blank" class="btn-portal btn-outline">OpenAPI 3.0 Spec</a>
           <a href="https://slqozouuqzxwmfswyroo.supabase.co" target="_blank" class="btn-portal btn-outline">Supabase Cloud SQL</a>
         </div>
@@ -94,6 +112,17 @@
     <footer class="portal-footer">
       <p>Check Point 5 — Vinheria Agnello • ESP32 Wokwi MQTT (:1883) • FIWARE STH-Comet (:8666) • Supabase PostgreSQL • Render.com</p>
     </footer>
+
+    <!-- Modal Dialog para Detalhes do Lote -->
+    <dialog id="lot-detail-modal" class="portal-modal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3 id="modal-title" style="font-family:'Cinzel',serif;font-size:1.05rem;color:var(--portal-wine);">Ficha Enológica</h3>
+          <button id="modal-close-btn" class="modal-close" type="button" aria-label="Fechar">&times;</button>
+        </div>
+        <div id="modal-body" class="modal-body"></div>
+      </div>
+    </dialog>
   </div>
 
   <script src="dashboard/assets/portal.js"></script>

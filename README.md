@@ -5,10 +5,10 @@
 ![FIWARE](https://img.shields.io/badge/FIWARE-Orion%20%7C%20IoT%20Agent%20%7C%20STH--Comet-0095D9?style=for-the-badge)
 ![Supabase](https://img.shields.io/badge/Cloud%20DB-Supabase%20PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
 ![Render](https://img.shields.io/badge/Deploy-Render.com%20Live-46E3B7?style=for-the-badge&logo=render&logoColor=white)
-![TDD](https://img.shields.io/badge/TDD-29%20Passed%20(100%25)-2EA44F?style=for-the-badge)
+![TDD](https://img.shields.io/badge/TDD-31%20Passed%20(100%25)-2EA44F?style=for-the-badge)
 ![ESP32](https://img.shields.io/badge/Hardware-ESP32%20%7C%20DHT22%20%7C%20LDR%20%7C%20LCD16x2-E7352C?style=for-the-badge)
 
-> **Plataforma Enológica IoT Ponta a Ponta**: Monitoramento em tempo real de microclima de cavas (Temperatura, Higrometria da Rolha e Penumbra), rastreamento de **8 Lotes Mundiais** de alta gama, telemetria via satélite de **9 Vinícolas Reais** (Open-Meteo), persistência em nuvem no **Supabase PostgreSQL**, integração **FIWARE** (Orion, IoT Agent, STH-Comet), simulação **Wokwi ESP32** ultra-fluida e deploy contínuo no **Render.com**.
+> **Plataforma Enológica IoT Ponta a Ponta**: Monitoramento em tempo real de microclima de cavas (Temperatura, Higrometria e Penumbra), rastreamento de **8 Lotes Mundiais**, telemetria de **9 Vinícolas Reais** (Open-Meteo), persistência **Supabase PostgreSQL**, **FIWARE** (Orion, IoT Agent, STH-Comet), simulação **Wokwi ESP32**, **Portal HTML5 Sommelier** e deploy contínuo no **Render.com**.
 
 ---
 
@@ -93,8 +93,10 @@ Arquitetura em camadas estritas: `UI -> Service -> Repository -> Data Models`:
 ### 🌐 Endpoints REST API v1 (Documentação OpenAPI 3.0)
 | Método | Endpoint | Descrição / Retorno |
 | :---: | :--- | :--- |
+| `GET` | `/portal` | Portal HTML5 puro com Web Audio API Synth e ficha enológica de lotes. |
+| `GET` | `/api/v1/health` | Health-check de prontidão para Render.com e monitoramento contínuo. |
 | `GET` | `/api/v1/status` | Diagnóstico ao vivo de sensores, atuadores ESP32, portas e links. |
-| `GET` | `/api/v1/lots` | Lista completa dos lotes de vinho com filtros (`?style=tinto`, `?country=França`). |
+| `GET` | `/api/v1/lots` | Lotes da adega com filtros (`?style=tinto`, `?country=França`, `?q=margaux`). |
 | `GET` | `/api/v1/lots/<code_or_style>` | Detalhes organolépticos, estresse térmico e apogeu do lote individual. |
 | `GET` | `/api/v1/vineyards` | Telemetria meteorológica verídica das 9 vinícolas mundiais via satélite. |
 | `GET` | `/api/v1/cloud/info` | Status de sincronização com o Render.com, GitHub `main` e Supabase Cloud. |
@@ -142,12 +144,13 @@ O projeto conta com conectividade mútua via Git:
 O código em [`sketch.ino`](sketch.ino) e [`hardware/wokwi_dht22/`](hardware/wokwi_dht22/sketch_wokwi_dht22.ino) foi otimizado para **latência mínima e máxima fluidez**:
 - **Loop sem Bloqueios**: Eliminação de `delay(10)` e `delay(1)` no parser MQTT, operando com `yield()` e `delay(2)`.
 - **LCD 16x2 Anti-Flicker**: Atualização I2C diferencial (apenas regrava as linhas quando os dados mudam).
-- **Atuadores em Frequência Precisa**:
-  - `Normal`: LED Verde ON, Vermelho/Azul OFF, Buzzer Silenciado.
-  - `Temp (24.5°C)`: LED Vermelho ON + Azul Pisca + Buzzer 2000 Hz.
-  - `Hum (42.0%)`: LED Vermelho ON + Azul Pisca + Buzzer 850 Hz.
-  - `Lum (78.0%)`: LED Vermelho ON + Azul Pisca + Sirene Dupla 1200/1700 Hz.
-  - `Multi (Tríplice)`: LED Vermelho ON + Azul Pisca Rápido + Escala 1000/1800/2500 Hz.
+- **Atuadores e Sons Distintos por Cenário**:
+  - `Boot Inicial`: Acorde enológico harmônico C5-E5-G5 (523/659/784 Hz).
+  - `Normal Restored`: Chime de confirmação C6 (1046 Hz, 80ms) + LED Verde ON.
+  - `Temp (24.5°C)`: LED Vermelho ON + Azul Pisca + Alarme Térmico 2200/1800 Hz.
+  - `Hum (42.0%)`: LED Vermelho ON + Azul Pisca + Pulso Higrométrico 740/880 Hz.
+  - `Lum (78.0%)`: LED Vermelho ON + Azul Pisca + Alerta de Penumbra 1320/1650 Hz.
+  - `Multi (Tríplice)`: LED Vermelho ON + Azul Pisca Rápido + Arpejo Quádruplo 880/1320/1760/2200 Hz.
 - **Link Oficial Wokwi**: [https://wokwi.com/projects/478106752109243393](https://wokwi.com/projects/478106752109243393)
 
 ---
@@ -163,5 +166,5 @@ Dê um duplo clique em [`SITE_NUVEM.bat`](SITE_NUVEM.bat). O script gera um link
 ### Opção C: Executar Testes Automatizados (TDD)
 ```bash
 pytest dashboard/tests/ -v -p no:cacheprovider
-# 30 passed in 0.30s (100% de cobertura nos componentes e rotas)
+# 31 passed in 0.27s (100% de cobertura nos componentes e rotas)
 ```

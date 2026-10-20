@@ -19,7 +19,7 @@ if errorlevel 1 (
     pause
     exit /b 1
 )
-echo [OK] 30/30 testes aprovados com sucesso!
+echo [OK] 31/31 testes aprovados com sucesso!
 
 :: 2. Prepara commit no Git
 echo.

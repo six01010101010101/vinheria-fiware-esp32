@@ -14,7 +14,7 @@ def _create_test_client():
 
 
 def test_api_v1_lots_list_and_filters() -> None:
-    """Verifica se /api/v1/lots lista lotes e aplica filtros por estilo e país."""
+    """Verifica se /api/v1/lots lista lotes e aplica filtros por estilo, país e query textual."""
     client = _create_test_client()
 
     # Todos os lotes
@@ -41,6 +41,13 @@ def test_api_v1_lots_list_and_filters() -> None:
     data_fr = res_fr.get_json()
     assert data_fr["count"] >= 2
     assert all(l["country"] == "França" for l in data_fr["lots"])
+
+    # Filtro por busca rápida ?q=antinori
+    res_q = client.get("/api/v1/lots?q=antinori")
+    assert res_q.status_code == 200
+    data_q = res_q.get_json()
+    assert data_q["count"] >= 1
+    assert "ANTINORI" in data_q["lots"][0]["lot_code"]
 
 
 def test_api_v1_single_lot_and_404() -> None:
@@ -114,4 +121,17 @@ def test_portal_html5_route() -> None:
         assert "<!DOCTYPE html>" in text
         assert "Vinheria Agnello" in text
         assert "lots-container" in text
+
+
+def test_api_v1_health_check() -> None:
+    """Valida endpoints de health check para Render.com e monitoramento contínuo."""
+    client = _create_test_client()
+
+    for path in ["/api/v1/health", "/healthz"]:
+        res = client.get(path)
+        assert res.status_code == 200
+        data = res.get_json()
+        assert data["status"] == "healthy"
+        assert data["service"] == "vinheria-agnello-iot"
+        assert "database_connected" in data
 
