@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vinheria Agnello · Portal HTML5 Sommelier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard/assets/portal.css">
+</head>
+<body>
+  <div class="portal-container">
+    <header class="portal-header">
+      <div class="portal-brand">
+        <h1>🍷 Vinheria Agnello</h1>
+        <p>CARTA DA ADEGA · RESERVA DO SOMMELIER</p>
+      </div>
+      <div class="portal-actions">
+        <span class="live-pill"><span class="live-dot"></span> Wokwi & Cloud Ao Vivo</span>
+        <button id="theme-toggle-btn" class="btn-portal btn-outline" type="button">☀️ Tema Claro</button>
+        <a href="http://127.0.0.1:8050" class="btn-portal" target="_blank">Abrir Dashboard Dash</a>
+      </div>
+    </header>
+
+    <main>
+      <!-- Seção 1: KPIs da Cava -->
+      <section style="margin-bottom: 24px;">
+        <h2 class="card-title">Monitoramento Organoléptico da Cava</h2>
+        <div class="portal-grid">
+          <div class="portal-card">
+            <span style="font-size:0.75rem;font-weight:600;color:var(--portal-muted);">TEMPERATURA DA CAVA</span>
+            <div id="kpi-temp-val" class="kpi-big kpi-temp">--°C</div>
+            <span class="sommelier-tag">Alvo: 12.0°C a 18.0°C</span>
+          </div>
+          <div class="portal-card">
+            <span style="font-size:0.75rem;font-weight:600;color:var(--portal-muted);">HIGROMETRIA DA ROLHA</span>
+            <div id="kpi-hum-val" class="kpi-big kpi-hum">--%</div>
+            <span class="sommelier-tag">Alvo: 60% a 75%</span>
+          </div>
+          <div class="portal-card">
+            <span style="font-size:0.75rem;font-weight:600;color:var(--portal-muted);">PENUMBRA DA ADEGA</span>
+            <div id="kpi-lum-val" class="kpi-big kpi-lum">--%</div>
+            <span class="sommelier-tag">Alvo: 0% a 25%</span>
+          </div>
+          <div class="portal-card" style="text-align: center;">
+            <span style="font-size:0.75rem;font-weight:700;color:var(--portal-muted);">APOGEU & CONSERVAÇÃO</span>
+            <div id="cellar-score-val" class="kpi-big" style="color: #22c55e;">100%</div>
+            <small style="color: var(--portal-muted); font-size: 0.72rem;">Cava Preservada · LED Verde OK</small>
+          </div>
+        </div>
+      </section>
+
+      <!-- Seção 2: Telinha Verde no Recorte da Tampa 66x26mm -->
+      <section class="portal-card" style="margin-bottom: 24px;">
+        <h2 class="card-title">Display Físico LCD 16x2 (Telinha Verde do Barril)</h2>
+        <div style="max-width: 480px; margin: 0 auto;">
+          <div class="lcd-screen">
+            <div id="lcd-line-0">VINHERIA AGNELLO · CAVA</div>
+            <div id="lcd-line-1">APOGEU ENOLÓGICO: 100%</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Seção 3: Cavas de Guarda & Lotes Mundiais -->
+      <section>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:12px;">
+          <h2 class="card-title" style="margin-bottom:0;">Cavas de Guarda & Lotes do Sommelier</h2>
+          <div class="filter-bar">
+            <button class="filter-btn active" data-filter="all">Todos os Lotes</button>
+            <button class="filter-btn" data-filter="tinto">Tintos de Guarda</button>
+            <button class="filter-btn" data-filter="branco">Brancos Nobres</button>
+            <button class="filter-btn" data-filter="espumante">Espumantes Brut</button>
+          </div>
+        </div>
+        <div id="lots-container" class="portal-grid">
+          <!-- Renderizado dinamicamente pelo portal.js -->
+        </div>
+      </section>
+
+      <!-- Seção 4: Links Rápidos de Hardware e Nuvem -->
+      <section class="portal-card" style="margin-top: 24px;">
+        <h2 class="card-title">Ecossistema Conectado IoT & Nuvem</h2>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;">
+          <a href="https://wokwi.com/projects/478106752109243393" target="_blank" class="btn-portal btn-outline">Simulador ESP32 Wokwi</a>
+          <a href="/api/v1/status" target="_blank" class="btn-portal btn-outline">API REST v1 (Status)</a>
+          <a href="/api/v1/lots" target="_blank" class="btn-portal btn-outline">API REST v1 (Lotes)</a>
+          <a href="/api/v1/openapi.json" target="_blank" class="btn-portal btn-outline">OpenAPI 3.0 Spec</a>
+          <a href="https://slqozouuqzxwmfswyroo.supabase.co" target="_blank" class="btn-portal btn-outline">Supabase Cloud SQL</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="portal-footer">
+      <p>Check Point 5 — Vinheria Agnello • ESP32 Wokwi MQTT (:1883) • FIWARE STH-Comet (:8666) • Supabase PostgreSQL • Render.com</p>
+    </footer>
+  </div>
+
+  <script src="dashboard/assets/portal.js"></script>
+</body>
+</html>

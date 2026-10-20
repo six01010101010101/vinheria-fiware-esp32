@@ -1,7 +1,4 @@
-// ==============================================================================
 // CP5 VINHERIA AGNELLO · ESP32 WOKWI MQTT ULTRA-FLUIDO (:1883)
-// LCD 16x2 I2C (21/22), DHT22 (15), LDR (34), LEDs (5/18/2), Buzzer (4)
-// ==============================================================================
 #include <WiFi.h>
 #include <Wire.h>
 #include <math.h>
@@ -10,13 +7,7 @@ const char *WIFI_SSID = "Wokwi-GUEST", *WIFI_PASSWORD = "", *MQTT_BROKER = "brok
 const int MQTT_PORT = 1883;
 const char *TOPIC_ATTRS = "/TEF/vine001/attrs", *TOPIC_CMD = "/TEF/vine001/cmd", *TOPIC_CMDEXE = "/TEF/vine001/cmdexe";
 
-#define PIN_LED_BLUE 2
-#define PIN_BUZZER 4
-#define PIN_LED_GREEN 5
-#define PIN_DHT 15
-#define PIN_LED_RED 18
-#define PIN_LDR 34
-#define LCD_ADDR 0x27
+enum Pins { PIN_LED_BLUE = 2, PIN_BUZZER = 4, PIN_LED_GREEN = 5, PIN_DHT = 15, PIN_LED_RED = 18, PIN_LDR = 34, LCD_ADDR = 0x27 };
 
 WiFiClient espClient;
 String curMode = "normal", curPreset = "TINTO", curVerdict = "OK", lastR0 = "", lastR1 = "";

@@ -12,8 +12,7 @@
     --search-container-bg: #f8fafc; --search-menu-bg: #ffffff; --search-option-hover: #f1f5f9;
     --search-option-hover-text: #722F37; --search-option-active: #722F37;
     --Dash-Fill-Inverse-Strong: #ffffff !important; --Dash-Stroke-Strong: #cbd5e1 !important;
-    --Dash-Text-Primary: #0f172a !important; --Dash-Text-Strong: #0f172a !important;
-    --Dash-Text-Weak: #64748b !important; --Dash-Text-Disabled: #94a3b8 !important;
+    --Dash-Text-Primary: #0f172a !important; --Dash-Text-Strong: #0f172a !important; --Dash-Text-Weak: #64748b !important;
     --Dash-Fill-Interactive-Strong: #722F37 !important; --Dash-Fill-Interactive-Weak: rgba(114, 47, 55, 0.08) !important;
     --Dash-Fill-Primary-Hover: #f1f5f9 !important; --Dash-Fill-Disabled: #e2e8f0 !important;
 }
@@ -24,19 +23,13 @@ body {
 }
 
 /* Navbar Minimalista com Acabamento Vinho */
-.clean-navbar {
-    background: rgba(255, 255, 255, 0.98) !important; backdrop-filter: blur(10px);
-    border-bottom: 2px solid var(--wine-primary) !important;
-}
+.clean-navbar { background: rgba(255, 255, 255, 0.98) !important; backdrop-filter: blur(10px); border-bottom: 2px solid var(--wine-primary) !important; }
 .navbar-brand-logo { width: 28px; height: 28px; object-fit: contain; }
 .navbar-brand-title { font-family: "Cinzel", "Georgia", serif; font-size: 1.12rem; letter-spacing: 0.1em; color: var(--wine-primary) !important; font-weight: 700 !important; }
 .navbar-brand-sub { font-size: 0.67rem; letter-spacing: 0.12em; color: var(--wine-gold) !important; font-weight: 600; }
 
 /* Status Pill Wokwi & Links Sutis na Navbar */
-.status-pill {
-    display: inline-flex; align-items: center; font-size: 0.74rem; font-weight: 600;
-    padding: 3px 10px; border-radius: 20px; transition: all 0.2s ease;
-}
+.status-pill { display: inline-flex; align-items: center; font-size: 0.74rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; transition: all 0.2s ease; }
 .status-pill-live { background: rgba(22, 163, 74, 0.12); color: #16a34a; border: 1px solid rgba(22, 163, 74, 0.25); }
 .status-pill-ready { background: var(--wine-subtle); color: var(--wine-primary); border: 1px solid rgba(114, 47, 55, 0.25); }
 .status-pill-idle { background: #f1f5f9; color: var(--text-muted); border: 1px solid var(--border-subtle); }
@@ -44,19 +37,12 @@ body {
 .status-dot-live { background-color: #22c55e; box-shadow: 0 0 6px rgba(34, 197, 94, 0.8); }
 .status-dot-ready { background-color: var(--wine-primary); }
 .status-dot-idle { background-color: var(--text-muted); }
-.nav-ghost-link {
-    font-size: 0.76rem; font-weight: 600; text-decoration: none; color: var(--text-secondary);
-    padding: 3px 8px; border-radius: 6px; transition: all 0.15s ease;
-}
+.nav-ghost-link { font-size: 0.76rem; font-weight: 600; text-decoration: none; color: var(--text-secondary); padding: 3px 8px; border-radius: 6px; transition: all 0.15s ease; }
 .nav-ghost-link:hover { color: var(--wine-primary); background-color: var(--wine-subtle); }
 
 /* Seletor Segmentado de Tema */
 .theme-btn-group { display: inline-flex; background: #f1f5f9; padding: 2px; border-radius: 8px; border: 1px solid var(--border-subtle); }
-.theme-btn {
-    border: none !important; background: transparent !important; font-size: 0.72rem !important;
-    font-weight: 600 !important; padding: 2px 8px !important; border-radius: 6px !important;
-    color: var(--text-muted) !important; box-shadow: none !important;
-}
+.theme-btn { border: none !important; background: transparent !important; font-size: 0.72rem !important; font-weight: 600 !important; padding: 2px 8px !important; border-radius: 6px !important; color: var(--text-muted) !important; box-shadow: none !important; }
 .theme-btn.active { background-color: var(--wine-primary) !important; color: #ffffff !important; }
 
 /* Botões com Destaque Vinho */
@@ -69,7 +55,9 @@ body {
 .clean-card {
     background: var(--bg-card) !important; border: 1px solid var(--border-subtle) !important;
     border-radius: 12px !important; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+.clean-card:hover { box-shadow: 0 6px 16px rgba(114, 47, 55, 0.08) !important; }
 .section-title {
     font-family: "Cinzel", "Georgia", serif; font-size: 0.85rem; font-weight: 700;
     letter-spacing: 0.08em; text-transform: uppercase; color: var(--wine-primary) !important;
@@ -179,9 +167,7 @@ body {
 
 [data-bs-theme="dark"] .clean-navbar { background: rgba(11, 16, 25, 0.98) !important; border-bottom: 2px solid var(--wine-primary) !important; }
 [data-bs-theme="dark"] .card, [data-bs-theme="dark"] .clean-card, [data-bs-theme="dark"] .table,
-[data-bs-theme="dark"] .table td, [data-bs-theme="dark"] .table th, [data-bs-theme="dark"] .chart-panel-box {
-    background-color: var(--bg-card) !important; color: var(--text-primary) !important; border-color: var(--border-subtle) !important;
-}
+[data-bs-theme="dark"] .table td, [data-bs-theme="dark"] .table th, [data-bs-theme="dark"] .chart-panel-box { background-color: var(--bg-card) !important; color: var(--text-primary) !important; border-color: var(--border-subtle) !important; }
 [data-bs-theme="dark"] .proto-thumb-box, [data-bs-theme="dark"] .trigger-addon-label,
 [data-bs-theme="dark"] .input-group-text, [data-bs-theme="dark"] .bg-light,
 [data-bs-theme="dark"] .badge.bg-light, [data-bs-theme="dark"] .badge-light { background-color: #16202e !important; border-color: var(--border-input) !important; color: var(--text-secondary) !important; }

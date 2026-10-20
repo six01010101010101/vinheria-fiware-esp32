@@ -41,6 +41,7 @@ def build_wokwi_status_bar(meta: Dict[str, object]) -> html.Div:
                 className=pill_cls,
                 title="Simulador Wokwi ESP32 (#478106752109243393)",
             ),
+            html.A("Portal HTML5", href="/portal", target="_blank", className="nav-ghost-link ms-2"),
             html.A("API", href="/api/v1/status", target="_blank", className="nav-ghost-link ms-2"),
             html.A("GitHub", href="https://github.com/six01010101010101/checkpoint5-vinheria-fiware-esp32", target="_blank", className="nav-ghost-link ms-2"),
         ],

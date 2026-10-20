@@ -1,0 +1,113 @@
+/* ==========================================================================
+   Portal HTML5 Sommelier — Vinheria Agnello (Design Tokens & Glassmorphism)
+   ========================================================================== */
+
+:root {
+  --portal-bg: #f8fafc;
+  --portal-card: #ffffff;
+  --portal-border: #e2e8f0;
+  --portal-text: #0f172a;
+  --portal-muted: #64748b;
+  --portal-wine: #722F37;
+  --portal-gold: #b38738;
+  --portal-gold-glow: rgba(179, 135, 56, 0.25);
+  --portal-wine-glow: rgba(114, 47, 55, 0.15);
+  --portal-lcd-bg: #051b0a;
+}
+
+[data-theme="dark"] {
+  --portal-bg: #070b12;
+  --portal-card: #0d1420;
+  --portal-border: #192434;
+  --portal-text: #f1f5f9;
+  --portal-muted: #94a3b8;
+  --portal-wine: #8b263e;
+  --portal-gold: #d4af37;
+  --portal-gold-glow: rgba(212, 175, 55, 0.3);
+  --portal-wine-glow: rgba(139, 38, 62, 0.35);
+  --portal-lcd-bg: #020d05;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background-color: var(--portal-bg);
+  color: var(--portal-text);
+  font-family: "Inter", -apple-system, sans-serif;
+  line-height: 1.5;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.portal-container { max-width: 1200px; margin: 0 auto; padding: 20px 16px; }
+
+/* Header & Navbar */
+.portal-header {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+  padding: 16px 20px; background: var(--portal-card); border: 1px solid var(--portal-border);
+  border-radius: 12px; margin-bottom: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+}
+.portal-brand h1 {
+  font-family: "Cinzel", "Georgia", serif; font-size: 1.35rem; color: var(--portal-wine);
+  letter-spacing: 0.08em; display: flex; align-items: center; gap: 8px;
+}
+.portal-brand p { font-size: 0.72rem; color: var(--portal-gold); font-weight: 600; letter-spacing: 0.1em; }
+.portal-actions { display: flex; align-items: center; gap: 10px; }
+
+/* Status Dot & Pills */
+.live-pill {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px;
+  font-size: 0.74rem; font-weight: 600; background: rgba(34, 197, 94, 0.1); color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; animation: pulseDot 1.4s infinite; }
+@keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
+
+/* Cards & Grid */
+.portal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.portal-card {
+  background: var(--portal-card); border: 1px solid var(--portal-border); border-radius: 12px;
+  padding: 18px; transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.portal-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--portal-wine-glow); border-color: var(--portal-wine); }
+.card-title {
+  font-family: "Cinzel", serif; font-size: 0.85rem; font-weight: 700; color: var(--portal-wine);
+  letter-spacing: 0.05em; border-left: 3px solid var(--portal-gold); padding-left: 8px; margin-bottom: 12px;
+}
+
+/* KPIs */
+.kpi-big { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; }
+.kpi-temp { color: #ef4444; } .kpi-hum { color: #0284c7; } .kpi-lum { color: #f59e0b; }
+.sommelier-tag {
+  display: inline-block; font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;
+  border: 1px solid var(--portal-gold); background: var(--portal-gold-glow); color: var(--portal-gold);
+}
+
+/* Telinha Verde LCD 16x2 */
+.lcd-screen {
+  background: repeating-linear-gradient(0deg, #051b0a 0px, #051b0a 2px, #07270e 2px, #07270e 4px);
+  border: 2px solid var(--portal-border); outline: 2px solid #22c55e; border-radius: 8px;
+  padding: 12px 16px; font-family: "Consolas", monospace; font-size: 0.88rem; font-weight: 700;
+  color: #39ff14; text-shadow: 0 0 6px rgba(57, 255, 20, 0.6); min-height: 72px;
+  display: flex; flex-direction: column; justify-content: center;
+}
+
+/* Buttons */
+.btn-portal {
+  background: var(--portal-wine); color: #ffffff; border: none; padding: 8px 16px;
+  border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+  transition: opacity 0.2s ease;
+}
+.btn-portal:hover { opacity: 0.9; }
+.btn-outline { background: transparent; border: 1px solid var(--portal-border); color: var(--portal-text); }
+.btn-outline:hover { border-color: var(--portal-wine); color: var(--portal-wine); }
+
+/* Filter Tabs */
+.filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-btn {
+  padding: 6px 14px; border-radius: 20px; font-size: 0.76rem; font-weight: 600;
+  border: 1px solid var(--portal-border); background: var(--portal-card); color: var(--portal-muted); cursor: pointer;
+}
+.filter-btn.active { background: var(--portal-wine); color: #ffffff; border-color: var(--portal-wine); }
+
+/* Footer */
+.portal-footer { text-align: center; padding: 24px 0; font-size: 0.74rem; color: var(--portal-muted); border-top: 1px solid var(--portal-border); margin-top: 32px; }

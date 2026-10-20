@@ -16,6 +16,16 @@ RENDER_DEFAULT_URL = "https://vinheria-agnello-iot.onrender.com"
 def register_cloud_routes(server: Flask) -> None:
     """Registra endpoints de metadados e sincronia da nuvem Render.com e Supabase."""
 
+    @server.route("/portal", methods=["GET"])
+    @server.route("/html5", methods=["GET"])
+    def serve_portal_html5():  # type: ignore[no-untyped-def]
+        """Serve a interface pura HTML5 do Portal Sommelier Vinheria Agnello."""
+        from pathlib import Path
+        root_html = Path(__file__).resolve().parents[3] / "index.html"
+        if root_html.exists():
+            return root_html.read_text(encoding="utf-8"), 200, {"Content-Type": "text/html; charset=utf-8"}
+        return "Portal HTML5 em preparação.", 404
+
     @server.route("/api/v1/cloud/info", methods=["GET"])
     def get_cloud_info():  # type: ignore[no-untyped-def]
         """Retorna o estado da sincronização em nuvem (Render.com + GitHub + Supabase)."""

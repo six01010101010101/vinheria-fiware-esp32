@@ -1,8 +1,4 @@
-"""
-Repositório Otimizado de Persistência em Nuvem no Supabase (PostgreSQL via PostgREST API).
-Funciona Plug-and-Play (Zero-Config) em qualquer computador que baixar a pasta do projeto,
-com Pool de Conexões HTTP Keep-Alive, Upsert em Lote e Leitura de Telemetria em Nuvem.
-"""
+"""Repositório de Nuvem no Supabase (PostgreSQL via PostgREST API) com Pool HTTP Keep-Alive."""
 
 from datetime import datetime
 import os
@@ -14,10 +10,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from src.config.settings import DEFAULT_SUPABASE_ANON_KEY, DEFAULT_SUPABASE_URL
 from src.models.iot_models import (
-    AnomalyEvaluation,
-    DeviceProvisionSpec,
-    RealVineyardTelemetry,
-    SensorSnapshot,
+    AnomalyEvaluation, DeviceProvisionSpec, RealVineyardTelemetry, SensorSnapshot
 )
 
 
@@ -132,29 +125,25 @@ class SupabaseRepository:
         if (now - self.last_lots_sync_ts) < 60.0:
             return
         self.last_lots_sync_ts = now
-        rows = [
-            {
-                "lot_code": getattr(getattr(e, "lot", None), "lot_code", ""),
-                "winery_name": getattr(getattr(e, "lot", None), "winery_name", ""),
-                "wine_name": getattr(getattr(e, "lot", None), "wine_name", ""),
-                "style": getattr(getattr(e, "lot", None), "style", ""),
-                "country": getattr(getattr(e, "lot", None), "country", ""),
-                "region": getattr(getattr(e, "lot", None), "region", ""),
-                "vintage": getattr(getattr(e, "lot", None), "vintage", 2020),
-                "bottling_date": getattr(getattr(e, "lot", None), "bottling_date", ""),
-                "expiration_date": getattr(getattr(e, "lot", None), "expiration_date", ""),
-                "barrel_type": getattr(getattr(e, "lot", None), "barrel_type", ""),
-                "soil_type": getattr(getattr(e, "lot", None), "soil_type", ""),
-                "target_temp_min": getattr(getattr(e, "lot", None), "target_temp_min", 13.0),
-                "target_temp_max": getattr(getattr(e, "lot", None), "target_temp_max", 18.0),
-                "target_hum_min": getattr(getattr(e, "lot", None), "target_hum_min", 60.0),
-                "target_hum_max": getattr(getattr(e, "lot", None), "target_hum_max", 75.0),
-                "target_lum_max": getattr(getattr(e, "lot", None), "target_lum_max", 20.0),
-                "health_score": getattr(e, "health_score", 100),
+        rows = []
+        for e in evaluations:
+            lt = getattr(e, "lot", None)
+            if not lt:
+                continue
+            rows.append({
+                "lot_code": getattr(lt, "lot_code", ""), "winery_name": getattr(lt, "winery_name", ""),
+                "wine_name": getattr(lt, "wine_name", ""), "style": getattr(lt, "style", ""),
+                "country": getattr(lt, "country", ""), "region": getattr(lt, "region", ""),
+                "vintage": getattr(lt, "vintage", 2020), "bottling_date": getattr(lt, "bottling_date", ""),
+                "expiration_date": getattr(lt, "expiration_date", ""), "barrel_type": getattr(lt, "barrel_type", ""),
+                "soil_type": getattr(lt, "soil_type", ""), "health_score": getattr(e, "health_score", 100),
+                "target_temp_min": getattr(lt, "target_temp_min", 13.0),
+                "target_temp_max": getattr(lt, "target_temp_max", 18.0),
+                "target_hum_min": getattr(lt, "target_hum_min", 60.0),
+                "target_hum_max": getattr(lt, "target_hum_max", 75.0),
+                "target_lum_max": getattr(lt, "target_lum_max", 20.0),
                 "verdict": getattr(e, "verdict", "Equilíbrio Ideal"),
-            }
-            for e in evaluations if getattr(e, "lot", None) is not None
-        ]
+            })
         if rows:
             threading.Thread(target=self._post_json, args=("cellar_lots", rows, "resolution=merge-duplicates,return=minimal"), daemon=True).start()
 

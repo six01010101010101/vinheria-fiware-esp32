@@ -107,8 +107,14 @@ def build_cellar_lots_grid(evaluations: List[LotStatusEvaluation], active_lot_co
                         ),
                         html.Div(
                             f"{l.name} — {l.winery_name} ({l.region})",
-                            className="fw-semibold text-dark text-truncate small mb-1",
-                            style={"fontSize": "0.77rem"},
+                            className="fw-bold text-dark text-truncate small mb-1",
+                            style={"fontSize": "0.79rem", "fontFamily": "'Cinzel', 'Georgia', serif"},
+                        ),
+                        dbc.Progress(
+                            value=ev.health_score,
+                            color=ev.status_color,
+                            style={"height": "3px"},
+                            className="mb-1 rounded-pill",
                         ),
                         html.Div(
                             f"Terroir: {l.soil} · {l.barrel_type}",

@@ -101,3 +101,17 @@ def test_api_v1_cloud_info_and_deploy_routes() -> None:
     body = res_deploy.get_json()
     assert body["ok"] is True
 
+
+def test_portal_html5_route() -> None:
+    """Valida se as rotas /portal e /html5 entregam o portal HTML5 semântico com status 200."""
+    client = _create_test_client()
+
+    for path in ["/portal", "/html5"]:
+        res = client.get(path)
+        assert res.status_code == 200
+        assert "text/html" in res.content_type
+        text = res.get_data(as_text=True)
+        assert "<!DOCTYPE html>" in text
+        assert "Vinheria Agnello" in text
+        assert "lots-container" in text
+
