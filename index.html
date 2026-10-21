@@ -23,7 +23,7 @@
         <span class="live-pill"><span class="live-dot"></span> Wokwi & Cloud Ao Vivo</span>
         <button id="audio-toggle-btn" class="btn-portal btn-outline" type="button" title="Sintetizador acústico de alertas">🔊 Som: Off</button>
         <button id="theme-toggle-btn" class="btn-portal btn-outline" type="button">☀️ Tema Claro</button>
-        <a id="btn-dash-link" href="/" class="btn-portal" title="Acessar Dashboard Interativo">Abrir Dashboard Dash</a>
+        <button id="btn-dash-link" class="btn-portal" type="button" title="Acessar Dashboard Analítico">📊 Abrir Dashboard</button>
       </div>
     </header>
 
@@ -71,6 +71,43 @@
             <div id="lcd-line-1">APOGEU ENOLÓGICO: 100%</div>
           </div>
         </div>
+      </section>
+
+      <!-- Seção 3: Dashboard Analítico & Gráficos em Tempo Real (Plotly IoT) -->
+      <section id="interactive-dashboard-section" class="portal-card" style="margin-bottom: 24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+          <div>
+            <h2 class="card-title" style="margin-bottom:2px;">Dashboard Analítico IoT em Tempo Real</h2>
+            <small style="color:var(--portal-muted);font-size:0.75rem;">Telemetria contínua Wokwi HiveMQ (:1883) & Séries Temporais Plotly 24/7</small>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <span style="font-size:0.75rem;font-weight:600;"><span id="led-green-ui" class="led-indicator led-green-on"></span>Verde OK</span>
+            <span style="font-size:0.75rem;font-weight:600;"><span id="led-red-ui" class="led-indicator led-red-off"></span>Vermelho Alerta</span>
+            <span style="font-size:0.75rem;font-weight:600;"><span id="led-blue-ui" class="led-indicator led-blue-off"></span>Azul Remoto</span>
+          </div>
+        </div>
+
+        <div class="scenario-bar">
+          <button class="scenario-btn active" data-scenario="normal" type="button">🌿 Normal (15.5°C | 68%)</button>
+          <button class="scenario-btn" data-scenario="temp" type="button">🔥 Alerta Temp (24.5°C)</button>
+          <button class="scenario-btn" data-scenario="hum" type="button">💧 Alerta Umidade (42%)</button>
+          <button class="scenario-btn" data-scenario="lum" type="button">☀️ Alerta Luz (78%)</button>
+          <button class="scenario-btn" data-scenario="multi" type="button">⚡ Alerta Crítico (26°C | 38% | 85%)</button>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:14px;margin-bottom:18px;">
+          <div style="border:1px solid var(--portal-border);border-radius:10px;padding:8px;background:var(--portal-card);">
+            <div style="font-size:0.74rem;font-weight:700;color:var(--portal-muted);padding-left:4px;">TEMPERATURA & UMIDADE DA CAVA</div>
+            <div id="plotly-temp-hum" style="height:230px;"></div>
+          </div>
+          <div style="border:1px solid var(--portal-border);border-radius:10px;padding:8px;background:var(--portal-card);">
+            <div style="font-size:0.74rem;font-weight:700;color:var(--portal-muted);padding-left:4px;">PENUMBRA & RADIAÇÃO SOLAR (LDR)</div>
+            <div id="plotly-lum" style="height:230px;"></div>
+          </div>
+        </div>
+
+        <h3 class="card-title" style="font-size:0.80rem;margin-bottom:8px;">Terroirs das Vinícolas Reais do Mundo (Clima Open-Meteo)</h3>
+        <div id="world-vineyards-container" class="portal-grid" style="margin-bottom:0;"></div>
       </section>
 
       <!-- Seção 3: Cavas de Guarda & Lotes Mundiais -->
@@ -125,6 +162,8 @@
     </dialog>
   </div>
 
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <script src="dashboard/assets/portal.js"></script>
+  <script src="dashboard/assets/portal_dashboard.js"></script>
 </body>
 </html>

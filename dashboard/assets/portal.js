@@ -145,17 +145,13 @@ async function fetchLiveStatus() {
     const res = await fetch("/api/v1/status");
     if (!res.ok) throw new Error("Offline");
     const data = await res.json(), tel = data.telemetry || {};
-    document.getElementById("kpi-temp-val").textContent = `${tel.temperature_c?.toFixed(1) || "15.5"}°C`;
-    document.getElementById("kpi-hum-val").textContent = `${tel.humidity_pct?.toFixed(0) || "68"}%`;
-    document.getElementById("kpi-lum-val").textContent = `${tel.luminosity_pct?.toFixed(0) || "12"}%`;
-    document.getElementById("cellar-score-val").textContent = `${data.health_score || 100}%`;
-    document.getElementById("lcd-line-0").textContent = `T:${tel.temperature_c?.toFixed(1) || "15.5"}C  U:${tel.humidity_pct?.toFixed(0) || "68"}% *`;
-    document.getElementById("lcd-line-1").textContent = `L:${tel.luminosity_pct?.toFixed(0) || "12"}%  APOGEU:${data.health_score || 100}%`;
+    const t = tel.temperature_c?.toFixed(1) || "15.5", h = tel.humidity_pct?.toFixed(0) || "68", l = tel.luminosity_pct?.toFixed(0) || "12", s = data.health_score || 100;
+    document.getElementById("kpi-temp-val").textContent = `${t}°C`; document.getElementById("kpi-hum-val").textContent = `${h}%`;
+    document.getElementById("kpi-lum-val").textContent = `${l}%`; document.getElementById("cellar-score-val").textContent = `${s}%`;
+    document.getElementById("lcd-line-0").textContent = `T:${t}C  U:${h}% *`; document.getElementById("lcd-line-1").textContent = `L:${l}%  APOGEU:${s}%`;
   } catch (_) {
-    document.getElementById("kpi-temp-val").textContent = "15.5°C";
-    document.getElementById("kpi-hum-val").textContent = "68%";
-    document.getElementById("kpi-lum-val").textContent = "12%";
-    document.getElementById("cellar-score-val").textContent = "100%";
+    document.getElementById("kpi-temp-val").textContent = "15.5°C"; document.getElementById("kpi-hum-val").textContent = "68%";
+    document.getElementById("kpi-lum-val").textContent = "12%"; document.getElementById("cellar-score-val").textContent = "100%";
   }
 }
 
@@ -173,8 +169,10 @@ async function fetchLots() {
 function initDashboardLink() {
   const btn = document.getElementById("btn-dash-link");
   if (!btn) return;
-  btn.href = window.location.protocol === "file:" ? "http://127.0.0.1:8050/" : "/";
-  if (window.location.protocol !== "file:") btn.removeAttribute("target");
+  btn.addEventListener("click", () => {
+    const s = document.getElementById("interactive-dashboard-section");
+    if (s) { s.scrollIntoView({ behavior: "smooth", block: "start" }); s.style.borderColor = "var(--portal-wine)"; setTimeout(() => { s.style.borderColor = ""; }, 1400); }
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {

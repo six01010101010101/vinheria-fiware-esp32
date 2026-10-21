@@ -104,6 +104,25 @@ body {
 .modal-close:hover { color: var(--portal-wine); }
 .modal-body { font-size: 0.82rem; line-height: 1.6; }
 
+/* Indicadores dos 3 LEDs Físicos ESP32 & Controles de Cenário */
+.led-indicator { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: middle; margin-right: 6px; }
+.led-green-on { background-color: #16a34a; box-shadow: 0 0 8px rgba(22, 163, 74, 0.8); }
+.led-green-off, .led-blue-off { background-color: #cbd5e1; }
+.led-red-on { background-color: #dc2626; box-shadow: 0 0 8px rgba(220, 38, 38, 0.8); }
+.led-red-off { background-color: #cbd5e1; }
+[data-theme="dark"] .led-green-off, [data-theme="dark"] .led-red-off, [data-theme="dark"] .led-blue-off { background-color: #3f3f46; }
+@keyframes pulseBlue { 0%, 100% { background-color: #0284c7; box-shadow: 0 0 8px #0284c7; } 50% { background-color: #bae6fd; box-shadow: none; } }
+.led-blue-blinking { animation: pulseBlue 0.65s infinite ease-in-out; }
+
+.scenario-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.scenario-btn {
+  padding: 6px 12px; border-radius: 8px; font-size: 0.76rem; font-weight: 600; cursor: pointer;
+  border: 1px solid var(--portal-border); background: var(--portal-card); color: var(--portal-text);
+  transition: all 0.2s ease;
+}
+.scenario-btn:hover { border-color: var(--portal-wine); color: var(--portal-wine); }
+.scenario-btn.active { background: var(--portal-wine); color: #ffffff; border-color: var(--portal-wine); }
+
 /* Scrollbar Minimalista */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--portal-bg); }
