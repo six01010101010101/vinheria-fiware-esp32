@@ -169,10 +169,7 @@ async function fetchLots() {
 function initDashboardLink() {
   const btn = document.getElementById("btn-dash-link");
   if (!btn) return;
-  btn.addEventListener("click", () => {
-    const s = document.getElementById("interactive-dashboard-section");
-    if (s) { s.scrollIntoView({ behavior: "smooth", block: "start" }); s.style.borderColor = "var(--portal-wine)"; setTimeout(() => { s.style.borderColor = ""; }, 1400); }
-  });
+  btn.setAttribute("href", "dashboard.html");
 }
 
 document.addEventListener("DOMContentLoaded", () => {

@@ -1,0 +1,111 @@
+/* Dashboard Analítico IoT — Vinheria Agnello (Estilo SCADA Executivo) */
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+
+:root {
+  --dash-bg: #f8fafc; --dash-card: #ffffff; --dash-border: #e2e8f0;
+  --dash-text: #0f172a; --dash-muted: #64748b; --dash-wine: #72202b;
+  --dash-gold: #b08d4b; --dash-green: #16a34a; --dash-red: #dc2626;
+  --dash-blue: #0284c7; --dash-input: #ffffff;
+}
+[data-theme="dark"] {
+  --dash-bg: #09090b; --dash-card: #121215; --dash-border: #27272a;
+  --dash-text: #f4f4f5; --dash-muted: #71717a; --dash-wine: #a82b3d;
+  --dash-gold: #d4af62; --dash-green: #22c55e; --dash-red: #ef4444;
+  --dash-blue: #38bdf8; --dash-input: #18181b;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background-color: var(--dash-bg); color: var(--dash-text);
+  font-family: "Plus Jakarta Sans", sans-serif; line-height: 1.5;
+}
+.dash-shell { max-width: 1320px; margin: 0 auto; padding: 18px 16px; }
+
+/* Navbar */
+.dash-navbar {
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 12px; padding: 14px 18px; background: var(--dash-card);
+  border: 1px solid var(--dash-border); border-radius: 12px; margin-bottom: 20px;
+}
+.brand-box h1 {
+  font-family: "Cinzel", serif; font-size: 1.3rem; color: var(--dash-wine);
+  display: flex; align-items: center; gap: 8px;
+}
+.brand-box small { font-size: 0.72rem; color: var(--dash-gold); font-weight: 700; letter-spacing: 0.08em; }
+.nav-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* Banners e Cards */
+.dash-card {
+  background: var(--dash-card); border: 1px solid var(--dash-border);
+  border-radius: 12px; padding: 16px; margin-bottom: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.card-header-clean {
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 8px; border-bottom: 1px solid var(--dash-border);
+  padding-bottom: 10px; margin-bottom: 14px;
+}
+.card-title-text {
+  font-size: 0.82rem; font-weight: 800; color: var(--dash-wine);
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
+
+/* Presets & Triggers */
+.preset-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.trigger-group {
+  border: 1px solid var(--dash-border); border-radius: 8px; padding: 10px;
+  background: var(--dash-card);
+}
+.trigger-label { font-size: 0.76rem; font-weight: 700; margin-bottom: 6px; display: block; }
+.trigger-inputs { display: flex; gap: 8px; align-items: center; }
+.trigger-inputs input {
+  width: 100%; padding: 6px 10px; font-size: 0.82rem; border-radius: 6px;
+  border: 1px solid var(--dash-border); background: var(--dash-input); color: var(--dash-text);
+}
+.preset-select {
+  width: 100%; padding: 8px 12px; font-size: 0.82rem; border-radius: 6px;
+  border: 1px solid var(--dash-border); background: var(--dash-input); color: var(--dash-text);
+}
+
+/* Gráficos Plotly SCADA */
+.scada-charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; margin-bottom: 18px; }
+.scada-chart-box {
+  background: var(--dash-card); border: 1px solid var(--dash-border);
+  border-radius: 10px; padding: 10px; overflow: hidden;
+}
+.chart-kpi-bar {
+  display: flex; justify-content: space-between; font-size: 0.72rem;
+  color: var(--dash-muted); margin-bottom: 6px; padding: 0 4px;
+}
+
+/* LEDs e Atuadores */
+.led-pill {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem;
+  font-weight: 600; padding: 4px 10px; border-radius: 20px;
+  border: 1px solid var(--dash-border); background: var(--dash-card);
+}
+.led-circle { width: 10px; height: 10px; border-radius: 50%; }
+.led-green { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+.led-red-off { background: #64748b; }
+.led-red-on { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+.led-blue-off { background: #64748b; }
+.led-blue-on { background: #0284c7; box-shadow: 0 0 8px #0284c7; animation: pulseBlue 0.7s infinite; }
+@keyframes pulseBlue { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+/* Botões de Ação */
+.btn-dash {
+  padding: 6px 14px; font-size: 0.78rem; font-weight: 600; border-radius: 8px;
+  border: none; cursor: pointer; text-decoration: none; display: inline-flex;
+  align-items: center; gap: 6px; transition: opacity 0.2s;
+}
+.btn-dash:hover { opacity: 0.9; }
+.btn-dash-wine { background: var(--dash-wine); color: #fff; }
+.btn-dash-outline { background: transparent; border: 1px solid var(--dash-border); color: var(--dash-text); }
+
+/* Visor LCD */
+.lcd-box {
+  background: #051b0a; border: 2px solid #22c55e; border-radius: 8px;
+  padding: 10px 14px; font-family: "Consolas", monospace; font-size: 0.85rem;
+  font-weight: 700; color: #39ff14; text-shadow: 0 0 6px rgba(57, 255, 20, 0.6);
+  min-height: 60px; display: flex; flex-direction: column; justify-content: center;
+}

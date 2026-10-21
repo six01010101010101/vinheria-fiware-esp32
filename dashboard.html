@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vinheria Agnello · Dashboard Analítico IoT SCADA</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard/assets/dashboard_app.css">
+</head>
+<body>
+  <div class="dash-shell">
+    <header class="dash-navbar">
+      <div class="brand-box">
+        <h1>🍷 Vinheria Agnello</h1>
+        <small>DASHBOARD ANALÍTICO SCADA · RESERVA DO SOMMELIER</small>
+      </div>
+      <div class="nav-actions">
+        <a href="index.html" class="btn-dash btn-dash-wine" title="Ir para o Portal de Lotes">← Portal da Adega</a>
+        <button id="btn-audio" class="btn-dash btn-dash-outline" type="button">🔊 Som: Off</button>
+        <button id="btn-theme" class="btn-dash btn-dash-outline" type="button">🌓 Tema</button>
+        <a href="https://wokwi.com/projects/478106752109243393" target="_blank" class="btn-dash btn-dash-outline">⚡ Wokwi ESP32</a>
+      </div>
+    </header>
+
+    <main>
+      <!-- Seção 1: Presets Enológicos e Calibração de Triggers -->
+      <section class="dash-card">
+        <div class="card-header-clean">
+          <span class="card-title-text">1. Presets Enológicos & Faixas de Conservação</span>
+          <small id="preset-desc" style="color:var(--dash-muted);font-size:0.75rem;">Cabernet, Merlot, Nebbiolo e Brunello em barricas de carvalho.</small>
+        </div>
+        <div class="preset-grid">
+          <div>
+            <label class="trigger-label">Estilo de Vinho</label>
+            <select id="preset-select" class="preset-select">
+              <option value="tinto">🍷 Tintos de Guarda (12°C - 16°C)</option>
+              <option value="branco">🥂 Brancos Nobres (10°C - 14°C)</option>
+              <option value="espumante">🍾 Espumantes Brut (8°C - 12°C)</option>
+            </select>
+          </div>
+          <div class="trigger-group">
+            <span class="trigger-label">🌡️ Temperatura (°C)</span>
+            <div class="trigger-inputs">
+              <input type="number" id="input-t-min" value="12" step="0.5">
+              <span>a</span>
+              <input type="number" id="input-t-max" value="16" step="0.5">
+            </div>
+          </div>
+          <div class="trigger-group">
+            <span class="trigger-label">💧 Higrometria (%)</span>
+            <div class="trigger-inputs">
+              <input type="number" id="input-h-min" value="65" step="1">
+              <span>a</span>
+              <input type="number" id="input-h-max" value="75" step="1">
+            </div>
+          </div>
+          <div class="trigger-group">
+            <span class="trigger-label">☀️ Penumbra / LDR (%)</span>
+            <div class="trigger-inputs">
+              <input type="number" id="input-l-min" value="0" step="1">
+              <span>a</span>
+              <input type="number" id="input-l-max" value="15" step="1">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Seção 2: Atuadores ESP32 & Display Físico LCD 16x2 -->
+      <section class="dash-card">
+        <div class="card-header-clean">
+          <span class="card-title-text">2. Atuadores ESP32 & Telinha Verde LCD 16x2</span>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <span class="led-pill"><span id="led-green" class="led-circle led-green"></span> Verde OK</span>
+            <span class="led-pill"><span id="led-red" class="led-circle led-red-off"></span> Vermelho Alerta</span>
+            <span class="led-pill"><span id="led-blue" class="led-circle led-blue-off"></span> Azul Remoto (FIWARE)</span>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:14px;align-items:center;">
+          <div class="lcd-box">
+            <div id="lcd-line-1">T:15.5C U:68% L:12%</div>
+            <div id="lcd-line-2">STATUS: Cava Preservada</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn-dash sc-btn btn-dash-wine" data-sc="normal" type="button">🌿 Normal</button>
+            <button class="btn-dash sc-btn btn-dash-outline" data-sc="temp" type="button">🔥 Alerta Temp</button>
+            <button class="btn-dash sc-btn btn-dash-outline" data-sc="hum" type="button">💧 Alerta Umid</button>
+            <button class="btn-dash sc-btn btn-dash-outline" data-sc="lum" type="button">☀️ Alerta Luz</button>
+            <button class="btn-dash sc-btn btn-dash-outline" data-sc="multi" type="button">⚡ Crítico</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Seção 3: Curvas SCADA Plotly (3 Gráficos Dinâmicos em Tempo Real) -->
+      <section class="dash-card">
+        <div class="card-header-clean">
+          <span class="card-title-text">3. Curvas Históricas Plotly SCADA (Zona Verde do Sommelier)</span>
+          <div style="font-size:0.75rem;color:var(--dash-muted);">
+            Atual: <strong id="val-cur-t" style="color:#ef4444;">15.5°C</strong> | <strong id="val-cur-h" style="color:#0284c7;">68%</strong> | <strong id="val-cur-l" style="color:#d4af62;">12%</strong>
+          </div>
+        </div>
+        <div class="scada-charts-grid">
+          <div class="scada-chart-box">
+            <div class="chart-kpi-bar"><strong>TEMPERATURA DA CAVA (°C)</strong><span>Faixa Ideal: 12-16°C</span></div>
+            <div id="dash-temp-chart" style="height:210px;"></div>
+          </div>
+          <div class="scada-chart-box">
+            <div class="chart-kpi-bar"><strong>HIGROMETRIA DA CORTIÇA (%)</strong><span>Faixa Ideal: 65-75%</span></div>
+            <div id="dash-hum-chart" style="height:210px;"></div>
+          </div>
+          <div class="scada-chart-box">
+            <div class="chart-kpi-bar"><strong>PENUMBRA ENOLÓGICA (LDR %)</strong><span>Faixa Ideal: 0-15%</span></div>
+            <div id="dash-lum-chart" style="height:210px;"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Seção 4: Terroirs Mundiais das Vinícolas Reais (Open-Meteo) -->
+      <section class="dash-card">
+        <div class="card-header-clean">
+          <span class="card-title-text">4. Terroirs das Vinícolas Reais do Mundo (Clima Satélite)</span>
+          <span style="font-size:0.75rem;color:var(--dash-muted);">Open-Meteo API Global</span>
+        </div>
+        <div id="vine-cards" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:10px;">
+          <!-- Injetado dinamicamente via dashboard_app.js -->
+        </div>
+      </section>
+
+      <!-- Seção 5: Conectividade IoT Cloud -->
+      <section class="dash-card">
+        <div class="card-header-clean">
+          <span class="card-title-text">5. Arquitetura Conectada & Nuvem</span>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <a href="/api/v1/status" target="_blank" class="btn-dash btn-dash-outline">API REST Status (:8050)</a>
+          <a href="/api/v1/lots" target="_blank" class="btn-dash btn-dash-outline">API Lotes Supabase</a>
+          <a href="https://wokwi.com/projects/478106752109243393" target="_blank" class="btn-dash btn-dash-outline">Simulador Wokwi MQTT (:1883)</a>
+          <a href="https://slqozouuqzxwmfswyroo.supabase.co" target="_blank" class="btn-dash btn-dash-outline">Supabase Cloud SQL</a>
+        </div>
+      </section>
+    </main>
+
+    <footer style="text-align:center;padding:16px 0;font-size:0.75rem;color:var(--dash-muted);border-top:1px solid var(--dash-border);margin-top:20px;">
+      Check Point 5 — Vinheria Agnello • FIWARE STH-Comet (:8666) • IoT Agent (:4041) • ESP32 Wokwi (:1883) • Supabase • Render.com
+    </footer>
+  </div>
+
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <script src="dashboard/assets/dashboard_app.js"></script>
+</body>
+</html>

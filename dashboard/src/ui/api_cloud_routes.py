@@ -27,6 +27,7 @@ def register_cloud_routes(server: Flask) -> None:
         return "Portal HTML5 em preparação.", 404
 
     @server.route("/dashboard", methods=["GET"])
+    @server.route("/dashboard.html", methods=["GET"])
     def redirect_dashboard():  # type: ignore[no-untyped-def]
         """Redireciona amigavelmente a rota /dashboard para o Dashboard principal na raiz /."""
         from flask import redirect
