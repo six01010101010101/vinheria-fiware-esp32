@@ -119,8 +119,25 @@ async function loadWorldVineyards() {
   }
 }
 
+function ensurePlotlyReady() {
+  if (typeof Plotly !== 'undefined') {
+    initPlotly();
+  } else {
+    let attempts = 0;
+    const interval = setInterval(() => {
+      attempts++;
+      if (typeof Plotly !== 'undefined') {
+        clearInterval(interval);
+        initPlotly();
+      } else if (attempts > 30) {
+        clearInterval(interval);
+      }
+    }, 150);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  if (typeof Plotly !== 'undefined') initPlotly();
+  ensurePlotlyReady();
   loadWorldVineyards();
   document.querySelectorAll('.scenario-btn').forEach(b => {
     b.addEventListener('click', () => triggerScenario(b.getAttribute('data-scenario')));

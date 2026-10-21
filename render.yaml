@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: vinheria-agnello-iot
+    name: checkpoint5-vinheria-fiware-esp32-1
     env: python
     region: oregon
     plan: free

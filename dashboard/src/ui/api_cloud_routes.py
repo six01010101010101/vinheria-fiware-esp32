@@ -10,7 +10,7 @@ import requests
 from src.repositories.supabase_repository import SupabaseRepository
 
 GITHUB_REPO_URL = "https://github.com/six01010101010101/vinheria-fiware-esp32"
-RENDER_DEFAULT_URL = "https://vinheria-agnello-iot.onrender.com"
+RENDER_DEFAULT_URL = "https://checkpoint5-vinheria-fiware-esp32-1.onrender.com"
 
 
 def register_cloud_routes(server: Flask) -> None:

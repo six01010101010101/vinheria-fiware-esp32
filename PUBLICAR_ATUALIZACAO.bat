@@ -51,8 +51,8 @@ echo [4/4] Conectando com a API da Nuvem...
 
 echo.
 echo ============================================================================
-echo   SUCESSO! O Render.com recebeu os arquivos e esta compilando a atualizacao.
-echo   Link do Web Service: https://vinheria-agnello-iot.onrender.com
+echo   SUCESSO! Os arquivos foram enviados para o GitHub com sucesso.
+echo   Link no Render:      https://checkpoint5-vinheria-fiware-esp32-1.onrender.com/
 echo   Repositório:         https://github.com/six01010101010101/vinheria-fiware-esp32
 echo ============================================================================
 echo.
