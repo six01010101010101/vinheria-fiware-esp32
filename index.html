@@ -16,14 +16,14 @@
       <div class="portal-brand"><h1>🍷 Vinheria Agnello</h1><p>CARTA DA ADEGA · RESERVA DO SOMMELIER</p></div>
       <div class="portal-actions">
         <span class="live-pill"><span class="live-dot"></span> Wokwi & Cloud Ao Vivo</span>
-        <button id="audio-toggle-btn" class="btn-portal btn-outline" type="button" title="Sintetizador acústico">🔊 Som: Off</button>
+        <button id="audio-toggle-btn" class="btn-portal btn-outline" type="button" title="Sintetizador acústico arcade">🔊 Som: On</button>
         <button id="theme-toggle-btn" class="btn-portal btn-outline" type="button">☀️ Tema Claro</button>
         <a id="btn-dash-link" class="btn-portal" href="dashboard.html" target="_blank" rel="noopener noreferrer" title="Abrir Dashboard Completo em Nova Aba">📊 Abrir Dashboard</a>
       </div>
     </header>
 
     <main>
-      <!-- Landing Page: Apenas o Barril 3D, a Tela Verde LCD e o Vinho Ativo -->
+      <!-- Landing Page Minimalista: Barril 3D e Tela Verde Status CRT -->
       <section id="hero-simple-view" class="hero-barrel-card">
         <div class="active-wine-badge">
           <span>🍷 Vinho Ativo no Barril:</span>
@@ -41,9 +41,17 @@
             </div>
             <img src="dashboard/assets/icons/corpo_barril_3d.png" class="barrel-3d-mini-img" alt="Barril 3D">
           </div>
-          <div class="lcd-screen" style="min-height:92px;">
-            <div id="lcd-line-0">VINHERIA AGNELLO · CAVA DO SOMMELIER</div>
-            <div id="lcd-line-1">APOGEU ENOLÓGICO: 100% [PRESERVADO]</div>
+          <div class="green-crt-frame" style="padding:12px;background:#031408;border:1px solid #14532d;border-radius:10px;box-shadow:inset 0 0 18px rgba(34,197,94,0.15);">
+            <div style="display:flex;justify-content:space-between;font-size:0.70rem;color:#4ade80;font-family:'Courier New',monospace;margin-bottom:6px;font-weight:bold;">
+              <span>📟 ESP32 LCD 16x2 HD44780 (I2C 0x27)</span>
+              <span id="crt-status-pill">STATUS: ATIVO</span>
+            </div>
+            <pre id="green-crt-text" style="margin:0;color:#22c55e;font-family:'Courier New',monospace;font-size:0.86rem;line-height:1.4;white-space:pre;text-shadow:0 0 6px rgba(34,197,94,0.45);">+--------------------------------+
+| VINHERIA AGNELLO - CAVA ATIVA  |
+| T: 15.5°C  U: 68%  L: 12%      |
+| STATUS: CAVA PRESERVADA        |
+| APOGEU: 100% [PRESERVADO]      |
++--------------------------------+</pre>
           </div>
         </div>
         <div style="margin-top:20px;">
@@ -54,10 +62,11 @@
     </main>
 
     <footer class="portal-footer">
-      <p>Check Point 5 — Vinheria Agnello • ESP32 Wokwi MQTT (:1883) • FIWARE STH-Comet (:8666) • Supabase PostgreSQL • Render.com</p>
+      <p>Check Point 5 — Vinheria Agnello • ESP32 Wokwi MQTT (:1883) • Firebase & Supabase • Render.com</p>
     </footer>
   </div>
 
+  <script src="dashboard/assets/arcade_audio.js"></script>
   <script src="dashboard/assets/portal.js"></script>
 </body>
 </html>

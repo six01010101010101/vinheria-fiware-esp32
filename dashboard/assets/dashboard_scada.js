@@ -1,64 +1,60 @@
-// Engine SCADA e Telemetria em Tempo Real — Padrão Oficial Vinheria Agnello
+// Engine SCADA e Telemetria em Tempo Real — Vinheria Agnello & Wokwi
 const PRESETS = {
-  tinto: { name: "🍷 Tintos de Guarda (Cabernet / Merlot / Tannat)", tMin: 12.0, tMax: 16.0, hMin: 65.0, hMax: 75.0, lMin: 0.0, lMax: 15.0, desc: "Temperatura ideal de 12.0°C a 16.0°C. Higrometria de 65% a 75% para preservação das rolhas." },
-  branco: { name: "🥂 Brancos Nobres & Chablis (Chardonnay)", tMin: 10.0, tMax: 14.0, hMin: 65.0, hMax: 80.0, lMin: 0.0, lMax: 10.0, desc: "Conservação límpida de 10.0°C a 14.0°C. Penumbra máxima de 10% para evitar fotoxidação." },
-  espumante: { name: "🍾 Espumantes Brut & Champagne", tMin: 8.0, tMax: 12.0, hMin: 70.0, hMax: 85.0, lMin: 0.0, lMax: 10.0, desc: "Climatização fresca de 8.0°C a 12.0°C. Umidade de até 85% para selagem e autólise." }
+  tinto: { name: "🍷 Tintos de Guarda", tMin: 14.0, tMax: 18.0, hMin: 60.0, hMax: 75.0, lMin: 0.0, lMax: 25.0, defT: 15.5, defH: 68.0, defL: 12.0, desc: "Maturação de tintos (14-18°C / 60-75%): taninos estáveis e oxidação lenta." },
+  branco: { name: "🥂 Brancos Nobres", tMin: 8.0, tMax: 12.0, hMin: 60.0, hMax: 75.0, lMin: 0.0, lMax: 15.0, defT: 10.0, defH: 67.0, defL: 8.0, desc: "Preservação de brancos (8-12°C / 60-75%): frescor, acidez e penumbra." },
+  rose: { name: "🌸 Vinhos Rosé", tMin: 10.0, tMax: 13.0, hMin: 60.0, hMax: 75.0, lMin: 0.0, lMax: 12.0, defT: 11.5, defH: 66.0, defL: 7.0, desc: "Conservação de rosés (10-13°C / 60-75%): frescor aromático e proteção lumínica." },
+  espumante: { name: "🍾 Champanhe & Espumante", tMin: 6.0, tMax: 9.0, hMin: 65.0, hMax: 80.0, lMin: 0.0, lMax: 10.0, defT: 7.5, defH: 72.0, defL: 5.0, desc: "Guarda de espumantes (6-9°C / 65-80%): pressão de CO2 e perlage fino." }
 };
 
-const LOTS = [
-  { code: "LOTE-FR-MARGAUX-01", winery: "Château Margaux", wine: "Premier Grand Cru Classé", country: "França", vintage: 2015, barrel: "Carvalho Francês 100% Novo", soil: "Argilo-calcário com cascalho", apogee: "2025-2045", health: 100 },
-  { code: "LOTE-IT-BRUNELLO-02", winery: "Biondi-Santi", wine: "Brunello di Montalcino Riserva", country: "Itália", vintage: 2016, barrel: "Botti de Carvalho da Eslavônia", soil: "Galestro e Alberese", apogee: "2026-2050", health: 100 },
-  { code: "LOTE-BR-MIOLO43-05", winery: "Vinícola Miolo", wine: "Lote 43 Merlot / Cabernet", country: "Brasil", vintage: 2020, barrel: "Carvalho Francês 12 meses", soil: "Argiloso basáltico", apogee: "2024-2032", health: 98 },
-  { code: "LOTE-FR-CHABLIS-07", winery: "Domaine Laroche", wine: "Chablis Grand Cru Les Blanchots", country: "França", vintage: 2021, barrel: "Inox & Foudres Neutros", soil: "Kimmeridgiano Calcário", apogee: "2024-2034", health: 96 }
-];
+const TERROIRS = {
+  wokwi_esp32: { id: "wokwi_esp32", name: "Simulador Wokwi", flag: "📟", country: "Wokwi", lat: 0, lon: 0, t: 15.5, h: 68.0, l: 12.0 },
+  it_antinori: { id: "it_antinori", name: "Marchesi Antinori", flag: "🇮🇹", country: "Itália", lat: 43.61, lon: 11.21, t: 16.5, h: 62.0, l: 14.0 },
+  fr_margaux: { id: "fr_margaux", name: "Château Margaux", flag: "🇫🇷", country: "França", lat: 45.04, lon: -0.66, t: 14.8, h: 72.0, l: 11.0 },
+  br_miolo: { id: "br_miolo", name: "Vinícola Miolo", flag: "🇧🇷", country: "Brasil", lat: -29.18, lon: -51.55, t: 15.2, h: 76.0, l: 16.0 },
+  us_opus: { id: "us_opus", name: "Opus One", flag: "🇺🇸", country: "EUA", lat: 38.43, lon: -122.40, t: 17.5, h: 58.0, l: 20.0 },
+  ru_abrau: { id: "ru_abrau", name: "Abrau-Durso", flag: "🇷🇺", country: "Rússia", lat: 44.70, lon: 37.60, t: 11.4, h: 70.0, l: 9.0 },
+  ar_catena: { id: "ar_catena", name: "Catena Zapata", flag: "🇦🇷", country: "Argentina", lat: -33.16, lon: -68.91, t: 16.2, h: 52.0, l: 22.0 },
+  cl_concha: { id: "cl_concha", name: "Concha y Toro", flag: "🇨🇱", country: "Chile", lat: -33.64, lon: -70.57, t: 15.8, h: 60.0, l: 18.0 },
+  pt_crasto: { id: "pt_crasto", name: "Quinta do Crasto", flag: "🇵🇹", country: "Portugal", lat: 41.16, lon: -7.63, t: 17.0, h: 65.0, l: 13.0 }
+};
 
-const VINES = [
-  { id: "miolo", name: "Vinícola Miolo", reg: "Vale dos Vinhedos (RS)", flag: "🇧🇷", lat: -29.18, lon: -51.55 },
-  { id: "francioni", name: "Villa Francioni", reg: "São Joaquim (SC)", flag: "🇧🇷", lat: -28.29, lon: -49.93 },
-  { id: "guaspari", name: "Vinícola Guaspari", reg: "Pinhal (SP)", flag: "🇧🇷", lat: -22.18, lon: -46.74 },
-  { id: "catena", name: "Catena Zapata", reg: "Mendoza", flag: "🇦🇷", lat: -33.16, lon: -68.91 },
-  { id: "concha", name: "Concha y Toro", reg: "Vale do Maipo", flag: "🇨🇱", lat: -33.64, lon: -70.57 },
-  { id: "margaux", name: "Château Margaux", reg: "Bordeaux", flag: "🇫🇷", lat: 45.04, lon: -0.66 },
-  { id: "antinori", name: "Marchesi Antinori", reg: "Toscana", flag: "🇮🇹", lat: 43.61, lon: 11.21 },
-  { id: "crasto", name: "Quinta do Crasto", reg: "Douro", flag: "🇵🇹", lat: 41.16, lon: -7.63 },
-  { id: "opus", name: "Opus One", reg: "Napa Valley", flag: "🇺🇸", lat: 38.43, lon: -122.40 }
-];
-
-let curPr = "tinto", hTime = [], hT = [], hH = [], hL = [];
+let curPr = "tinto", curArea = "wokwi_esp32", hTime = [], hT = [], hH = [], hL = [];
 let sim = { t: 15.5, h: 68.0, l: 12.0, score: 100, mode: "normal" };
 
-function getThemePalette() {
-  const isDark = document.documentElement.getAttribute("data-bs-theme") === "dark";
-  return { bg: isDark ? "#121215" : "#ffffff", text: isDark ? "#f4f4f5" : "#0f172a", grid: isDark ? "#27272a" : "#e2e8f0" };
+function calcHealthScore(t, h, l, pr) {
+  let sc = 100;
+  if (t < pr.tMin || t > pr.tMax) sc -= Math.min(45, Math.abs(t - (pr.tMin + pr.tMax) / 2) * 8);
+  if (h < pr.hMin || h > pr.hMax) sc -= Math.min(35, Math.abs(h - (pr.hMin + pr.hMax) / 2) * 2);
+  if (l > pr.lMax) sc -= Math.min(30, (l - pr.lMax) * 2);
+  return Math.max(15, Math.min(100, Math.round(sc)));
 }
 
 function initScadaPlotly() {
   const now = new Date(); hTime = []; hT = []; hH = []; hL = [];
   for (let i = 12; i >= 0; i--) {
     hTime.push(new Date(now - i * 2500).toLocaleTimeString());
-    hT.push(+(15.2 + Math.random() * 0.5).toFixed(1));
-    hH.push(+(67.5 + Math.random() * 1.5).toFixed(0));
-    hL.push(+(11.5 + Math.random() * 1.0).toFixed(0));
+    hT.push(+(sim.t + (Math.random() - 0.5) * 0.4).toFixed(1));
+    hH.push(+(sim.h + (Math.random() - 0.5) * 1.5).toFixed(0));
+    hL.push(+(sim.l + (Math.random() - 0.5) * 1.0).toFixed(0));
   }
-  const p = getThemePalette(), pr = PRESETS[curPr];
-  const makeFig = (elemId, color, traceName, vals, low, high, yRng) => {
-    const trace = { x: hTime, y: vals, name: traceName, type: "scatter", mode: "lines+markers", line: { color, width: 2 } };
-    const layout = {
+  const isDark = document.documentElement.getAttribute("data-bs-theme") === "dark";
+  const p = { bg: isDark ? "#121215" : "#ffffff", text: isDark ? "#f4f4f5" : "#0f172a", grid: isDark ? "#27272a" : "#e2e8f0" };
+  const pr = PRESETS[curPr] || PRESETS.tinto;
+
+  const makeFig = (id, color, name, vals, low, high, yRng) => {
+    Plotly.newPlot(id, [{ x: hTime, y: vals, name, type: "scatter", mode: "lines+markers", line: { color, width: 2 } }], {
       paper_bgcolor: p.bg, plot_bgcolor: p.bg, font: { color: p.text, family: "Plus Jakarta Sans" },
-      margin: { t: 25, r: 20, l: 38, b: 25 }, xaxis: { gridcolor: p.grid, zeroline: false },
-      yaxis: { gridcolor: p.grid, range: yRng, zeroline: false },
-      shapes: [{ type: "rect", xref: "paper", x0: 0, x1: 1, y0: low, y1: high, fillcolor: "rgba(34,197,94,0.10)", line: { width: 0 } }]
-    };
-    Plotly.newPlot(elemId, [trace], layout, { responsive: true, displayModeBar: false });
+      margin: { t: 25, r: 20, l: 38, b: 25 }, xaxis: { gridcolor: p.grid, zeroline: false }, yaxis: { gridcolor: p.grid, range: yRng, zeroline: false },
+      shapes: [{ type: "rect", xref: "paper", x0: 0, x1: 1, y0: low, y1: high, fillcolor: "rgba(34,197,94,0.12)", line: { width: 0 } }]
+    }, { responsive: true, displayModeBar: false });
   };
-  makeFig("graph-temperature", "#ef4444", "Temperatura", hT, pr.tMin, pr.tMax, [5, 32]);
+  makeFig("graph-temperature", "#ef4444", "Temperatura", hT, pr.tMin, pr.tMax, [4, 32]);
   makeFig("graph-humidity", "#0284c7", "Higrometria", hH, pr.hMin, pr.hMax, [20, 100]);
   makeFig("graph-luminosity", "#d4af62", "Penumbra", hL, pr.lMin, pr.lMax, [0, 100]);
 }
 
 function updateScadaPlotly(t, h, l) {
-  const ts = new Date().toLocaleTimeString();
-  hTime.push(ts); hT.push(t); hH.push(h); hL.push(l);
+  hTime.push(new Date().toLocaleTimeString()); hT.push(t); hH.push(h); hL.push(l);
   if (hTime.length > 20) { hTime.shift(); hT.shift(); hH.shift(); hL.shift(); }
   Plotly.update("graph-temperature", { x: [hTime], y: [hT] });
   Plotly.update("graph-humidity", { x: [hTime], y: [hH] });
@@ -66,15 +62,68 @@ function updateScadaPlotly(t, h, l) {
 }
 
 function updateHardwarePlaque(t, h, l, ok, lbl, score) {
+  const pr = PRESETS[curPr] || PRESETS.tinto, tr = TERROIRS[curArea] || TERROIRS.wokwi_esp32;
   const t1 = document.getElementById("barrel-mini-t1"), t2 = document.getElementById("barrel-mini-t2");
   if (t1) t1.textContent = `T:${t.toFixed(1)}C U:${h.toFixed(0)}%`;
   if (t2) t2.textContent = `S:${score}% ${ok ? "OK" : "ALR"}`;
+
   const crt = document.getElementById("green-crt-text");
-  if (crt) crt.textContent = `+--------------------------------+\n| VINHERIA AGNELLO - CAVA ATIVA   |\n| T:${t.toFixed(1)}C  U:${h.toFixed(0)}%  L:${l.toFixed(0)}%             |\n| STATUS: ${lbl.padEnd(23, " ")}|\n| APOGEU: ${score}% [${ok ? "PRESERVADO" : "ANOMALIA"}]       |\n+--------------------------------+`;
+  const areaPad = `${tr.flag} ${tr.name}`.padEnd(21, " ").substring(0, 21);
+  const stylePad = `${pr.name.substring(0, 10)}`.padEnd(10, " ");
+  if (crt) crt.textContent = `+--------------------------------+\n| CAVA ATIVA: ${areaPad}|\n| [${stylePad}] T:${t.toFixed(1)}C U:${h.toFixed(0)}% L:${l.toFixed(0)}% |\n| STATUS: ${lbl.padEnd(23, " ")}|\n| APOGEU: ${score}% [${ok ? "PRESERVADO" : "ANOMALIA"}]       |\n+--------------------------------+`;
+
   const ledG = document.getElementById("led-green"), ledR = document.getElementById("led-red"), ledB = document.getElementById("led-blue");
   if (ledG) ledG.className = ok ? "led-indicator led-green-on" : "led-indicator led-green-off";
   if (ledR) ledR.className = ok ? "led-indicator led-red-off" : "led-indicator led-red-on";
-  if (ledB) ledB.className = ok ? "led-indicator led-blue-off" : "led-indicator led-blue-blinking";
+  if (ledB) ledB.className = (curArea !== "wokwi_esp32") ? "led-indicator led-blue-blinking" : "led-indicator led-blue-off";
+}
+
+function onWinePresetChange(presetKey) {
+  curPr = presetKey;
+  const p = PRESETS[curPr] || PRESETS.tinto;
+  document.getElementById("trigger-temp-min").value = p.tMin; document.getElementById("trigger-temp-max").value = p.tMax;
+  document.getElementById("trigger-hum-min").value = p.hMin; document.getElementById("trigger-hum-max").value = p.hMax;
+  document.getElementById("trigger-lum-min").value = p.lMin; document.getElementById("trigger-lum-max").value = p.lMax;
+  document.getElementById("preset-description-text").textContent = p.desc;
+
+  if (sim.mode === "normal") { sim.t = p.defT; sim.h = p.defH; sim.l = p.defL; }
+  sim.score = calcHealthScore(sim.t, sim.h, sim.l, p);
+  updateHardwarePlaque(sim.t, sim.h, sim.l, sim.score >= 85, "CAVA PRESERVADA", sim.score);
+  initScadaPlotly();
+  syncCloudConfig();
+}
+
+function onAreaTerroirChange(areaKey) {
+  curArea = areaKey;
+  const tr = TERROIRS[curArea] || TERROIRS.wokwi_esp32;
+  const pr = PRESETS[curPr] || PRESETS.tinto;
+  if (curArea !== "wokwi_esp32") {
+    sim.t = tr.t; sim.h = tr.h; sim.l = tr.l;
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${tr.lat}&longitude=${tr.lon}&current=temperature_2m,relative_humidity_2m,shortwave_radiation&timezone=auto`)
+      .then(r => r.json()).then(d => {
+        const c = d.current || {};
+        if (c.temperature_2m !== undefined && curArea === areaKey) {
+          tr.t = +c.temperature_2m.toFixed(1); tr.h = +c.relative_humidity_2m.toFixed(0);
+          tr.l = Math.min(100, Math.round((c.shortwave_radiation || 0) / 10));
+          sim.t = tr.t; sim.h = tr.h; sim.l = tr.l;
+          sim.score = calcHealthScore(sim.t, sim.h, sim.l, pr);
+          updateHardwarePlaque(sim.t, sim.h, sim.l, sim.score >= 85, "TERROIR ATIVO", sim.score);
+          updateScadaPlotly(sim.t, sim.h, sim.l);
+        }
+      }).catch(() => {});
+  } else { sim.t = pr.defT; sim.h = pr.defH; sim.l = pr.defL; }
+  sim.score = calcHealthScore(sim.t, sim.h, sim.l, pr);
+  updateHardwarePlaque(sim.t, sim.h, sim.l, sim.score >= 85, "TERROIR ATIVO", sim.score);
+  initScadaPlotly();
+  syncCloudConfig();
+}
+
+function syncCloudConfig() {
+  const tr = TERROIRS[curArea] || TERROIRS.wokwi_esp32;
+  fetch("/api/v1/cloud/firebase/sync", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ device_id: "vine001", preset_key: curPr, terroir: { id: curArea, name: tr.name, country: tr.country } })
+  }).catch(() => {});
 }
 
 function applyScenario(sc) {
@@ -94,78 +143,55 @@ function applyScenario(sc) {
 
 function renderCellarLots() {
   const c = document.getElementById("cellar-lots-grid");
-  if (!c) return;
-  c.innerHTML = LOTS.map(l => `
-    <div class="col-lg-6 col-xl-3 col-md-6 col-12">
-      <div class="vineyard-card h-100">
-        <div class="d-flex justify-content-between align-items-center mb-1">
-          <span class="sommelier-tag">${l.code}</span>
-          <span class="badge bg-secondary" style="font-size:0.62rem;">${l.country} · ${l.vintage}</span>
-        </div>
-        <div class="lot-wine-title text-truncate mb-1">${l.winery} — ${l.wine}</div>
-        <div class="progress mb-2 rounded-pill" style="height:4px;"><div class="progress-bar bg-success" style="width:${l.health}%;"></div></div>
-        <div class="text-muted text-truncate mb-1" style="font-size:0.70rem;">Terroir: ${l.soil}</div>
-        <div class="d-flex justify-content-between small text-muted" style="font-size:0.72rem;">
-          <span>Barrica: ${l.barrel}</span><span class="text-wine fw-bold">Guarda: ${l.apogee}</span>
-        </div>
-      </div>
-    </div>`).join("");
+  if (!c || typeof window.CANONICAL_LOTS === "undefined") return;
+  c.innerHTML = window.CANONICAL_LOTS.slice(0, 8).map(l => `
+    <div class="col-lg-6 col-xl-3 col-md-6 col-12"><div class="vineyard-card h-100">
+      <div class="d-flex justify-content-between align-items-center mb-1"><span class="sommelier-tag">${l.code}</span><span class="badge bg-secondary" style="font-size:0.62rem;">${l.country} · ${l.vintage}</span></div>
+      <div class="lot-wine-title text-truncate mb-1">${l.winery} — ${l.wine}</div>
+      <div class="progress mb-2 rounded-pill" style="height:4px;"><div class="progress-bar bg-success" style="width:${l.health}%;"></div></div>
+      <div class="text-muted text-truncate mb-1" style="font-size:0.70rem;">Terroir: ${l.soil}</div>
+      <div class="d-flex justify-content-between small text-muted" style="font-size:0.72rem;"><span>Barrica: ${l.barrel.substring(0, 18)}</span><span class="text-wine fw-bold">Guarda: ${l.apogee}</span></div>
+    </div></div>`).join("");
 }
 
-async function renderRealVineyards() {
+function renderRealVineyards() {
   const c = document.getElementById("real-vineyards-grid");
   if (!c) return;
-  c.innerHTML = VINES.map(v => `
-    <div class="col-lg-4 col-md-6 col-12">
-      <div class="vineyard-card">
-        <div class="d-flex justify-content-between align-items-center mb-1">
-          <strong style="font-size:0.84rem;">${v.flag} ${v.name}</strong>
-          <span class="sommelier-tag">Terroir</span>
-        </div>
-        <small class="text-muted d-block mb-1" style="font-size:0.74rem;">${v.reg}</small>
-        <div id="v-meteo-${v.id}" class="small fw-semibold text-secondary" style="font-size:0.74rem;">Consultando satélite...</div>
-      </div>
-    </div>`).join("");
-  for (const v of VINES.slice(0, 6)) {
-    try {
-      const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${v.lat}&longitude=${v.lon}&current=temperature_2m,relative_humidity_2m&timezone=auto`);
-      if (res.ok) {
-        const d = await res.json(), cur = d.current || {};
-        const el = document.getElementById(`v-meteo-${v.id}`);
-        if (el) el.innerHTML = `<span class="text-danger">${cur.temperature_2m || 18}°C</span> · <span class="text-info">${cur.relative_humidity_2m || 65}%</span> · <span class="text-success">Clima Estável</span>`;
-      }
-    } catch (_) {}
-  }
+  const list = Object.values(TERROIRS).filter(x => x.id !== "wokwi_esp32");
+  c.innerHTML = list.map(v => `
+    <div class="col-lg-4 col-md-6 col-12"><div class="vineyard-card ${v.id === curArea ? "active-vineyard" : ""}" data-vid="${v.id}" style="cursor:pointer;" title="Clique para ativar este terroir">
+      <div class="d-flex justify-content-between align-items-center mb-1"><strong style="font-size:0.84rem;">${v.flag} ${v.name}</strong><span class="sommelier-tag">GPS Ativo</span></div>
+      <small class="text-muted d-block mb-1" style="font-size:0.74rem;">${v.country} · Lat ${v.lat.toFixed(1)}, Lon ${v.lon.toFixed(1)}</small>
+      <div id="v-meteo-${v.id}" class="small fw-semibold text-secondary" style="font-size:0.74rem;">T: ${v.t}°C · U: ${v.h}% · L: ${v.l}%</div>
+    </div></div>`).join("");
+  c.querySelectorAll(".vineyard-card").forEach(card => card.addEventListener("click", () => {
+    const vid = card.dataset.vid;
+    const sel = document.getElementById("dropdown-area-terroir");
+    if (sel) sel.value = vid;
+    onAreaTerroirChange(vid);
+  }));
 }
 
 async function fetchLiveScada() {
-  if (sim.mode !== "normal") return;
-  let tel = null, score = 100;
+  if (sim.mode !== "normal" || curArea !== "wokwi_esp32") return;
   try {
     const res = await fetch("/api/v1/status", { cache: "no-store" });
     if (res.ok) {
       const d = await res.json();
-      tel = d.telemetry;
-      score = d.actuators_esp32?.cellar_health_score || d.health_score || 100;
+      if (d.telemetry) {
+        sim.t = d.telemetry.temperature_c; sim.h = d.telemetry.humidity_pct; sim.l = d.telemetry.luminosity_pct;
+        sim.score = d.health_score || calcHealthScore(sim.t, sim.h, sim.l, PRESETS[curPr]);
+        updateHardwarePlaque(sim.t, sim.h, sim.l, sim.score >= 85, "WOKWI AO VIVO", sim.score);
+        updateScadaPlotly(sim.t, sim.h, sim.l);
+      }
     }
   } catch (_) {}
-  const t = tel?.temperature_c || +(15.3 + Math.random() * 0.4).toFixed(1);
-  const h = tel?.humidity_pct || +(67.5 + Math.random() * 1.5).toFixed(0);
-  const l = tel?.luminosity_pct || +(11.5 + Math.random() * 1.0).toFixed(0);
-  updateHardwarePlaque(t, h, l, score >= 90, "CAVA PRESERVADA", score);
-  updateScadaPlotly(t, h, l);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   renderCellarLots(); renderRealVineyards();
-  document.getElementById("dropdown-wine-preset")?.addEventListener("change", (e) => {
-    curPr = e.target.value; const p = PRESETS[curPr];
-    document.getElementById("trigger-temp-min").value = p.tMin; document.getElementById("trigger-temp-max").value = p.tMax;
-    document.getElementById("trigger-hum-min").value = p.hMin; document.getElementById("trigger-hum-max").value = p.hMax;
-    document.getElementById("trigger-lum-min").value = p.lMin; document.getElementById("trigger-lum-max").value = p.lMax;
-    document.getElementById("preset-description-text").textContent = p.desc;
-    initScadaPlotly();
-  });
+  document.getElementById("dropdown-wine-preset")?.addEventListener("change", (e) => onWinePresetChange(e.target.value));
+  document.getElementById("dropdown-area-terroir")?.addEventListener("change", (e) => onAreaTerroirChange(e.target.value));
   document.querySelectorAll(".sc-btn").forEach(b => b.addEventListener("click", () => applyScenario(b.dataset.sc)));
   if (typeof Plotly !== "undefined") initScadaPlotly();
   else { const it = setInterval(() => { if (typeof Plotly !== "undefined") { clearInterval(it); initScadaPlotly(); } }, 150); }

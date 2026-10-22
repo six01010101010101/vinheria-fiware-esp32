@@ -1,7 +1,7 @@
 """
-Repositório Otimizado de Telemetria Meteorológica e Solar de Vinícolas Reais do Mundo.
+Repositório de Telemetria Meteorológica e Solar de Vinícolas Reais do Mundo.
 Utiliza Pool de Conexões HTTP Keep-Alive, Conversão Física (Radiação Solar -> Luminosidade %
-e Ponto de Orvalho Magnus-Tetens), Cache Stale-While-Revalidate e Sincronização com Supabase.
+e Ponto de Orvalho Magnus-Tetens), Cache Stale-While-Revalidate e Sincronização Supabase.
 """
 
 from datetime import datetime
@@ -12,10 +12,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import requests
 from requests.adapters import HTTPAdapter
 from src.models.iot_models import (
-    HistoricalSeries,
-    RealVineyardTelemetry,
-    SensorSnapshot,
-    TimeSeriesPoint,
+    HistoricalSeries, RealVineyardTelemetry, SensorSnapshot, TimeSeriesPoint
 )
 from src.repositories.supabase_repository import SupabaseRepository
 
@@ -23,15 +20,16 @@ OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 CACHE_TTL_SECONDS = 45.0
 
 REAL_VINEYARDS: Dict[str, Dict[str, Any]] = {
-    "miolo_br": {"name": "Vinícola Miolo", "region": "Vale dos Vinhedos, Bento Gonçalves - RS", "country": "Brasil", "lat": -29.1864, "lon": -51.5567},
-    "francioni_br": {"name": "Villa Francioni", "region": "São Joaquim, Serra Catarinense - SC", "country": "Brasil", "lat": -28.2936, "lon": -49.9319},
+    "miolo_br": {"name": "Vinícola Miolo", "region": "Vale dos Vinhedos - RS", "country": "Brasil", "lat": -29.1864, "lon": -51.5567},
+    "francioni_br": {"name": "Villa Francioni", "region": "São Joaquim - SC", "country": "Brasil", "lat": -28.2936, "lon": -49.9319},
     "guaspari_br": {"name": "Vinícola Guaspari", "region": "Espírito Santo do Pinhal - SP", "country": "Brasil", "lat": -22.1819, "lon": -46.7408},
-    "catena_ar": {"name": "Bodega Catena Zapata", "region": "Agrelo, Luján de Cuyo, Mendoza", "country": "Argentina", "lat": -33.1667, "lon": -68.9167},
-    "concha_cl": {"name": "Viña Concha y Toro", "region": "Vale do Maipo, Pirque", "country": "Chile", "lat": -33.6433, "lon": -70.5789},
+    "catena_ar": {"name": "Bodega Catena Zapata", "region": "Mendoza", "country": "Argentina", "lat": -33.1667, "lon": -68.9167},
+    "concha_cl": {"name": "Viña Concha y Toro", "region": "Vale do Maipo", "country": "Chile", "lat": -33.6433, "lon": -70.5789},
     "margaux_fr": {"name": "Château Margaux", "region": "Médoc, Bordeaux", "country": "França", "lat": 45.0444, "lon": -0.6686},
-    "antinori_it": {"name": "Marchesi Antinori", "region": "Chianti Classico, Bargino, Toscana", "country": "Itália", "lat": 43.6158, "lon": 11.2136},
-    "crasto_pt": {"name": "Quinta do Crasto", "region": "Vale do Douro, Gouvinhas, Sabrosa", "country": "Portugal", "lat": 41.1681, "lon": -7.6308},
-    "opus_us": {"name": "Opus One Winery", "region": "Oakville, Napa Valley, Califórnia", "country": "EUA", "lat": 38.4367, "lon": -122.4017},
+    "antinori_it": {"name": "Marchesi Antinori", "region": "Chianti Classico, Toscana", "country": "Itália", "lat": 43.6158, "lon": 11.2136},
+    "crasto_pt": {"name": "Quinta do Crasto", "region": "Vale do Douro", "country": "Portugal", "lat": 41.1681, "lon": -7.6308},
+    "opus_us": {"name": "Opus One Winery", "region": "Oakville, Napa Valley", "country": "EUA", "lat": 38.4367, "lon": -122.4017},
+    "abrau_ru": {"name": "Vinícola Abrau-Durso", "region": "Krai de Krasnodar, Mar Negro", "country": "Rússia", "lat": 44.7000, "lon": 37.6000},
 }
 
 
@@ -54,7 +52,7 @@ def calculate_dew_point_c(temp_c: float, rh_pct: float) -> float:
 
 
 class RealVineyardsRepository:
-    """Gerencia consultas em tempo real às estações meteorológicas das vinícolas mundiais com cache TTL."""
+    """Gerencia consultas em tempo real às estações meteorológicas das vinícolas com cache TTL."""
 
     _instance: Optional["RealVineyardsRepository"] = None
     _lock = threading.Lock()
@@ -72,14 +70,13 @@ class RealVineyardsRepository:
 
     @classmethod
     def get_instance(cls) -> "RealVineyardsRepository":
-        """Retorna a instância Singleton thread-safe do repositório de vinícolas reais."""
         with cls._lock:
             if cls._instance is None:
                 cls._instance = cls()
             return cls._instance
 
     def fetch_all_vineyards_overview(self, force: bool = False) -> List[RealVineyardTelemetry]:
-        """Busca dados ao vivo das 9 vinícolas reais (Stale-While-Revalidate não-bloqueante)."""
+        """Busca dados ao vivo das 10 vinícolas mundiais (Stale-While-Revalidate não-bloqueante)."""
         now = time.time()
         with self._data_lock:
             if not force and self._overview_cache:
@@ -127,23 +124,23 @@ class RealVineyardsRepository:
                 self._refreshing_overview = False
             SupabaseRepository.get_instance().sync_real_vineyards_async(results)
             return results
-        except (requests.RequestException, ValueError, KeyError, TypeError):
+        except requests.RequestException:
             with self._data_lock:
                 self._refreshing_overview = False
                 return list(self._overview_cache)
 
-    def fetch_vineyard_telemetry(
-        self, vineyard_id: str, last_n: int = 24
+    def fetch_vineyard_timeseries(
+        self, vineyard_id: str, last_n: int = 24, force: bool = False
     ) -> Tuple[HistoricalSeries, Optional[SensorSnapshot], Optional[RealVineyardTelemetry]]:
-        """Retorna a série histórica real das últimas 24h e a leitura atual de uma vinícola real."""
+        """Busca histórico e snapshot climático de uma vinícola com cache de 45 segundos."""
         vid = vineyard_id if vineyard_id in REAL_VINEYARDS else "miolo_br"
+        meta = REAL_VINEYARDS[vid]
         now = time.time()
         with self._data_lock:
-            cached = self._series_cache.get(vid)
-            if cached and (now - cached[0]) < CACHE_TTL_SECONDS:
-                return cached[1], cached[2], cached[3]
-
-        meta = REAL_VINEYARDS[vid]
+            if not force and vid in self._series_cache:
+                cached_ts, s, snap, info = self._series_cache[vid]
+                if (now - cached_ts) < CACHE_TTL_SECONDS:
+                    return s, snap, info
         params = {
             "latitude": meta["lat"], "longitude": meta["lon"],
             "current": "temperature_2m,relative_humidity_2m,shortwave_radiation,is_day",
@@ -194,6 +191,7 @@ class RealVineyardsRepository:
         except (requests.RequestException, ValueError, KeyError, TypeError):
             with self._data_lock:
                 if vid in self._series_cache:
-                    _, s_c, sn_c, in_c = self._series_cache[vid]
-                    return s_c, sn_c, in_c
+                    return self._series_cache[vid][1], self._series_cache[vid][2], self._series_cache[vid][3]
             return HistoricalSeries(), None, None
+
+    fetch_vineyard_telemetry = fetch_vineyard_timeseries

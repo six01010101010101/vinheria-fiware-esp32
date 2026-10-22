@@ -1,4 +1,4 @@
-// CP5 VINHERIA AGNELLO · ESP32 WOKWI SOMMELIER IOT (:1883)
+// CP5 VINHERIA AGNELLO · ESP32 WOKWI SOMMELIER IOT ARCADE (:1883)
 #include <WiFi.h>
 #include <Wire.h>
 #include <math.h>
@@ -9,7 +9,7 @@ const char *TOPIC_ATTRS = "/TEF/vine001/attrs", *TOPIC_CMD = "/TEF/vine001/cmd",
 
 enum Pins { PIN_LED_BLUE = 2, PIN_BUZZER = 4, PIN_LED_GREEN = 5, PIN_DHT = 15, PIN_LED_RED = 18, PIN_LDR = 34, LCD_ADDR = 0x27 };
 
-const uint8_t CHAR_WINE[8]={0x1F,0x11,0x11,0x0E,0x04,0x04,0x0E,0x00}, CHAR_DROP[8]={0x04,0x04,0x0A,0x11,0x11,0x11,0x0E,0x00}, CHAR_SUN[8]={0x04,0x15,0x0E,0x1B,0x0E,0x15,0x04,0x00};
+const uint8_t CHAR_COIN[8]={0x0E,0x1F,0x15,0x15,0x15,0x1F,0x0E,0x00}, CHAR_DROP[8]={0x04,0x04,0x0A,0x11,0x11,0x11,0x0E,0x00}, CHAR_STAR[8]={0x04,0x15,0x0E,0x1F,0x0E,0x15,0x04,0x00};
 
 WiFiClient espClient;
 String curMode = "normal", curPreset = "TINTO", curVerdict = "OK";
@@ -31,7 +31,7 @@ void lcdInit() {
   lcdWrite4(0x30); delayMicroseconds(4500); lcdWrite4(0x30); delayMicroseconds(4500);
   lcdWrite4(0x30); delayMicroseconds(150);  lcdWrite4(0x20); delayMicroseconds(150);
   lcdSend(0x28, 0); lcdSend(0x0C, 0); lcdSend(0x06, 0); lcdSend(0x01, 0); delay(3);
-  lcdCreateChar(0, CHAR_WINE); lcdCreateChar(1, CHAR_DROP); lcdCreateChar(2, CHAR_SUN);
+  lcdCreateChar(0, CHAR_COIN); lcdCreateChar(1, CHAR_DROP); lcdCreateChar(2, CHAR_STAR);
 }
 void updateLcd() {
   lcdSend(0x80, 0); lcdSend(0x00, 1); lcdSend(' ', 1);
@@ -45,7 +45,7 @@ void updateLcd() {
   lcdSend(0xC0, 0); lcdSend(0x02, 1); lcdSend(' ', 1);
   String lStr = String((int)validLum) + "% ";
   for (int i = 0; i < lStr.length(); i++) lcdSend((uint8_t)lStr[i], 1);
-  String stat = (curMode == "normal") ? (curPreset + " " + String(curHealth) + "%") : ("ALR:" + curMode.substring(0, 4) + " " + String(curHealth) + "%");
+  String stat = (curMode == "normal") ? (curPreset + " 1UP:" + String(curHealth) + "%") : ("ALR:" + curMode.substring(0, 3) + " HP:" + String(curHealth) + "%");
   if (stat.length() > 10) stat = stat.substring(0, 10);
   for (int i = 0; i < stat.length(); i++) lcdSend((uint8_t)stat[i], 1);
   for (int i = 0; i < 16 - (2 + lStr.length() + stat.length()); i++) lcdSend(' ', 1);
@@ -111,9 +111,9 @@ void applyCommand(String msg) {
   if (curMode == "normal") {
     digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW);
     digitalWrite(PIN_LED_BLUE, LOW); noTone(PIN_BUZZER); ledState = false;
-    if (prev != "normal") { tone(PIN_BUZZER, 1046, 60); delay(70); tone(PIN_BUZZER, 784, 60); delay(70); tone(PIN_BUZZER, 523, 80); }
+    if (prev != "normal") { tone(PIN_BUZZER, 988, 70); delay(75); tone(PIN_BUZZER, 1319, 220); }
   } else { digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH); }
-  updateLcd(); Serial.println("[CMD] Atuando: modo=" + curMode + " saude=" + String(curHealth) + "%");
+  updateLcd(); Serial.println("[MARIO-ARCADE] Modo=" + curMode + " 1-UP=" + String(curHealth) + "%");
 }
 void checkMqtt() {
   if (espClient.connected()) return;
@@ -126,7 +126,7 @@ void checkMqtt() {
   unsigned long t0 = millis(); while (espClient.available() < 4 && (millis() - t0) < 800) yield();
   for (int i = 0; i < 4 && espClient.available(); i++) espClient.read();
   mqttSub(TOPIC_CMD);
-  Serial.println("[MQTT] Conectado ao Broker HiveMQ :1883 (/TEF/vine001)");
+  Serial.println("[MQTT] Conectado HiveMQ :1883 (/TEF/vine001)");
 }
 void mqttLoop() {
   if (!espClient.connected()) return;
@@ -179,7 +179,7 @@ void readAndPubSensors() {
     String rFlag = remoteSync ? "|r|1" : "|r|0";
     mqttPub(TOPIC_ATTRS, "t|" + String(validTemp, 1) + "|h|" + String(validHum, 1) + "|l|" + String(validLum, 1) + rFlag);
     updateLcd();
-    Serial.println("[ADEGA] T:" + String(validTemp, 1) + "C | U:" + String(validHum, 0) + "% | L:" + String((int)validLum) + "% | Saude:" + String(curHealth) + "%");
+    Serial.println("[MARIO-ARCADE] T:" + String(validTemp, 1) + "C | U:" + String(validHum, 0) + "% | L:" + String((int)validLum) + "% | 1-UP:" + String(curHealth) + "%");
   }
 }
 void setup() {
@@ -188,10 +188,10 @@ void setup() {
   pinMode(PIN_BUZZER, OUTPUT); pinMode(PIN_LDR, INPUT);
   digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW); digitalWrite(PIN_LED_BLUE, LOW);
   lcdInit(); updateLcd();
-  int mel[] = {523, 659, 784, 1046}; for (int f : mel) { tone(PIN_BUZZER, f, 60); delay(75); }
+  int mario[] = {659, 659, 0, 659, 0, 523, 659, 0, 784, 0, 392};
+  for (int f : mario) { if (f) tone(PIN_BUZZER, f, 65); delay(85); }
   WiFi.mode(WIFI_STA); WiFi.setSleep(false); WiFi.begin(WIFI_SSID, WIFI_PASS, 6);
-  Serial.println("[WiFi] Conectando ao Wokwi AP...");
   while (WiFi.status() != WL_CONNECTED) delay(50);
-  Serial.println("[WiFi] Conectado ao Wokwi AP!");
+  Serial.println("[MARIO-ARCADE] Wokwi Conectado! 1-UP Pronto!");
 }
 void loop() { checkMqtt(); mqttLoop(); handleActuators(); readAndPubSensors(); delay(2); }

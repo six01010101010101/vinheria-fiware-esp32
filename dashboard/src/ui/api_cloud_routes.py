@@ -1,5 +1,5 @@
 """
-Rotas REST da API para Sincronização em Nuvem (Render.com, GitHub & Supabase).
+Rotas REST da API para Sincronização em Nuvem (Render.com, GitHub, Firebase & Supabase).
 Fornece metadados de deploy contínuo, conectividade mútua e acionamento de redeploy.
 """
 
@@ -7,14 +7,17 @@ from datetime import datetime
 import os
 from flask import Flask, jsonify
 import requests
+from src.repositories.firebase_repository import FirebaseRepository
 from src.repositories.supabase_repository import SupabaseRepository
+from src.ui.api_firebase_routes import api_firebase_bp
 
 GITHUB_REPO_URL = "https://github.com/six01010101010101/vinheria-fiware-esp32"
 RENDER_DEFAULT_URL = "https://checkpoint5-vinheria-fiware-esp32-1.onrender.com"
 
 
 def register_cloud_routes(server: Flask) -> None:
-    """Registra endpoints de metadados e sincronia da nuvem Render.com e Supabase."""
+    """Registra endpoints de metadados e sincronia da nuvem Render.com, Firebase e Supabase."""
+    server.register_blueprint(api_firebase_bp)
 
     @server.route("/portal", methods=["GET"])
     @server.route("/html5", methods=["GET"])
@@ -35,9 +38,10 @@ def register_cloud_routes(server: Flask) -> None:
 
     @server.route("/api/v1/cloud/info", methods=["GET"])
     def get_cloud_info():  # type: ignore[no-untyped-def]
-        """Retorna o estado da sincronização em nuvem (Render.com + GitHub + Supabase)."""
+        """Retorna o estado da sincronização em nuvem (Render.com + GitHub + Firebase + Supabase)."""
         deploy_hook = os.getenv("RENDER_DEPLOY_HOOK_URL", "")
         supa = SupabaseRepository.get_instance()
+        fire = FirebaseRepository.get_instance()
         return jsonify(
             {
                 "status": "online",
@@ -51,6 +55,10 @@ def register_cloud_routes(server: Flask) -> None:
                 "supabase_cloud": {
                     "configured": supa.is_configured(),
                     "url": supa.project_url,
+                },
+                "firebase_cloud": {
+                    "configured": fire.is_configured(),
+                    "url": fire.database_url,
                 },
                 "timestamp": datetime.now().isoformat(),
             }

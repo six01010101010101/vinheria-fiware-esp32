@@ -1,6 +1,6 @@
 """
 Catálogo Enológico de Terroirs Reais do Mundo por Estilo de Vinho.
-Cobre Tinto, Rosé, Branco e Espumante para as 9 vinícolas mundiais,
+Cobre Tinto, Rosé, Branco e Espumante para as 10 vinícolas mundiais,
 garantindo que safra, uvas, guarda e solo mudem dinamicamente ao trocar estilo ou país.
 """
 
@@ -62,6 +62,12 @@ WINE_CATALOG: Dict[Tuple[str, str], WineProfile] = {
     ("opus_us", "rose"): WineProfile("opus_us", "rose", "Overture Rosé d'Oakville", "Cabernet Franc & Merlot", "Cascalho do Rio Napa", 150, 2022, 8, 6, 5, "11-13°C", "Cereja negra, pétalas secas e especiaria doce"),
     ("opus_us", "branco"): WineProfile("opus_us", "branco", "Opus Reserve Fumé Blanc", "Sauvignon Blanc & Sémillon", "Franco-Argiloso Drenado", 150, 2021, 8, 9, 12, "10-12°C", "Capim-limão, figo verde e carvalho sutil"),
     ("opus_us", "espumante"): WineProfile("opus_us", "espumante", "Opus Carneros Cuvée Brut", "Chardonnay & Pinot Noir", "Argila Marinha de Carneros", 150, 2019, 8, 36, 12, "6-8°C", "Torta de maçã, levedura e perlage persistente"),
+
+    # 10. RÚSSIA - Abrau-Durso, Krai de Krasnodar (Mar Negro)
+    ("abrau_ru", "tinto"): WineProfile("abrau_ru", "tinto", "Abrau-Durso Cuvée Imperial Rouge", "Cabernet Sauvignon & Krasnostop", "Calcário e Margas do Cáucaso", 180, 2019, 9, 14, 18, "16-18°C", "Cereja preta, pimenta branca, zimbro e carvalho"),
+    ("abrau_ru", "rose"): WineProfile("abrau_ru", "rose", "Abrau-Durso Imperial Rosé Brut", "Pinot Noir", "Calcário e Xisto Marinho", 180, 2022, 8, 12, 6, "9-11°C", "Framboesas frescas, groselha e brioche"),
+    ("abrau_ru", "branco"): WineProfile("abrau_ru", "branco", "Abrau-Durso Riesling Grand Cuvée", "Riesling & Chardonnay", "Marga Calcária Drenada", 180, 2021, 9, 6, 8, "8-10°C", "Flor de tília, pêssego branco e sílex mineral"),
+    ("abrau_ru", "espumante"): WineProfile("abrau_ru", "espumante", "Abrau-Durso Imperial Brut Imperial", "Chardonnay & Pinot Blanc", "Calcário Puro Fóssil", 180, 2018, 8, 36, 15, "6-8°C", "Maçã dourada, nozes, pão tostado e perlage cremoso"),
 }
 
 

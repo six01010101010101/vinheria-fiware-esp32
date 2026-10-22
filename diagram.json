@@ -4,16 +4,16 @@
   "editor": "wokwi",
   "parts": [
     { "type": "wokwi-esp32-devkit-v1", "id": "esp", "top": 0, "left": 0, "attrs": {} },
-    { "type": "wokwi-lcd1602", "id": "lcd1", "top": -155, "left": -45, "attrs": { "pins": "i2c", "background": "green" } },
+    { "type": "wokwi-lcd1602", "id": "lcd1", "top": -155, "left": -45, "attrs": { "pins": "i2c", "background": "green", "label": "LCD 16x2 Fliperama" } },
     { "type": "wokwi-dht22", "id": "dht1", "top": -45, "left": -150, "attrs": { "temperature": "15.5", "humidity": "68.0" } },
     { "type": "wokwi-photoresistor-sensor", "id": "ldr1", "top": 120, "left": -190, "attrs": {} },
-    { "type": "wokwi-led", "id": "led_green", "top": -55, "left": 145, "attrs": { "color": "green", "label": "LED Verde (OK)" } },
+    { "type": "wokwi-led", "id": "led_green", "top": -55, "left": 145, "attrs": { "color": "green", "label": "LED Verde (1-UP / OK)" } },
     { "type": "wokwi-resistor", "id": "r_green", "top": 20, "left": 135, "attrs": { "value": "220" } },
     { "type": "wokwi-led", "id": "led_red", "top": -55, "left": 215, "attrs": { "color": "red", "label": "LED Vermelho (Alerta)" } },
     { "type": "wokwi-resistor", "id": "r_red", "top": 20, "left": 205, "attrs": { "value": "220" } },
     { "type": "wokwi-led", "id": "led_blue", "top": -55, "left": 285, "attrs": { "color": "blue", "label": "LED Azul (Remoto)" } },
     { "type": "wokwi-resistor", "id": "r1", "top": 20, "left": 275, "attrs": { "value": "220" } },
-    { "type": "wokwi-buzzer", "id": "bz1", "top": 95, "left": 195, "attrs": { "volume": "0.5", "label": "Buzzer Alerta" } }
+    { "type": "wokwi-buzzer", "id": "bz1", "top": 95, "left": 195, "attrs": { "volume": "0.6", "label": "Buzzer Mario & Fliperama" } }
   ],
   "connections": [
     [ "esp:TX0", "$serialMonitor:RX", "", [] ],

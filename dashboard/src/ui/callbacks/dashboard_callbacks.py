@@ -1,6 +1,6 @@
 """
 Callbacks reativos do Dashboard Dash Otimizados em Tempo Real (1s).
-Garante conversa bidirecional Plug-and-Play entre o Site, a API em Nuvem (Supabase/Open-Meteo)
+Garante conversa bidirecional Plug-and-Play entre o Site, Nuvem (Supabase/Firebase/Open-Meteo)
 e o Simulador Wokwi ESP32 (#478106752109243393) em qualquer computador.
 """
 
@@ -11,6 +11,7 @@ import dash_bootstrap_components as dbc
 from dash import Dash, Input, Output, State, ctx
 from src.config.settings import DEFAULT_FIWARE_HOST, DEFAULT_WOKWI_BROKER, WINE_PRESETS
 from src.models.iot_models import SensorSnapshot, TimeSeriesPoint, TriggerConfig
+from src.repositories.firebase_repository import FirebaseRepository
 from src.repositories.real_vineyards_repository import REAL_VINEYARDS
 from src.repositories.supabase_repository import SupabaseRepository
 from src.repositories.wokwi_mqtt_repository import WokwiMqttRepository
@@ -107,7 +108,7 @@ def register_dashboard_callbacks(app: Dash) -> None:
         wokwi_broker: str, device_id: str, api_key: str, host: str, entity_id: str,
         entity_type: str, last_n: int, local_store: Dict[str, List[Dict[str, Any]]],
     ) -> Tuple[Any, Any, Any, Any, Any, Dict[str, List[Dict[str, Any]]], Any, Any, Any]:
-        """Sincroniza telemetria bidirecional entre Site, Wokwi #478106752109243393, Vinícolas Reais e FIWARE."""
+        """Sincroniza telemetria bidirecional entre Site, Wokwi, Vinícolas Reais, Firebase e FIWARE."""
         clean_host, clean_broker = (host or DEFAULT_FIWARE_HOST).strip(), (wokwi_broker or DEFAULT_WOKWI_BROKER).strip()
         clean_entity, clean_type = (entity_id or "urn:ngsi-ld:Vine:001").strip(), (entity_type or "Vine").strip()
         n_samples = max(5, min(100, int(last_n or 30)))
@@ -184,6 +185,7 @@ def register_dashboard_callbacks(app: Dash) -> None:
         vine_grid = build_real_vineyards_grid(DeviceManagerService.get_all_real_vineyards_overview(), real_vineyard_id, triggers, wine_style=wine_style)
         lot_evals = CellarLotsService.evaluate_all_lots(float(active_snapshot.temperature or cur_t), float(active_snapshot.humidity or cur_h), float(active_snapshot.luminosity or cur_l))
         SupabaseRepository.get_instance().sync_cellar_lots_async(lot_evals)
+        FirebaseRepository.get_instance().sync_telemetry_async(device_id, active_snapshot, evaluation)
         lots_grid = build_cellar_lots_grid(lot_evals, active_lot_code=str(cellar_lot_code or "all"))
 
         return banner, kpis, fig_t, fig_h, fig_l, store, build_wokwi_status_bar(wokwi_meta), vine_grid, lots_grid
