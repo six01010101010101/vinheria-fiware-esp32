@@ -32,7 +32,7 @@ h1, h2, h3, h4, .section-title { font-family: "Plus Jakarta Sans", sans-serif; f
 .section-title { font-size: 0.82rem; font-weight: 800; text-transform: uppercase; color: var(--wine-gold) !important; letter-spacing: 0.08em; border-left: 3px solid var(--wine-primary); padding-left: 10px; }
 
 /* Moldura e Tela Verde CRT Estilo Laboratório Sommelier */
-.green-crt-frame {
+.green-crt-frame { position: relative; overflow: hidden;
   background: radial-gradient(circle at center, #05200f 0%, #020c06 100%);
   border: 2px solid #14532d; outline: 1px solid rgba(34, 197, 94, 0.2); border-radius: 12px;
   padding: 12px 14px; box-shadow: inset 0 0 24px rgba(34, 197, 94, 0.20), 0 4px 16px rgba(0, 0, 0, 0.4);
@@ -99,3 +99,10 @@ h1, h2, h3, h4, .section-title { font-family: "Plus Jakarta Sans", sans-serif; f
 .form-control, .form-select { border-color: var(--border-input) !important; color: var(--text-primary) !important; background-color: #121215 !important; border-radius: 8px !important; font-weight: 600; }
 .form-control:focus, .form-select:focus { border-color: var(--wine-gold) !important; box-shadow: 0 0 0 3px var(--wine-gold-glow) !important; }
 .input-group-text { background-color: #18181b !important; border-color: var(--border-input) !important; color: var(--text-secondary) !important; font-size: 0.76rem !important; font-weight: 600; }
+.green-crt-frame::before { content: " "; position: absolute; top: 0; left: 0; bottom: 0; right: 0; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%); background-size: 100% 4px; pointer-events: none; opacity: 0.45; }
+.btn, .btn-wine, .theme-btn, .sc-btn, .btn-portal { transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.16s ease, background 0.2s ease !important; }
+.btn:active, .btn-wine:active, .btn-portal:active, .sc-btn:active { transform: scale(0.96) !important; }
+.vineyard-card:active { transform: scale(0.98) !important; }
+.border-gold { border-color: var(--wine-gold) !important; box-shadow: 0 0 12px var(--wine-gold-glow) !important; }
+.nav-ghost-link { color: var(--text-secondary); text-decoration: none; font-size: 0.78rem; font-weight: 600; transition: color 0.2s ease; }
+.nav-ghost-link:hover { color: var(--wine-gold); }

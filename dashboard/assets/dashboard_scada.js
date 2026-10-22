@@ -87,7 +87,7 @@ function onWinePresetChange(presetKey) {
   if (sim.mode === "normal") { sim.t = p.defT; sim.h = p.defH; sim.l = p.defL; }
   sim.score = calcHealthScore(sim.t, sim.h, sim.l, p);
   updateHardwarePlaque(sim.t, sim.h, sim.l, sim.score >= 85, "CAVA PRESERVADA", sim.score);
-  initScadaPlotly(); renderRealVineyards(); syncCloudConfig();
+  initScadaPlotly(); renderRealVineyards(); renderCellarLots(); syncCloudConfig();
 }
 
 function onAreaTerroirChange(areaKey) {
@@ -108,7 +108,7 @@ function onAreaTerroirChange(areaKey) {
   } else { sim.t = pr.defT; sim.h = pr.defH; sim.l = pr.defL; }
   sim.score = calcHealthScore(sim.t, sim.h, sim.l, pr);
   updateHardwarePlaque(sim.t, sim.h, sim.l, sim.score >= 85, "TERROIR ATIVO", sim.score);
-  initScadaPlotly(); renderRealVineyards(); syncCloudConfig();
+  initScadaPlotly(); renderRealVineyards(); renderCellarLots(); syncCloudConfig();
 }
 
 function syncCloudConfig() {
@@ -131,8 +131,9 @@ function applyScenario(sc) {
 function renderCellarLots() {
   const c = document.getElementById("cellar-lots-grid");
   if (!c || typeof window.CANONICAL_LOTS === "undefined") return;
-  c.innerHTML = window.CANONICAL_LOTS.slice(0, 8).map(l => `
-    <div class="col-lg-6 col-xl-3 col-md-6 col-12"><div class="vineyard-card h-100">
+  const sorted = [...window.CANONICAL_LOTS].sort((a, b) => (a.style === curPr ? -1 : (b.style === curPr ? 1 : 0)));
+  c.innerHTML = sorted.slice(0, 8).map(l => `
+    <div class="col-lg-6 col-xl-3 col-md-6 col-12"><div class="vineyard-card h-100 ${l.style === curPr ? "border-gold" : ""}">
       <div class="d-flex justify-content-between align-items-center mb-1"><span class="sommelier-tag">${l.code}</span><span class="badge bg-secondary" style="font-size:0.62rem;">${l.country} · ${l.vintage}</span></div>
       <div class="lot-wine-title text-truncate mb-1">${l.winery} — ${l.wine}</div>
       <div class="progress mb-2 rounded-pill" style="height:4px;"><div class="progress-bar bg-success" style="width:${l.health}%;"></div></div>

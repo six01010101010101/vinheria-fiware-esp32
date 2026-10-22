@@ -94,7 +94,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Botões -> Moeda Mario
   document.addEventListener("click", (e) => {
-    const target = e.target.closest("button, .btn, .btn-portal, .sc-btn, a.btn, a.btn-portal");
+    const card = e.target.closest(".vineyard-card");
+    if (card) { audio.ensureContext(); audio.playPowerup(); return; }
+    const sc = e.target.closest(".sc-btn");
+    if (sc) { audio.ensureContext(); audio.playAlert(); return; }
+    const target = e.target.closest("button, .btn, .btn-portal, a.btn, a.btn-portal, .theme-btn");
     if (target) {
       audio.ensureContext();
       if (!target.id?.includes("audio-toggle")) audio.playCoin();
