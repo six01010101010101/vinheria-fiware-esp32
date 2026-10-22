@@ -18,57 +18,22 @@
         <span class="live-pill"><span class="live-dot"></span> Wokwi & Cloud Ao Vivo</span>
         <button id="audio-toggle-btn" class="btn-portal btn-outline" type="button" title="Sintetizador acústico">🔊 Som: Off</button>
         <button id="theme-toggle-btn" class="btn-portal btn-outline" type="button">☀️ Tema Claro</button>
-        <button id="btn-dash-link" class="btn-portal" type="button" title="Ir para o Dashboard Analítico">📊 Dashboard</button>
+        <a id="btn-dash-link" class="btn-portal" href="dashboard.html" target="_blank" rel="noopener noreferrer" title="Abrir Dashboard Completo em Nova Aba">📊 Abrir Dashboard</a>
       </div>
     </header>
 
     <main>
-      <!-- Seção 1: KPIs da Cava -->
-      <section style="margin-bottom: 20px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
-          <h2 class="card-title" style="margin-bottom:0;">Monitoramento Organoléptico da Cava</h2>
-          <div class="kpi-summary-pills">
-            <span class="summary-pill">Total: <strong id="lots-total-count">8</strong> Lotes</span>
-            <span class="summary-pill summary-pill-ok">Preservados: <strong id="lots-ok-count">8</strong></span>
-            <span class="summary-pill summary-pill-alert">Atenção: <strong id="lots-alert-count">0</strong></span>
-          </div>
+      <!-- Landing Page: Apenas o Barril 3D, a Tela Verde LCD e o Vinho Ativo -->
+      <section id="hero-simple-view" class="hero-barrel-card">
+        <div class="active-wine-badge">
+          <span>🍷 Vinho Ativo no Barril:</span>
+          <strong>Château Margaux 2015 · Premier Grand Cru Classé (Bordeaux)</strong>
         </div>
-        <div class="portal-grid">
-          <div class="portal-card"><span style="font-size:0.75rem;font-weight:600;color:var(--portal-muted);">TEMPERATURA</span><div id="kpi-temp-val" class="kpi-big kpi-temp">--°C</div><span id="target-temp-badge" class="sommelier-tag">Alvo: 12.0°C a 16.0°C</span></div>
-          <div class="portal-card"><span style="font-size:0.75rem;font-weight:600;color:var(--portal-muted);">HIGROMETRIA</span><div id="kpi-hum-val" class="kpi-big kpi-hum">--%</div><span id="target-hum-badge" class="sommelier-tag">Alvo: 65% a 75%</span></div>
-          <div class="portal-card"><span style="font-size:0.75rem;font-weight:600;color:var(--portal-muted);">PENUMBRA</span><div id="kpi-lum-val" class="kpi-big kpi-lum">--%</div><span id="target-lum-badge" class="sommelier-tag">Alvo: 0% a 15%</span></div>
-          <div class="portal-card" style="text-align:center;"><span style="font-size:0.75rem;font-weight:700;color:var(--portal-muted);">APOGEU ENOLÓGICO</span><div id="cellar-score-val" class="kpi-big" style="color:#22c55e;">100%</div><small style="color:var(--portal-muted);font-size:0.72rem;">Cava Preservada · LED Verde OK</small></div>
-        </div>
-      </section>
-
-      <!-- Seção 2: Presets Enológicos & Calibração de Triggers -->
-      <section class="portal-card" style="margin-bottom: 20px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-          <h2 class="card-title" style="margin-bottom:0;">Carta de Presets Enológicos & Triggers de Conservação</h2>
-          <small id="preset-desc-label" style="font-size:0.75rem;color:var(--portal-muted);">Temperatura ideal de 12.0°C a 16.0°C para Tintos de Guarda em barricas.</small>
-        </div>
-        <div class="preset-wrap">
-          <div>
-            <label style="font-size:0.75rem;font-weight:700;display:block;margin-bottom:4px;color:var(--portal-wine);">Estilo de Vinho & Casta</label>
-            <select id="preset-wine-select" class="portal-search-input" style="padding:6px 10px;">
-              <option value="tinto">🍷 Tintos de Guarda (Cabernet / Merlot / Tannat)</option>
-              <option value="branco">🥂 Brancos Nobres & Chablis (Chardonnay)</option>
-              <option value="espumante">🍾 Espumantes Brut & Champagne</option>
-            </select>
-          </div>
-          <div><label style="font-size:0.75rem;font-weight:600;display:block;margin-bottom:4px;">🌡️ Temperatura (°C)</label><div class="trigger-input-wrap"><input type="number" id="in-temp-min" value="12" step="0.5"><span>a</span><input type="number" id="in-temp-max" value="16" step="0.5"></div></div>
-          <div><label style="font-size:0.75rem;font-weight:600;display:block;margin-bottom:4px;">💧 Higrometria (%)</label><div class="trigger-input-wrap"><input type="number" id="in-hum-min" value="65" step="1"><span>a</span><input type="number" id="in-hum-max" value="75" step="1"></div></div>
-          <div><label style="font-size:0.75rem;font-weight:600;display:block;margin-bottom:4px;">☀️ Penumbra (%)</label><div class="trigger-input-wrap"><input type="number" id="in-lum-min" value="0" step="1"><span>a</span><input type="number" id="in-lum-max" value="15" step="1"></div></div>
-        </div>
-      </section>
-
-      <!-- Seção 3: Protótipo do Barril 3D & Telinha Verde LCD 16x2 -->
-      <section class="portal-card" style="margin-bottom: 20px;">
-        <h2 class="card-title">Protótipo do Barril Inteligente & Telinha Verde LCD 16x2 (66x26mm)</h2>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:16px;align-items:center;">
+        <p class="hero-subtitle">Barrica de Carvalho Francês Allier 225L · Telemetria IoT ESP32 & Algoritmo de Preservação</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:20px;align-items:center;margin:22px 0;">
           <div class="proto-thumb-box">
             <div class="barrel-lid-mini">
-              <img src="dashboard/assets/icons/tampa_barril_lcd.png" class="barrel-lid-mini-img" alt="Tampa">
+              <img src="dashboard/assets/icons/tampa_barril_lcd.png" class="barrel-lid-mini-img" alt="Tampa com LCD">
               <div class="barrel-lcd-mini-slot">
                 <div id="barrel-mini-t1" class="barrel-lcd-mini-text">T:15.5C U:68%</div>
                 <div id="barrel-mini-t2" class="barrel-lcd-mini-text">S:100% OK</div>
@@ -76,103 +41,23 @@
             </div>
             <img src="dashboard/assets/icons/corpo_barril_3d.png" class="barrel-3d-mini-img" alt="Barril 3D">
           </div>
-          <div class="lcd-screen" style="min-height:90px;">
+          <div class="lcd-screen" style="min-height:92px;">
             <div id="lcd-line-0">VINHERIA AGNELLO · CAVA DO SOMMELIER</div>
             <div id="lcd-line-1">APOGEU ENOLÓGICO: 100% [PRESERVADO]</div>
           </div>
         </div>
-      </section>
-
-      <!-- Seção 4: Dashboard Analítico & Gráficos em Tempo Real (Plotly IoT) -->
-      <section id="interactive-dashboard-section" class="portal-card" style="margin-bottom: 20px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
-          <div>
-            <h2 class="card-title" style="margin-bottom:2px;">Dashboard Analítico SCADA em Tempo Real</h2>
-            <small style="color:var(--portal-muted);font-size:0.75rem;">Telemetria contínua Wokwi HiveMQ (:1883) & Séries Temporais Plotly com Faixa Verde Ideal</small>
-          </div>
-          <div style="display:flex;gap:10px;align-items:center;">
-            <span style="font-size:0.75rem;font-weight:600;"><span id="led-green-ui" class="led-indicator led-green-on"></span>Verde OK</span>
-            <span style="font-size:0.75rem;font-weight:600;"><span id="led-red-ui" class="led-indicator led-red-off"></span>Vermelho Alerta</span>
-            <span style="font-size:0.75rem;font-weight:600;"><span id="led-blue-ui" class="led-indicator led-blue-off"></span>Azul Remoto</span>
-          </div>
+        <div style="margin-top:20px;">
+          <a id="btn-open-dashboard" class="btn-portal btn-hero" href="dashboard.html" target="_blank" rel="noopener noreferrer">📊 Acessar Dashboard Completo da Adega &rarr;</a>
         </div>
-
-        <div class="scenario-bar">
-          <button class="scenario-btn active" data-scenario="normal" type="button">🌿 Normal (15.5°C | 68%)</button>
-          <button class="scenario-btn" data-scenario="temp" type="button">🔥 Alerta Temp (24.5°C)</button>
-          <button class="scenario-btn" data-scenario="hum" type="button">💧 Alerta Umidade (42%)</button>
-          <button class="scenario-btn" data-scenario="lum" type="button">☀️ Alerta Luz (78%)</button>
-          <button class="scenario-btn" data-scenario="multi" type="button">⚡ Alerta Crítico (26°C | 38% | 85%)</button>
-        </div>
-
-        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:14px;margin-bottom:16px;">
-          <div style="border:1px solid var(--portal-border);border-radius:10px;padding:8px;background:var(--portal-card);">
-            <div style="font-size:0.74rem;font-weight:700;color:var(--portal-muted);padding-left:4px;">TEMPERATURA & UMIDADE DA CAVA</div>
-            <div id="plotly-temp-hum" style="height:230px;"></div>
-          </div>
-          <div style="border:1px solid var(--portal-border);border-radius:10px;padding:8px;background:var(--portal-card);">
-            <div style="font-size:0.74rem;font-weight:700;color:var(--portal-muted);padding-left:4px;">PENUMBRA & RADIAÇÃO SOLAR (LDR)</div>
-            <div id="plotly-lum" style="height:230px;"></div>
-          </div>
-        </div>
-
-        <h3 class="card-title" style="font-size:0.80rem;margin-bottom:8px;">Terroirs das Vinícolas Reais do Mundo (Clima Open-Meteo)</h3>
-        <div id="world-vineyards-container" class="portal-grid" style="margin-bottom:0;"></div>
-      </section>
-
-      <!-- Seção 5: Cavas de Guarda & Lotes Mundiais -->
-      <section>
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:10px;">
-          <div>
-            <h2 class="card-title" style="margin-bottom:2px;">Cavas de Guarda & Lotes do Sommelier</h2>
-            <small class="text-muted" style="font-size:0.74rem;">Clique em qualquer lote para abrir o laudo organoléptico detalhado.</small>
-          </div>
-          <div class="filter-bar" style="margin-bottom:0;">
-            <button class="filter-btn active" data-filter="all">Todos os Lotes</button>
-            <button class="filter-btn" data-filter="tinto">Tintos de Guarda</button>
-            <button class="filter-btn" data-filter="branco">Brancos Nobres</button>
-            <button class="filter-btn" data-filter="espumante">Espumantes Brut</button>
-          </div>
-        </div>
-        <div style="margin-bottom: 14px;">
-          <input type="search" id="wine-search-input" class="portal-search-input" placeholder="🔍 Filtrar por código, vinícola, rótulo, país ou safra..." autocomplete="off">
-        </div>
-        <div id="lots-container" class="portal-grid"></div>
-      </section>
-
-      <!-- Seção 6: Links Rápidos de Hardware e Nuvem -->
-      <section class="portal-card" style="margin-top: 20px;">
-        <h2 class="card-title">Ecossistema Conectado IoT & Nuvem</h2>
-        <div style="display:flex;flex-wrap:wrap;gap:10px;">
-          <a href="https://wokwi.com/projects/478106752109243393" target="_blank" class="btn-portal btn-outline">Simulador ESP32 Wokwi</a>
-          <a href="/api/v1/status" target="_blank" class="btn-portal btn-outline">API REST v1 (Status)</a>
-          <a href="/api/v1/lots" target="_blank" class="btn-portal btn-outline">API REST v1 (Lotes)</a>
-          <a href="/api/v1/cloud/info" target="_blank" class="btn-portal btn-outline">API REST v1 (Cloud)</a>
-          <a href="/api/v1/openapi.json" target="_blank" class="btn-portal btn-outline">OpenAPI 3.0 Spec</a>
-          <a href="https://slqozouuqzxwmfswyroo.supabase.co" target="_blank" class="btn-portal btn-outline">Supabase Cloud SQL</a>
-        </div>
+        <div id="lots-container" style="display:none;"></div>
       </section>
     </main>
 
     <footer class="portal-footer">
       <p>Check Point 5 — Vinheria Agnello • ESP32 Wokwi MQTT (:1883) • FIWARE STH-Comet (:8666) • Supabase PostgreSQL • Render.com</p>
     </footer>
-
-    <!-- Modal Dialog para Detalhes do Lote -->
-    <dialog id="lot-detail-modal" class="portal-modal">
-      <div class="modal-box">
-        <div class="modal-header">
-          <h3 id="modal-title" style="font-family:'Cinzel',serif;font-size:1.05rem;color:var(--portal-wine);">Ficha Enológica</h3>
-          <button id="modal-close-btn" class="modal-close" type="button" aria-label="Fechar">&times;</button>
-        </div>
-        <div id="modal-body" class="modal-body"></div>
-      </div>
-    </dialog>
   </div>
 
-  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
-  <script src="dashboard/assets/wine_catalog.js"></script>
   <script src="dashboard/assets/portal.js"></script>
-  <script src="dashboard/assets/portal_dashboard.js"></script>
 </body>
 </html>
