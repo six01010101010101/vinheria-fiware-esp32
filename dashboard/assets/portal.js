@@ -1,8 +1,8 @@
 /**
- * Portal HTML5 Sommelier — Vinheria Agnello (Landing Page Minimalista)
- * Telemetria Contínua da Barrica, Chimes de Áudio e Redirecionamento Dinâmico para o Dashboard
+ * Portal HTML5 Sommelier — Vinheria Agnello
+ * Controle Reativo Client-Side, Polling REST API / AgnelloAPI, Web Audio Synth e Modal
  */
-let audioEnabled = false, audioCtx = null, backendApiActive = null;
+let activeFilter = "all", activeSearch = "", currentLots = [], audioEnabled = false, audioCtx = null, backendApiActive = null;
 
 window.AgnelloAPI = {
   getTelemetry: () => ({
@@ -10,7 +10,11 @@ window.AgnelloAPI = {
     humidity_pct: +(67.5 + Math.random() * 1.5).toFixed(0),
     luminosity_pct: +(11.5 + Math.random() * 1.0).toFixed(0),
     health_score: 100, timestamp: new Date().toLocaleTimeString()
-  })
+  }),
+  getLots: (filter = "all") => {
+    const list = window.CANONICAL_LOTS || [];
+    return filter === "all" ? list : list.filter(l => (l.style || l.wine_style) === filter);
+  }
 };
 
 function playAcousticChime(freq = 523.25, dur = 0.18) {
@@ -28,14 +32,12 @@ function playAcousticChime(freq = 523.25, dur = 0.18) {
 
 function updateThemeMeta(t) {
   document.querySelector('meta[name="theme-color"]')?.setAttribute("content", t === "dark" ? "#09090b" : "#f8fafc");
-  const btn = document.getElementById("theme-toggle-btn");
-  if (btn) btn.textContent = t === "dark" ? "☀️ Tema Claro" : "🌙 Tema Escuro";
 }
 
 function initTheme() {
   const saved = localStorage.getItem("portal_theme") || "dark";
   document.documentElement.setAttribute("data-theme", saved);
-  updateThemeMeta(saved);
+  updateThemeMeta(saved); updateThemeIcon(saved);
 }
 
 function toggleTheme() {
@@ -43,8 +45,13 @@ function toggleTheme() {
   const nxt = cur === "dark" ? "light" : "dark";
   document.documentElement.setAttribute("data-theme", nxt);
   localStorage.setItem("portal_theme", nxt);
-  updateThemeMeta(nxt);
+  updateThemeMeta(nxt); updateThemeIcon(nxt);
   playAcousticChime(659.25, 0.12);
+}
+
+function updateThemeIcon(t) {
+  const btn = document.getElementById("theme-toggle-btn");
+  if (btn) btn.textContent = t === "dark" ? "☀️ Tema Claro" : "🌙 Tema Escuro";
 }
 
 function toggleAudio() {
@@ -54,53 +61,135 @@ function toggleAudio() {
   if (audioEnabled) playAcousticChime(784.0, 0.2);
 }
 
-function getDashboardUrl() {
-  const host = window.location.hostname;
-  const proto = window.location.protocol;
-  if (proto === "file:" || !host) {
-    return "dashboard.html";
-  }
-  if (host === "localhost" || host === "127.0.0.1") {
-    if (window.location.port === "8050") return "/dashboard";
-    return "http://127.0.0.1:8050";
-  }
-  return "dashboard.html";
+function updateCounts(lots) {
+  const ok = lots.filter(l => (l.health || l.health_score || 100) >= 90).length;
+  document.getElementById("lots-total-count").textContent = lots.length;
+  document.getElementById("lots-ok-count").textContent = ok;
+  document.getElementById("lots-alert-count").textContent = lots.length - ok;
 }
 
-function navigateToDashboard(e) {
-  if (e) e.preventDefault();
-  playAcousticChime(659.25, 0.18);
-  const target = getDashboardUrl();
-  setTimeout(() => {
-    window.location.href = target;
-  }, 120);
+function renderLots(lots) {
+  currentLots = lots;
+  updateCounts(lots);
+  const container = document.getElementById("lots-container");
+  if (!container) return;
+  const q = activeSearch.toLowerCase().trim();
+  const filtered = lots.filter(l => {
+    const styleMatch = activeFilter === "all" || (l.style || l.wine_style) === activeFilter;
+    if (!styleMatch) return false;
+    if (!q) return true;
+    const haystack = `${l.code || l.lot_code || ""} ${l.winery || l.winery_name || ""} ${l.wine || l.wine_name || ""} ${l.country || ""} ${l.vintage || ""}`.toLowerCase();
+    return haystack.includes(q);
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="portal-card" style="grid-column: 1/-1; text-align:center; padding: 24px; color: var(--portal-muted);">Nenhum lote corresponde ao filtro selecionado.</div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(l => {
+    const score = l.health || l.health_score || 100;
+    const scoreColor = score >= 90 ? "#16a34a" : (score >= 70 ? "#eab308" : "#dc2626");
+    const code = l.code || l.lot_code;
+    return `
+      <article class="portal-card card-clickable" data-code="${code}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span class="sommelier-tag">${l.country || "Mundial"} · Safra ${l.vintage}</span>
+          <span style="font-size:0.75rem;font-weight:700;color:${scoreColor};">Apogeu: ${score}%</span>
+        </div>
+        <h3 style="font-family:'Cinzel',serif;font-size:0.95rem;color:var(--portal-wine);margin-bottom:4px;">${l.winery || l.winery_name}</h3>
+        <p style="font-weight:600;font-size:0.80rem;margin-bottom:6px;color:var(--portal-text);">${l.wine || l.wine_name}</p>
+        <div style="font-size:0.72rem;color:var(--portal-muted);margin-bottom:8px;">
+          <div>Terroir: ${l.soil || l.soil_type || "Argilo-calcário"}</div>
+          <div>Barrica: ${l.barrel || l.barrel_type || "Carvalho"}</div>
+          <div>Janela: ${l.apogee || l.expiration_date || "2030"}</div>
+        </div>
+        <div style="background:var(--portal-border);height:4px;border-radius:2px;overflow:hidden;">
+          <div style="background:${scoreColor};width:${score}%;height:100%;"></div>
+        </div>
+      </article>`;
+  }).join("");
+
+  container.querySelectorAll(".card-clickable").forEach(card => {
+    card.addEventListener("click", () => {
+      const code = card.getAttribute("data-code");
+      const found = currentLots.find(x => (x.code || x.lot_code) === code);
+      if (found) showLotModal(found);
+    });
+  });
+}
+
+function showLotModal(l) {
+  playAcousticChime(880.0, 0.15);
+  const m = document.getElementById("lot-detail-modal"), title = document.getElementById("modal-title"), body = document.getElementById("modal-body");
+  if (!m || !body) return;
+  title.textContent = `${l.winery || l.winery_name} · ${l.wine || l.wine_name}`;
+  body.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+      <div><strong>Código:</strong> ${l.code || l.lot_code}</div>
+      <div><strong>Safra:</strong> ${l.vintage} (${l.country})</div>
+      <div><strong>Terroir:</strong> ${l.soil || l.soil_type || "N/D"}</div>
+      <div><strong>Afinamento:</strong> ${l.barrel || l.barrel_type || "N/D"}</div>
+      <div><strong>Engarrafamento:</strong> ${l.bottling || l.bottling_date || "N/D"}</div>
+      <div><strong>Guarda Máxima:</strong> ${l.apogee || l.expiration_date || "N/D"}</div>
+    </div>
+    <div style="background:var(--portal-gold-glow);border-left:3px solid var(--portal-gold);padding:8px 12px;border-radius:6px;font-size:0.78rem;">
+      <strong>Laudo do Sommelier:</strong> ${l.verdict || "Equilíbrio de guarda preservado nas cavas."}
+    </div>`;
+  m.showModal();
 }
 
 async function fetchLiveStatus() {
   let tel = null, score = 100;
-  if (backendApiActive === null || backendApiActive) {
+  if (backendApiActive === null) {
     try {
       const res = await fetch("/api/v1/status", { cache: "no-store" });
       backendApiActive = res.ok;
       if (backendApiActive) { const d = await res.json(); tel = d.telemetry; score = d.health_score || 100; }
     } catch (_) { backendApiActive = false; }
+  } else if (backendApiActive) {
+    try {
+      const res = await fetch("/api/v1/status", { cache: "no-store" });
+      if (res.ok) { const d = await res.json(); tel = d.telemetry; score = d.health_score || 100; }
+    } catch (_) { backendApiActive = false; }
   }
-  if (!tel) { tel = window.AgnelloAPI.getTelemetry(); score = tel.health_score; }
+  if (!tel) {
+    tel = window.AgnelloAPI.getTelemetry();
+    score = tel.health_score;
+  }
   const t = (tel.temperature_c || 15.5).toFixed(1), h = (tel.humidity_pct || 68).toFixed(0), l = (tel.luminosity_pct || 12).toFixed(0);
-  const l0 = document.getElementById("lcd-line-0"), l1 = document.getElementById("lcd-line-1");
-  if (l0) l0.textContent = `T:${t}C  U:${h}% *`;
-  if (l1) l1.textContent = `L:${l}%  APOGEU:${score}%`;
-  const m1 = document.getElementById("barrel-mini-t1"), m2 = document.getElementById("barrel-mini-t2");
-  if (m1) m1.textContent = `T:${t}C U:${h}%`;
-  if (m2) m2.textContent = `S:${score}% OK`;
+  document.getElementById("kpi-temp-val").textContent = `${t}°C`;
+  document.getElementById("kpi-hum-val").textContent = `${h}%`;
+  document.getElementById("kpi-lum-val").textContent = `${l}%`;
+  document.getElementById("cellar-score-val").textContent = `${score}%`;
+  document.getElementById("lcd-line-0").textContent = `T:${t}C  U:${h}% *`;
+  document.getElementById("lcd-line-1").textContent = `L:${l}%  APOGEU:${score}%`;
+}
+
+function initDashboardLink() {
+  document.getElementById("btn-dash-link")?.addEventListener("click", () => {
+    const s = document.getElementById("interactive-dashboard-section");
+    if (s) { s.scrollIntoView({ behavior: "smooth", block: "start" }); s.style.boxShadow = "0 0 20px rgba(114,32,43,0.4)"; setTimeout(() => { s.style.boxShadow = ""; }, 1500); }
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  initTheme();
-  document.getElementById("btn-dash-link")?.addEventListener("click", navigateToDashboard);
-  document.getElementById("btn-open-dashboard")?.addEventListener("click", navigateToDashboard);
+  initTheme(); initDashboardLink();
+  currentLots = window.CANONICAL_LOTS || [];
+  renderLots(currentLots);
   document.getElementById("theme-toggle-btn")?.addEventListener("click", toggleTheme);
   document.getElementById("audio-toggle-btn")?.addEventListener("click", toggleAudio);
+  document.getElementById("modal-close-btn")?.addEventListener("click", () => document.getElementById("lot-detail-modal")?.close());
+  document.getElementById("lot-detail-modal")?.addEventListener("click", (e) => { if (e.target.id === "lot-detail-modal") e.target.close(); });
+  document.getElementById("wine-search-input")?.addEventListener("input", (e) => { activeSearch = e.target.value; renderLots(currentLots); });
+  document.querySelectorAll(".filter-btn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+      e.target.classList.add("active");
+      activeFilter = e.target.getAttribute("data-filter") || "all";
+      renderLots(currentLots);
+    });
+  });
   fetchLiveStatus();
   setInterval(fetchLiveStatus, 2500);
 });

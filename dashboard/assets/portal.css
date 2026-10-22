@@ -143,11 +143,3 @@ body {
 .trigger-input-wrap input { width: 100%; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--portal-border); background: var(--portal-input-bg); color: var(--portal-text); font-size: 0.80rem; }
 .custom-icon { width: 20px; height: 20px; object-fit: contain; }
 
-/* Hero Simples do Barril & Vinho Ativo */
-.hero-barrel-card { background: var(--portal-card); border: 1px solid var(--portal-border); border-radius: 14px; padding: 22px; text-align: center; margin-bottom: 22px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
-.active-wine-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--portal-gold-glow); border: 1px solid var(--portal-gold); padding: 8px 16px; border-radius: 8px; font-size: 0.84rem; font-weight: 700; color: var(--portal-gold); margin: 12px 0 6px 0; }
-.hero-subtitle { font-size: 0.78rem; color: var(--portal-muted); margin-bottom: 12px; font-weight: 500; }
-.btn-hero { padding: 10px 22px; font-size: 0.88rem; font-weight: 700; border-radius: 10px; box-shadow: 0 4px 14px var(--portal-wine-glow); transition: all 0.2s ease; }
-.btn-hero:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(114, 32, 43, 0.45); }
-#full-dashboard-view { animation: fadeIn 0.3s ease-in-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
