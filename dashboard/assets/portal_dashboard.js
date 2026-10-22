@@ -1,8 +1,6 @@
 // ==============================================================================
 // Vinheria Agnello — Dashboard Analítico Client-Side em Tempo Real (Plotly IoT)
-// Funciona 100% autônomo na nuvem (Render) sem necessidade de servidor local.
 // ==============================================================================
-
 const WORLD_VINES = [
   { id: 'miolo_br', name: 'Vinícola Miolo', region: 'Vale dos Vinhedos (RS)', flag: '🇧🇷', lat: -29.18, lon: -51.55 },
   { id: 'francioni_br', name: 'Villa Francioni', region: 'São Joaquim (SC)', flag: '🇧🇷', lat: -28.29, lon: -49.93 },
@@ -19,11 +17,7 @@ let histT = [], histH = [], histL = [], histTime = [], curSim = { t: 15.5, h: 68
 
 function getThemeColors() {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  return {
-    paper: isDark ? '#121215' : '#ffffff',
-    text: isDark ? '#f4f4f5' : '#0f172a',
-    grid: isDark ? '#27272a' : '#e2e8f0'
-  };
+  return { paper: isDark ? '#121215' : '#ffffff', text: isDark ? '#f4f4f5' : '#0f172a', grid: isDark ? '#27272a' : '#e2e8f0' };
 }
 
 function initPlotly() {
@@ -59,6 +53,17 @@ function initPlotly() {
   };
   Plotly.newPlot('plotly-lum', [traceL], layoutL, { responsive: true, displayModeBar: false });
 }
+
+window.resizePlotlyCharts = function() {
+  setTimeout(() => {
+    try {
+      if (typeof Plotly !== 'undefined') {
+        Plotly.relayout('plotly-temp-hum', { autosize: true });
+        Plotly.relayout('plotly-lum', { autosize: true });
+      }
+    } catch (_) {}
+  }, 100);
+};
 
 function updateCharts(t, h, l) {
   const ts = new Date().toLocaleTimeString();
@@ -107,8 +112,7 @@ async function loadWorldVineyards() {
   c.innerHTML = WORLD_VINES.map(v => `
     <div class="portal-card" style="padding:12px;">
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <strong>${v.flag} ${v.name}</strong>
-        <span class="sommelier-tag">Terroir</span>
+        <strong>${v.flag} ${v.name}</strong><span class="sommelier-tag">Terroir</span>
       </div>
       <small style="color:var(--portal-muted);display:block;margin-bottom:6px;">${v.region}</small>
       <div id="vine-meteo-${v.id}" style="font-size:0.8rem;font-weight:600;">Carregando clima...</div>
@@ -127,20 +131,13 @@ async function loadWorldVineyards() {
 }
 
 function ensurePlotlyReady() {
-  if (typeof Plotly !== 'undefined') {
-    initPlotly();
-  } else {
-    let attempts = 0;
-    const interval = setInterval(() => {
-      attempts++;
-      if (typeof Plotly !== 'undefined') {
-        clearInterval(interval);
-        initPlotly();
-      } else if (attempts > 30) {
-        clearInterval(interval);
-      }
-    }, 150);
-  }
+  if (typeof Plotly !== 'undefined') { initPlotly(); return; }
+  let attempts = 0;
+  const interval = setInterval(() => {
+    attempts++;
+    if (typeof Plotly !== 'undefined') { clearInterval(interval); initPlotly(); }
+    else if (attempts > 30) clearInterval(interval);
+  }, 150);
 }
 
 function handlePresetChange(val) {
@@ -150,12 +147,10 @@ function handlePresetChange(val) {
     espumante: { tM: '8', tX: '12', hM: '70', hX: '85', lM: '0', lX: '10', d: 'Climatização fresca de 8.0°C a 12.0°C para Espumantes Brut & Champagne.' }
   }[val] || { tM: '12', tX: '16', hM: '65', hX: '75', lM: '0', lX: '15', d: 'Preset enológico ativo.' };
   const get = id => document.getElementById(id);
-  if (get('in-temp-min')) get('in-temp-min').value = meta.tM;
-  if (get('in-temp-max')) get('in-temp-max').value = meta.tX;
-  if (get('in-hum-min')) get('in-hum-min').value = meta.hM;
-  if (get('in-hum-max')) get('in-hum-max').value = meta.hX;
-  if (get('in-lum-min')) get('in-lum-min').value = meta.lM;
-  if (get('in-lum-max')) get('in-lum-max').value = meta.lX;
+  ['in-temp-min', 'in-temp-max', 'in-hum-min', 'in-hum-max', 'in-lum-min', 'in-lum-max'].forEach((id, i) => {
+    const el = get(id);
+    if (el) el.value = [meta.tM, meta.tX, meta.hM, meta.hX, meta.lM, meta.lX][i];
+  });
   if (get('target-temp-badge')) get('target-temp-badge').textContent = `Alvo: ${meta.tM}.0°C a ${meta.tX}.0°C`;
   if (get('target-hum-badge')) get('target-hum-badge').textContent = `Alvo: ${meta.hM}% a ${meta.hX}%`;
   if (get('target-lum-badge')) get('target-lum-badge').textContent = `Alvo: ${meta.lM}% a ${meta.lX}%`;
@@ -171,9 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   setInterval(() => {
     if (curSim.mode === 'normal') {
-      const nt = +(15.3 + Math.random() * 0.4).toFixed(1);
-      const nh = +(67.5 + Math.random() * 1.0).toFixed(0);
-      const nl = +(11.5 + Math.random() * 1.0).toFixed(0);
+      const nt = +(15.3 + Math.random() * 0.4).toFixed(1), nh = +(67.5 + Math.random() * 1.0).toFixed(0), nl = +(11.5 + Math.random() * 1.0).toFixed(0);
       document.getElementById('kpi-temp-val').textContent = `${nt}°C`;
       document.getElementById('kpi-hum-val').textContent = `${nh}%`;
       document.getElementById('kpi-lum-val').textContent = `${nl}%`;
