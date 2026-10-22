@@ -1,17 +1,21 @@
 /**
  * Portal HTML5 Sommelier — Vinheria Agnello
- * Controle Reativo Client-Side, Polling REST API, Web Audio Synth e Modal
+ * Controle Reativo Client-Side, Polling REST API / AgnelloAPI, Web Audio Synth e Modal
  */
+let activeFilter = "all", activeSearch = "", currentLots = [], audioEnabled = false, audioCtx = null, backendApiActive = null;
 
-const FALLBACK_LOTS = [
-  { code: "LOTE-FR-MARGAUX-01", winery: "Château Margaux", wine: "Premier Grand Cru Classé", style: "tinto", country: "França", region: "Bordeaux (Margaux)", vintage: 2015, bottling: "2017-06", barrel: "Carvalho Francês 100% Novo (18 meses)", soil: "Argilo-calcário com cascalho fino", apogee: "2025-2045", health: 100, verdict: "Equilíbrio Enológico Perfeito", temp: [12.0, 16.0], hum: [65.0, 75.0], lum: 15.0 },
-  { code: "LOTE-IT-BRUNELLO-02", winery: "Biondi-Santi", wine: "Brunello di Montalcino Riserva", style: "tinto", country: "Itália", region: "Toscana (Montalcino)", vintage: 2016, bottling: "2021-04", barrel: "Botti de Carvalho da Eslavônia (36 meses)", soil: "Galestro e Alberese", apogee: "2026-2050", health: 100, verdict: "Afinamento Ótimo em Botti", temp: [13.0, 17.0], hum: [65.0, 75.0], lum: 15.0 },
-  { code: "LOTE-BR-MIOLO43-05", winery: "Vinícola Miolo", wine: "Lote 43 Merlot / Cabernet", style: "tinto", country: "Brasil", region: "Vale dos Vinhedos (RS)", vintage: 2020, bottling: "2022-03", barrel: "Carvalho Francês de primeiro uso (12 meses)", soil: "Argiloso basáltico com drenagem", apogee: "2024-2032", health: 98, verdict: "Taninos Macios em Barrica", temp: [14.0, 18.0], hum: [60.0, 75.0], lum: 20.0 },
-  { code: "LOTE-FR-CHABLIS-07", winery: "Domaine Laroche", wine: "Chablis Grand Cru Les Blanchots", style: "branco", country: "França", region: "Borgonha (Chablis)", vintage: 2021, bottling: "2022-09", barrel: "Inox climatizado e foudres neutros", soil: "Kimmeridgiano com fósseis de ostras", apogee: "2024-2034", health: 96, verdict: "Mineralidade e Acidez Preservadas", temp: [10.0, 14.0], hum: [65.0, 80.0], lum: 10.0 },
-  { code: "LOTE-BR-VALDUGA130-08", winery: "Casa Valduga", wine: "Espumante 130 Brut Tradicional", style: "espumante", country: "Brasil", region: "Vale dos Vinhedos (RS)", vintage: 2021, bottling: "2022-01", barrel: "Afinamento sobre lias / autólise (36 meses)", soil: "Basalto vulcânico com argila", apogee: "2023-2027", health: 100, verdict: "Perlage Fino e Cremoso", temp: [8.0, 12.0], hum: [70.0, 85.0], lum: 10.0 }
-];
-
-let activeFilter = "all", activeSearch = "", currentLots = FALLBACK_LOTS, audioEnabled = false, audioCtx = null;
+window.AgnelloAPI = {
+  getTelemetry: () => ({
+    temperature_c: +(15.2 + Math.random() * 0.5).toFixed(1),
+    humidity_pct: +(67.5 + Math.random() * 1.5).toFixed(0),
+    luminosity_pct: +(11.5 + Math.random() * 1.0).toFixed(0),
+    health_score: 100, timestamp: new Date().toLocaleTimeString()
+  }),
+  getLots: (filter = "all") => {
+    const list = window.CANONICAL_LOTS || [];
+    return filter === "all" ? list : list.filter(l => (l.style || l.wine_style) === filter);
+  }
+};
 
 function playAcousticChime(freq = 523.25, dur = 0.18) {
   if (!audioEnabled) return;
@@ -27,24 +31,21 @@ function playAcousticChime(freq = 523.25, dur = 0.18) {
 }
 
 function updateThemeMeta(t) {
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", t === "dark" ? "#09090b" : "#f8fafc");
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", t === "dark" ? "#09090b" : "#f8fafc");
 }
 
 function initTheme() {
   const saved = localStorage.getItem("portal_theme") || "dark";
   document.documentElement.setAttribute("data-theme", saved);
-  updateThemeMeta(saved);
-  updateThemeIcon(saved);
+  updateThemeMeta(saved); updateThemeIcon(saved);
 }
 
 function toggleTheme() {
-  const current = document.documentElement.getAttribute("data-theme") || "light";
-  const next = current === "dark" ? "light" : "dark";
-  document.documentElement.setAttribute("data-theme", next);
-  localStorage.setItem("portal_theme", next);
-  updateThemeMeta(next);
-  updateThemeIcon(next);
+  const cur = document.documentElement.getAttribute("data-theme") || "light";
+  const nxt = cur === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", nxt);
+  localStorage.setItem("portal_theme", nxt);
+  updateThemeMeta(nxt); updateThemeIcon(nxt);
   playAcousticChime(659.25, 0.12);
 }
 
@@ -62,11 +63,9 @@ function toggleAudio() {
 
 function updateCounts(lots) {
   const ok = lots.filter(l => (l.health || l.health_score || 100) >= 90).length;
-  const alert = lots.length - ok;
-  const tEl = document.getElementById("lots-total-count"), okEl = document.getElementById("lots-ok-count"), alEl = document.getElementById("lots-alert-count");
-  if (tEl) tEl.textContent = lots.length;
-  if (okEl) okEl.textContent = ok;
-  if (alEl) alEl.textContent = alert;
+  document.getElementById("lots-total-count").textContent = lots.length;
+  document.getElementById("lots-ok-count").textContent = ok;
+  document.getElementById("lots-alert-count").textContent = lots.length - ok;
 }
 
 function renderLots(lots) {
@@ -141,29 +140,30 @@ function showLotModal(l) {
 }
 
 async function fetchLiveStatus() {
-  try {
-    const res = await fetch("/api/v1/status");
-    if (!res.ok) throw new Error("Offline");
-    const data = await res.json(), tel = data.telemetry || {};
-    const t = tel.temperature_c?.toFixed(1) || "15.5", h = tel.humidity_pct?.toFixed(0) || "68", l = tel.luminosity_pct?.toFixed(0) || "12", s = data.health_score || 100;
-    document.getElementById("kpi-temp-val").textContent = `${t}°C`; document.getElementById("kpi-hum-val").textContent = `${h}%`;
-    document.getElementById("kpi-lum-val").textContent = `${l}%`; document.getElementById("cellar-score-val").textContent = `${s}%`;
-    document.getElementById("lcd-line-0").textContent = `T:${t}C  U:${h}% *`; document.getElementById("lcd-line-1").textContent = `L:${l}%  APOGEU:${s}%`;
-  } catch (_) {
-    document.getElementById("kpi-temp-val").textContent = "15.5°C"; document.getElementById("kpi-hum-val").textContent = "68%";
-    document.getElementById("kpi-lum-val").textContent = "12%"; document.getElementById("cellar-score-val").textContent = "100%";
+  let tel = null, score = 100;
+  if (backendApiActive === null) {
+    try {
+      const res = await fetch("/api/v1/status", { cache: "no-store" });
+      backendApiActive = res.ok;
+      if (backendApiActive) { const d = await res.json(); tel = d.telemetry; score = d.health_score || 100; }
+    } catch (_) { backendApiActive = false; }
+  } else if (backendApiActive) {
+    try {
+      const res = await fetch("/api/v1/status", { cache: "no-store" });
+      if (res.ok) { const d = await res.json(); tel = d.telemetry; score = d.health_score || 100; }
+    } catch (_) { backendApiActive = false; }
   }
-}
-
-async function fetchLots() {
-  try {
-    const res = await fetch("/api/v1/lots");
-    if (!res.ok) throw new Error("Offline");
-    const data = await res.json();
-    renderLots(data.lots && data.lots.length ? data.lots : FALLBACK_LOTS);
-  } catch (_) {
-    renderLots(FALLBACK_LOTS);
+  if (!tel) {
+    tel = window.AgnelloAPI.getTelemetry();
+    score = tel.health_score;
   }
+  const t = (tel.temperature_c || 15.5).toFixed(1), h = (tel.humidity_pct || 68).toFixed(0), l = (tel.luminosity_pct || 12).toFixed(0);
+  document.getElementById("kpi-temp-val").textContent = `${t}°C`;
+  document.getElementById("kpi-hum-val").textContent = `${h}%`;
+  document.getElementById("kpi-lum-val").textContent = `${l}%`;
+  document.getElementById("cellar-score-val").textContent = `${score}%`;
+  document.getElementById("lcd-line-0").textContent = `T:${t}C  U:${h}% *`;
+  document.getElementById("lcd-line-1").textContent = `L:${l}%  APOGEU:${score}%`;
 }
 
 function initDashboardLink() {
@@ -175,6 +175,8 @@ function initDashboardLink() {
 
 document.addEventListener("DOMContentLoaded", () => {
   initTheme(); initDashboardLink();
+  currentLots = window.CANONICAL_LOTS || [];
+  renderLots(currentLots);
   document.getElementById("theme-toggle-btn")?.addEventListener("click", toggleTheme);
   document.getElementById("audio-toggle-btn")?.addEventListener("click", toggleAudio);
   document.getElementById("modal-close-btn")?.addEventListener("click", () => document.getElementById("lot-detail-modal")?.close());
@@ -188,5 +190,6 @@ document.addEventListener("DOMContentLoaded", () => {
       renderLots(currentLots);
     });
   });
-  fetchLiveStatus(); fetchLots(); setInterval(fetchLiveStatus, 2000);
+  fetchLiveStatus();
+  setInterval(fetchLiveStatus, 2500);
 });
