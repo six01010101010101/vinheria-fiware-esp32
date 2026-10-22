@@ -129,7 +129,7 @@ function toggleDashboard(forceOpen = null) {
   dash.style.display = shouldOpen ? "block" : "none";
   const btnDash = document.getElementById("btn-dash-link"), btnHero = document.getElementById("btn-open-dashboard");
   if (btnDash) btnDash.textContent = shouldOpen ? "🔼 Ocultar Dashboard" : "📊 Abrir Dashboard";
-  if (btnHero) btnHero.textContent = shouldOpen ? "🔼 Recolher Dashboard" : "📊 Acessar Dashboard Completo da Adega";
+  if (btnHero) btnHero.textContent = shouldOpen ? "🔼 Recolher Dashboard da Adega" : "📊 Acessar Dashboard Completo da Adega ↓";
   if (shouldOpen) {
     if (typeof window.resizePlotlyCharts === "function") window.resizePlotlyCharts();
     dash.scrollIntoView({ behavior: "smooth", block: "start" });
