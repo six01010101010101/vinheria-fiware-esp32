@@ -68,6 +68,12 @@ function updateCharts(t, h, l) {
   Plotly.update('plotly-lum', { x: [histTime], y: [histL] });
 }
 
+function updateBarrelMini(t, h, score, label) {
+  const m1 = document.getElementById('barrel-mini-t1'), m2 = document.getElementById('barrel-mini-t2');
+  if (m1) m1.textContent = `T:${t.toFixed(1)}C U:${h.toFixed(0)}%`;
+  if (m2) m2.textContent = `S:${score}% ${label}`;
+}
+
 function triggerScenario(type) {
   const presets = {
     normal: { t: 15.5, h: 68.0, l: 12.0, score: 100, label: 'TINTO 100%', freq: 1046, ok: true },
@@ -85,6 +91,7 @@ function triggerScenario(type) {
   if (sEl) { sEl.textContent = `${p.score}%`; sEl.style.color = p.ok ? '#22c55e' : '#ef4444'; }
   document.getElementById('lcd-line-0').textContent = `T:${p.t.toFixed(1)}C  U:${p.h.toFixed(0)}% *`;
   document.getElementById('lcd-line-1').textContent = `L:${p.l.toFixed(0)}%  ${p.label}`;
+  updateBarrelMini(p.t, p.h, p.score, p.ok ? 'OK' : 'ALR');
   const ledG = document.getElementById('led-green-ui'), ledR = document.getElementById('led-red-ui'), ledB = document.getElementById('led-blue-ui');
   if (ledG) ledG.className = p.ok ? 'led-indicator led-green-on' : 'led-indicator led-green-off';
   if (ledR) ledR.className = p.ok ? 'led-indicator led-red-off' : 'led-indicator led-red-on';
@@ -136,9 +143,29 @@ function ensurePlotlyReady() {
   }
 }
 
+function handlePresetChange(val) {
+  const meta = {
+    tinto: { tM: '12', tX: '16', hM: '65', hX: '75', lM: '0', lX: '15', d: 'Temperatura ideal de 12.0°C a 16.0°C para Tintos de Guarda em barricas.' },
+    branco: { tM: '10', tX: '14', hM: '65', hX: '80', lM: '0', lX: '10', d: 'Conservação de 10.0°C a 14.0°C para Brancos Nobres & Chablis.' },
+    espumante: { tM: '8', tX: '12', hM: '70', hX: '85', lM: '0', lX: '10', d: 'Climatização fresca de 8.0°C a 12.0°C para Espumantes Brut & Champagne.' }
+  }[val] || { tM: '12', tX: '16', hM: '65', hX: '75', lM: '0', lX: '15', d: 'Preset enológico ativo.' };
+  const get = id => document.getElementById(id);
+  if (get('in-temp-min')) get('in-temp-min').value = meta.tM;
+  if (get('in-temp-max')) get('in-temp-max').value = meta.tX;
+  if (get('in-hum-min')) get('in-hum-min').value = meta.hM;
+  if (get('in-hum-max')) get('in-hum-max').value = meta.hX;
+  if (get('in-lum-min')) get('in-lum-min').value = meta.lM;
+  if (get('in-lum-max')) get('in-lum-max').value = meta.lX;
+  if (get('target-temp-badge')) get('target-temp-badge').textContent = `Alvo: ${meta.tM}.0°C a ${meta.tX}.0°C`;
+  if (get('target-hum-badge')) get('target-hum-badge').textContent = `Alvo: ${meta.hM}% a ${meta.hX}%`;
+  if (get('target-lum-badge')) get('target-lum-badge').textContent = `Alvo: ${meta.lM}% a ${meta.lX}%`;
+  if (get('preset-desc-label')) get('preset-desc-label').textContent = meta.d;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   ensurePlotlyReady();
   loadWorldVineyards();
+  document.getElementById('preset-wine-select')?.addEventListener('change', e => handlePresetChange(e.target.value));
   document.querySelectorAll('.scenario-btn').forEach(b => {
     b.addEventListener('click', () => triggerScenario(b.getAttribute('data-scenario')));
   });
@@ -152,6 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('kpi-lum-val').textContent = `${nl}%`;
       document.getElementById('lcd-line-0').textContent = `T:${nt}C  U:${nh}% *`;
       document.getElementById('lcd-line-1').textContent = `L:${nl}%  TINTO 100%`;
+      updateBarrelMini(nt, nh, 100, 'OK');
       updateCharts(nt, nh, nl);
     }
   }, 3000);

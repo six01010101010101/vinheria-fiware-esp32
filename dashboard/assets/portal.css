@@ -128,3 +128,18 @@ body {
 ::-webkit-scrollbar-track { background: var(--portal-bg); }
 ::-webkit-scrollbar-thumb { background: var(--portal-border); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--portal-muted); }
+
+/* Miniaturas 3D do Barril e Tampa LCD */
+.proto-thumb-box { background: var(--portal-bg); border: 1px solid var(--portal-border); border-radius: 10px; padding: 10px; display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; }
+.barrel-lid-mini { position: relative; width: 100px; height: 100px; flex-shrink: 0; }
+.barrel-lid-mini-img { width: 100%; height: 100px; object-fit: contain; }
+.barrel-3d-mini-img { width: 85px; height: 100px; object-fit: contain; }
+.barrel-lcd-mini-slot { position: absolute; left: 20%; top: 38%; width: 60%; height: 24%; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; }
+.barrel-lcd-mini-text { color: #39ff14; font-family: "Consolas", monospace; font-weight: 700; font-size: 0.42rem; line-height: 1.15; white-space: pre; }
+
+/* Presets & Triggers */
+.preset-wrap { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; align-items: center; }
+.trigger-input-wrap { display: flex; align-items: center; gap: 6px; }
+.trigger-input-wrap input { width: 100%; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--portal-border); background: var(--portal-input-bg); color: var(--portal-text); font-size: 0.80rem; }
+.custom-icon { width: 20px; height: 20px; object-fit: contain; }
+
