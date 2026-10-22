@@ -5,12 +5,15 @@
 let backendApiActive = null;
 
 window.AgnelloAPI = {
-  getTelemetry: () => ({
-    temperature_c: +(15.2 + Math.random() * 0.5).toFixed(1),
-    humidity_pct: +(67.5 + Math.random() * 1.5).toFixed(0),
-    luminosity_pct: +(11.5 + Math.random() * 1.0).toFixed(0),
-    health_score: 100, timestamp: new Date().toLocaleTimeString()
-  })
+  getTelemetry: () => {
+    const w = Math.sin(Date.now() / 2400) * 0.15;
+    return {
+      temperature_c: +(15.5 + w).toFixed(1),
+      humidity_pct: Math.min(100, Math.max(20, +(68.0 + Math.cos(Date.now() / 3100) * 0.4).toFixed(0))),
+      luminosity_pct: +(12.0 + w * 0.5).toFixed(0),
+      health_score: 100, timestamp: new Date().toLocaleTimeString()
+    };
+  }
 };
 
 function updateThemeMeta(t) {
@@ -84,5 +87,5 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("theme-toggle-btn")?.addEventListener("click", toggleTheme);
   document.getElementById("audio-toggle-btn")?.addEventListener("click", toggleAudio);
   fetchLiveStatus();
-  setInterval(fetchLiveStatus, 2500);
+  setInterval(fetchLiveStatus, 1800);
 });

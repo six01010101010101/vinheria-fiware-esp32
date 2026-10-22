@@ -1,188 +1,101 @@
-/* ==========================================================================
-   Vinheria Agnello — Minimalista Executivo (Estilo Apple / Linear)
-   Fundos Sólidos Neutros, Alta Legibilidade e Detalhes Nobres em Vinho
-   ========================================================================== */
-@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+/* Vinheria Agnello — Minimalista Executivo & Sommelier Nobre (Linear / Apple) */
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap");
 
 :root {
-    --bg-body: #f8fafc; --bg-card: #ffffff; --border-subtle: #e2e8f0; --border-input: #cbd5e1;
-    --text-primary: #0f172a; --text-secondary: #475569; --text-muted: #64748b;
-    --wine-primary: #72202b; --wine-hover: #58141f; --wine-light: #8a2a38; --wine-gold: #b08d4b;
-    --wine-subtle: rgba(114, 32, 43, 0.05); --wine-glow: rgba(114, 32, 43, 0.12);
-    --wine-gold-glow: rgba(176, 141, 75, 0.12);
-    --search-bg: #ffffff; --search-border: #cbd5e1; --search-text: #0f172a; --search-placeholder: #64748b;
-    --search-container-bg: #f8fafc; --search-menu-bg: #ffffff; --search-option-hover: #f1f5f9;
-    --search-option-hover-text: #72202b; --search-option-active: #72202b;
-    --Dash-Fill-Inverse-Strong: #ffffff !important; --Dash-Stroke-Strong: #cbd5e1 !important;
-    --Dash-Text-Primary: #0f172a !important; --Dash-Text-Strong: #0f172a !important; --Dash-Text-Weak: #64748b !important;
-    --Dash-Fill-Interactive-Strong: #72202b !important; --Dash-Fill-Interactive-Weak: rgba(114, 32, 43, 0.08) !important;
-    --Dash-Fill-Primary-Hover: #f1f5f9 !important; --Dash-Fill-Disabled: #e2e8f0 !important;
+  --bg-body: #09090b; --bg-card: #121215; --border-subtle: #27272a; --border-input: #3f3f46;
+  --text-primary: #f4f4f5; --text-secondary: #a1a1aa; --text-muted: #71717a;
+  --wine-primary: #8b1527; --wine-hover: #a82337; --wine-gold: #c5a059;
+  --wine-glow: rgba(139, 21, 39, 0.25); --wine-gold-glow: rgba(197, 160, 89, 0.18);
+  --color-temp: #f87171; --color-hum: #38bdf8; --color-lum: #fbbf24; --color-dew: #a78bfa;
+}
+
+[data-bs-theme="light"] {
+  --bg-body: #f8fafc; --bg-card: #ffffff; --border-subtle: #e2e8f0; --border-input: #cbd5e1;
+  --text-primary: #0f172a; --text-secondary: #475569; --text-muted: #64748b;
+  --wine-primary: #72202b; --wine-hover: #58141f; --wine-gold: #9b783e;
+  --wine-glow: rgba(114, 32, 43, 0.12); --wine-gold-glow: rgba(155, 120, 62, 0.12);
+  --color-temp: #dc2626; --color-hum: #0284c7; --color-lum: #d97706; --color-dew: #7c3aed;
 }
 
 body {
-    background-color: var(--bg-body) !important; color: var(--text-primary) !important;
-    font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    -webkit-font-smoothing: antialiased; line-height: 1.5;
+  background-color: var(--bg-body) !important; color: var(--text-primary) !important;
+  font-family: "Plus Jakarta Sans", sans-serif; -webkit-font-smoothing: antialiased; line-height: 1.5;
 }
 
-/* Tipografia Moderna e Logotipo Nobre */
-h1, h2, h3, h4, .section-title { font-family: "Plus Jakarta Sans", sans-serif !important; font-weight: 700; letter-spacing: -0.01em; }
-.navbar-brand-title { font-family: "Cinzel", "Georgia", serif !important; font-size: 1.15rem; color: var(--wine-primary) !important; font-weight: 700 !important; letter-spacing: 0.06em; }
-.navbar-brand-logo { width: 28px; height: 28px; object-fit: contain; }
-.navbar-brand-sub { font-size: 0.67rem; letter-spacing: 0.10em; color: var(--wine-gold) !important; font-weight: 700; text-transform: uppercase; }
+h1, h2, h3, h4, .section-title { font-family: "Plus Jakarta Sans", sans-serif; font-weight: 700; }
+.navbar-brand-title { font-family: "Cinzel", serif !important; font-size: 1.22rem; color: var(--wine-primary) !important; font-weight: 800; letter-spacing: 0.08em; }
+.navbar-brand-sub { font-size: 0.65rem; letter-spacing: 0.12em; color: var(--wine-gold) !important; font-weight: 700; text-transform: uppercase; }
 
-/* Navbar Clean Minimalista */
-.clean-navbar {
-    background: rgba(255, 255, 255, 0.95) !important; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border-subtle) !important; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+.clean-navbar { background: rgba(18, 18, 21, 0.85) !important; backdrop-filter: blur(14px); border-bottom: 1px solid var(--border-subtle) !important; }
+.clean-card { background: var(--bg-card) !important; border: 1px solid var(--border-subtle) !important; border-radius: 14px !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+.clean-card:hover { border-color: rgba(197, 160, 89, 0.35) !important; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25) !important; }
+.section-title { font-size: 0.82rem; font-weight: 800; text-transform: uppercase; color: var(--wine-gold) !important; letter-spacing: 0.08em; border-left: 3px solid var(--wine-primary); padding-left: 10px; }
+
+/* Moldura e Tela Verde CRT Estilo Laboratório Sommelier */
+.green-crt-frame {
+  background: radial-gradient(circle at center, #05200f 0%, #020c06 100%);
+  border: 2px solid #14532d; outline: 1px solid rgba(34, 197, 94, 0.2); border-radius: 12px;
+  padding: 12px 14px; box-shadow: inset 0 0 24px rgba(34, 197, 94, 0.20), 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+.crt-tag { font-family: "JetBrains Mono", monospace; font-size: 0.68rem; font-weight: 700; color: #4ade80; text-transform: uppercase; letter-spacing: 0.05em; }
+.green-crt-display {
+  color: #22c55e !important; font-family: "JetBrains Mono", "Consolas", monospace !important;
+  font-size: 0.82rem !important; line-height: 1.45 !important; margin: 0 !important;
+  text-shadow: 0 0 8px rgba(34, 197, 94, 0.55), 0 0 2px rgba(34, 197, 94, 0.9) !important;
+  background: transparent !important; white-space: pre !important;
 }
 
-/* Status Pill Wokwi & Links Sutis na Navbar */
-.status-pill { display: inline-flex; align-items: center; font-size: 0.74rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; transition: all 0.2s ease; }
-.status-pill-live { background: rgba(34, 197, 94, 0.10); color: #16a34a; border: 1px solid rgba(34, 197, 94, 0.25); }
-.status-pill-ready { background: var(--wine-subtle); color: var(--wine-primary); border: 1px solid rgba(114, 32, 43, 0.22); }
-.status-pill-idle { background: #f1f5f9; color: var(--text-muted); border: 1px solid var(--border-subtle); }
-.status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; }
-.status-dot-live { background-color: #22c55e; box-shadow: 0 0 6px rgba(34, 197, 94, 0.8); }
-.status-dot-ready { background-color: var(--wine-primary); }
-.status-dot-idle { background-color: var(--text-muted); }
-.nav-ghost-link { font-size: 0.76rem; font-weight: 600; text-decoration: none; color: var(--text-secondary); padding: 4px 9px; border-radius: 6px; transition: all 0.15s ease; }
-.nav-ghost-link:hover { color: var(--wine-primary); background-color: var(--wine-subtle); }
+/* Cores Vivas das Fontes dos Terroirs */
+.text-temp { color: var(--color-temp) !important; font-weight: 700; }
+.text-hum { color: var(--color-hum) !important; font-weight: 700; }
+.text-lum { color: var(--color-lum) !important; font-weight: 700; }
+.text-dew { color: var(--color-dew) !important; font-weight: 700; }
+.text-country { color: var(--wine-gold) !important; font-weight: 700; font-family: "Cinzel", serif; }
 
-/* Seletor Segmentado de Tema */
-.theme-btn-group { display: inline-flex; background: #f1f5f9; padding: 2px; border-radius: 8px; border: 1px solid var(--border-subtle); }
-.theme-btn { border: none !important; background: transparent !important; font-size: 0.72rem !important; font-weight: 600 !important; padding: 2px 8px !important; border-radius: 6px !important; color: var(--text-muted) !important; box-shadow: none !important; }
+/* Cards das Vinícolas Mundiais com Visual Sommelier */
+.vineyard-card {
+  background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px;
+  padding: 12px 14px; transition: all 0.22s ease-in-out; cursor: pointer; position: relative; overflow: hidden;
+}
+.vineyard-card:hover { border-color: var(--wine-gold); transform: translateY(-2px); box-shadow: 0 6px 20px var(--wine-gold-glow); }
+.active-vineyard {
+  border: 1.5px solid var(--wine-gold) !important; background: linear-gradient(135deg, rgba(139, 21, 39, 0.12), rgba(197, 160, 89, 0.08)) !important;
+  box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.22), 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+}
+.flag-circle { font-size: 1.3rem; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+.sommelier-tag { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--wine-gold); background: var(--wine-gold-glow); color: var(--wine-gold); }
+
+/* LEDs Indicadores */
+.led-indicator { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: middle; margin-right: 6px; }
+.led-green-on { background: #22c55e; box-shadow: 0 0 10px #22c55e; border: 2px solid #86efac; }
+.led-green-off, .led-blue-off { background: #27272a; border: 2px solid #3f3f46; }
+.led-red-on { background: #ef4444; box-shadow: 0 0 10px #ef4444; border: 2px solid #fca5a5; }
+.led-red-off { background: #27272a; border: 2px solid #3f3f46; }
+@keyframes pulseBlue { 0%, 100% { background: #0284c7; box-shadow: 0 0 10px #0284c7; } 50% { background: #7dd3fc; box-shadow: 0 0 3px #0284c7; } }
+.led-blue-blinking { border: 2px solid #bae6fd; animation: pulseBlue 0.65s infinite ease-in-out; }
+
+/* Barril e Tampa LCD 3D */
+.proto-thumb-box { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 10px 14px; }
+.barrel-lid-mini { position: relative; width: 105px; height: 105px; flex-shrink: 0; }
+.barrel-lid-mini-img { width: 100%; height: 105px; object-fit: contain; }
+.barrel-3d-mini-img { width: 92px; height: 105px; object-fit: contain; }
+.barrel-lcd-mini-slot { position: absolute; left: 20%; top: 38%; width: 60%; height: 24%; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; }
+.barrel-lcd-mini-text { color: #22c55e; font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 0.44rem; line-height: 1.2; text-shadow: 0 0 4px #22c55e; }
+
+/* Botões de Ação e Tema */
+.btn-wine { background: var(--wine-primary) !important; color: #ffffff !important; border: 1px solid var(--wine-hover) !important; font-weight: 600; border-radius: 8px; transition: all 0.2s ease; }
+.btn-wine:hover { background: var(--wine-hover) !important; box-shadow: 0 4px 14px var(--wine-glow); transform: translateY(-1px); }
+.theme-btn-group { display: inline-flex; background: #18181b; padding: 2px; border-radius: 8px; border: 1px solid var(--border-subtle); }
+.theme-btn { border: none !important; background: transparent !important; font-size: 0.72rem !important; font-weight: 600 !important; padding: 3px 9px !important; border-radius: 6px !important; color: var(--text-muted) !important; }
 .theme-btn.active { background-color: var(--wine-primary) !important; color: #ffffff !important; }
+.status-pill { display: inline-flex; align-items: center; font-size: 0.74rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; }
+.status-pill-live { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.35); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background-color: #22c55e; box-shadow: 0 0 8px #22c55e; animation: pulseDot 1.4s infinite; }
+@keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
 
-/* Botões com Destaque Enológico */
-.btn-wine { background-color: var(--wine-primary) !important; border-color: var(--wine-hover) !important; color: #ffffff !important; font-weight: 600 !important; border-radius: 8px !important; transition: all 0.2s ease; }
-.btn-wine:hover { background-color: var(--wine-hover) !important; box-shadow: 0 4px 12px var(--wine-glow) !important; transform: translateY(-1px); }
-.btn-outline-wine { color: var(--wine-primary) !important; border-color: var(--wine-primary) !important; border-radius: 8px !important; font-weight: 600 !important; transition: all 0.2s ease; }
-.btn-outline-wine:hover { background-color: var(--wine-primary) !important; color: #ffffff !important; transform: translateY(-1px); }
-
-/* Cartões Principais Clean */
-.clean-card {
-    background: var(--bg-card) !important; border: 1px solid var(--border-subtle) !important;
-    border-radius: 12px !important; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-.clean-card:hover { box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06) !important; border-color: #cbd5e1 !important; }
-.section-title { font-size: 0.84rem; font-weight: 700; text-transform: uppercase; color: var(--wine-primary) !important; border-left: 3px solid var(--wine-primary); padding-left: 9px; letter-spacing: 0.04em; }
-.lot-wine-title { font-family: "Plus Jakarta Sans", sans-serif !important; font-size: 0.84rem; font-weight: 700; color: var(--text-primary) !important; }
-.sommelier-tag {
-    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
-    padding: 2px 7px; border-radius: 4px; border: 1px solid var(--wine-gold);
-    background: var(--wine-gold-glow); color: var(--wine-gold);
-}
-
-/* Triggers & Inputs Customizados */
-.trigger-addon-label { background-color: #f8fafc !important; border-color: var(--border-input) !important; color: var(--text-secondary) !important; font-size: 0.76rem !important; font-weight: 600; }
-.trigger-input-field { border-color: var(--border-input) !important; font-weight: 600; color: var(--text-primary) !important; background-color: #ffffff !important; }
-
-/* Barra de Pesquisa & Dropdowns (Clean e Neutro) */
-.custom-dropdown .dash-dropdown, .wine-search-bar .dash-dropdown, .dash-dropdown-trigger, .Select-control {
-    background-color: var(--search-bg) !important; border: 1px solid var(--search-border) !important;
-    border-radius: 8px !important; color: var(--search-text) !important;
-}
-.dash-dropdown-placeholder, .Select-placeholder { color: var(--search-placeholder) !important; }
-.dash-dropdown-value, .Select-value-label { color: var(--search-text) !important; font-weight: 500; }
-.dash-dropdown-search-container { background-color: var(--search-container-bg) !important; border: 1px solid var(--search-border) !important; border-radius: 6px !important; }
-.dash-dropdown-search, .Select-input > input { background-color: transparent !important; color: var(--search-text) !important; }
-.dash-dropdown-search::placeholder { color: var(--search-placeholder) !important; }
-.dash-dropdown-content, .Select-menu-outer, .Select-menu {
-    background-color: var(--search-menu-bg) !important; border: 1px solid var(--search-border) !important;
-    border-radius: 8px !important; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
-}
-.dash-dropdown-option, .Select-option { background-color: var(--search-menu-bg) !important; color: var(--search-text) !important; }
-.dash-dropdown-option:hover, .Select-option.is-focused { background-color: var(--search-option-hover) !important; color: var(--search-option-hover-text) !important; }
-.dash-dropdown-option:has(input:checked), .Select-option.is-selected { background-color: var(--search-option-active) !important; color: #ffffff !important; }
-.dash-dropdown-trigger-icon, .dash-dropdown-search-icon { color: var(--wine-primary) !important; fill: var(--wine-primary) !important; }
-.text-wine { color: var(--wine-primary) !important; }
-
-/* Cartões das 9 Vinícolas Reais do Mundo */
-.vineyard-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 10px 12px; transition: all 0.2s ease; }
-.vineyard-card:hover { border-color: var(--wine-primary); box-shadow: 0 4px 12px var(--wine-glow); transform: translateY(-1px); }
-.vineyard-card-active { background: #fdfafb !important; border: 1.5px solid var(--wine-primary) !important; box-shadow: 0 0 0 3px var(--wine-glow) !important; }
-
-/* Indicadores dos 3 LEDs Físicos do ESP32 */
-.led-indicator { display: inline-block; width: 13px; height: 13px; border-radius: 50%; vertical-align: middle; margin-right: 6px; }
-.led-green-on { background-color: #16a34a; border: 2px solid #86efac; box-shadow: 0 0 6px rgba(22, 163, 74, 0.6); }
-.led-red-on { background-color: #dc2626; border: 2px solid #fca5a5; box-shadow: 0 0 6px rgba(220, 38, 38, 0.6); }
-.led-green-off, .led-blue-off { background-color: #e2e8f0; border: 2px solid #cbd5e1; }
-.led-red-off { background-color: #f1f5f9; border: 2px solid #e2e8f0; }
-
-@keyframes pulseBlueLed { 0%, 100% { background-color: #0284c7; box-shadow: 0 0 8px #0284c7; } 50% { background-color: #bae6fd; box-shadow: none; } }
-.led-blue-blinking { border: 2px solid #7dd3fc; animation: pulseBlueLed 0.65s infinite ease-in-out; }
-
-.kpi-value { font-size: 1.82rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; color: var(--text-primary); }
-.custom-icon { width: 22px; height: 22px; object-fit: contain; }
-.custom-icon-sm { width: 17px; height: 17px; object-fit: contain; }
-
-/* Miniaturas Protótipos 3D (Tampa + Barril) */
-.proto-thumb-box { background-color: #f8fafc; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 8px 10px; }
-.barrel-lid-mini { position: relative; width: 112px; height: 112px; flex-shrink: 0; }
-.barrel-lid-mini-img { width: 100%; height: 112px; object-fit: contain; }
-.barrel-3d-mini-img { width: 96px; height: 112px; object-fit: contain; }
-.barrel-lcd-mini-slot { position: absolute; left: 20.5%; top: 38.4%; width: 59.0%; height: 23.2%; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; pointer-events: none; }
-.barrel-lcd-mini-text { color: #39ff14; font-family: "Consolas", monospace; font-weight: 700; font-size: 0.43rem; line-height: 1.15; white-space: pre; }
-
-/* Telinha Verde no Recorte Retangular da Tampa (66x26mm) */
-.green-lcd-cutout-screen {
-    background: repeating-linear-gradient(0deg, #051b0a 0px, #051b0a 2px, #07270e 2px, #07270e 4px) !important;
-    border: 3px solid #cbd5e1 !important; outline: 2px solid #22c55e !important; border-radius: 8px !important;
-    padding: 10px 14px !important; width: 100%; max-width: 520px; min-height: 120px; margin: 0 auto;
-    box-shadow: inset 0 0 20px rgba(34, 197, 94, 0.25) !important; display: flex; align-items: center; justify-content: center; overflow-x: auto;
-}
-.green-crt-text { color: #39ff14 !important; font-family: "Consolas", "Courier New", monospace !important; font-size: 0.76rem !important; font-weight: 700 !important; line-height: 1.4 !important; letter-spacing: 0.015em !important; text-shadow: 0 0 4px rgba(57, 255, 20, 0.45) !important; background: transparent !important; white-space: pre !important; margin: 0 !important; }
-
-.chart-panel-box { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 10px; }
-.cellar-score-box, .kpi-range-pill { background-color: #f8fafc; border: 1px solid var(--border-subtle); }
-
-.form-control, .form-select { border-color: var(--border-input) !important; color: var(--text-primary) !important; background-color: var(--bg-card) !important; }
-.form-control:focus, .form-select:focus { border-color: var(--wine-primary) !important; box-shadow: 0 0 0 3px var(--wine-glow) !important; }
-.input-group-text { background-color: #f8fafc !important; border-color: var(--border-input) !important; color: var(--text-secondary) !important; font-weight: 600; }
-
-/* Barra de Rolagem Minimalista */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-body); }
-::-webkit-scrollbar-thumb { background: var(--border-input); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
-
-/* ==========================================================================
-   Modo Escuro (Minimalista Executivo Zinc-950 — Estilo Linear / Apple)
-   ========================================================================== */
-[data-bs-theme="dark"] {
-    --bg-body: #09090b; --bg-card: #121215; --border-subtle: #27272a; --border-input: #3f3f46;
-    --text-primary: #f4f4f5; --text-secondary: #a1a1aa; --text-muted: #71717a;
-    --wine-primary: #a82b3d; --wine-hover: #c0364b; --wine-gold: #d4af62;
-    --wine-subtle: rgba(168, 43, 61, 0.14); --wine-glow: rgba(168, 43, 61, 0.22);
-    --wine-gold-glow: rgba(212, 175, 98, 0.15);
-    --search-bg: #121215; --search-border: #27272a; --search-text: #f4f4f5; --search-placeholder: #71717a;
-    --search-container-bg: #18181b; --search-menu-bg: #121215; --search-option-hover: #1f1f23;
-    --search-option-hover-text: #d4af62; --search-option-active: #a82b3d;
-    --Dash-Fill-Inverse-Strong: #121215 !important; --Dash-Stroke-Strong: #27272a !important;
-    --Dash-Text-Primary: #f4f4f5 !important; --Dash-Text-Strong: #f4f4f5 !important;
-    --Dash-Text-Weak: #a1a1aa !important; --Dash-Text-Disabled: #71717a !important;
-    --Dash-Fill-Interactive-Strong: #a82b3d !important; --Dash-Fill-Interactive-Weak: rgba(168, 43, 61, 0.18) !important;
-    --Dash-Fill-Primary-Hover: #1f1f23 !important; --Dash-Fill-Disabled: #18181b !important;
-}
-
-[data-bs-theme="dark"] body { background-color: #09090b !important; }
-[data-bs-theme="dark"] .clean-navbar { background: rgba(9, 9, 11, 0.95) !important; border-bottom: 1px solid var(--border-subtle) !important; }
-[data-bs-theme="dark"] .card, [data-bs-theme="dark"] .clean-card, [data-bs-theme="dark"] .table,
-[data-bs-theme="dark"] .table td, [data-bs-theme="dark"] .table th, [data-bs-theme="dark"] .chart-panel-box { background-color: var(--bg-card) !important; color: var(--text-primary) !important; border-color: var(--border-subtle) !important; }
-[data-bs-theme="dark"] .proto-thumb-box, [data-bs-theme="dark"] .trigger-addon-label,
-[data-bs-theme="dark"] .input-group-text, [data-bs-theme="dark"] .bg-light,
-[data-bs-theme="dark"] .badge.bg-light, [data-bs-theme="dark"] .badge-light { background-color: #18181b !important; border-color: var(--border-input) !important; color: var(--text-secondary) !important; }
-[data-bs-theme="dark"] .form-control, [data-bs-theme="dark"] .form-select { background-color: #121215 !important; border-color: var(--border-input) !important; color: #f4f4f5 !important; }
-[data-bs-theme="dark"] .vineyard-card { background-color: var(--bg-card) !important; border-color: var(--border-subtle) !important; }
-[data-bs-theme="dark"] .vineyard-card-active { background: #1a1114 !important; border-color: var(--wine-primary) !important; }
-[data-bs-theme="dark"] .green-lcd-cutout-screen { border-color: var(--border-subtle) !important; }
-[data-bs-theme="dark"] .cellar-score-box, [data-bs-theme="dark"] .kpi-range-pill, [data-bs-theme="dark"] .theme-btn-group { background-color: #18181b !important; border-color: var(--border-subtle) !important; color: var(--text-secondary) !important; }
-[data-bs-theme="dark"] .status-pill-live { background: rgba(34, 197, 94, 0.15) !important; color: #4ade80 !important; border-color: rgba(34, 197, 94, 0.3) !important; }
-[data-bs-theme="dark"] .status-pill-ready { background: rgba(168, 43, 61, 0.20) !important; color: #f87171 !important; border-color: rgba(168, 43, 61, 0.35) !important; }
-[data-bs-theme="dark"] .status-pill-idle { background: #18181b !important; color: #a1a1aa !important; border-color: var(--border-subtle) !important; }
-[data-bs-theme="dark"] .nav-ghost-link { color: var(--text-secondary) !important; }
-[data-bs-theme="dark"] .nav-ghost-link:hover, [data-bs-theme="dark"] .text-dark { color: #f4f4f5 !important; }
-[data-bs-theme="dark"] .text-muted { color: #71717a !important; }
-[data-bs-theme="dark"] .border, [data-bs-theme="dark"] .border-top, [data-bs-theme="dark"] .border-bottom { border-color: var(--border-subtle) !important; }
+.chart-panel-box { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; overflow: hidden; }
+.custom-icon { width: 20px; height: 20px; object-fit: contain; }
+.custom-icon-sm { width: 16px; height: 16px; object-fit: contain; }
+.form-control, .form-select { border-color: var(--border-input) !important; color: var(--text-primary) !important; background-color: #121215 !important; border-radius: 8px !important; font-weight: 600; }
+.form-control:focus, .form-select:focus { border-color: var(--wine-gold) !important; box-shadow: 0 0 0 3px var(--wine-gold-glow) !important; }
+.input-group-text { background-color: #18181b !important; border-color: var(--border-input) !important; color: var(--text-secondary) !important; font-size: 0.76rem !important; font-weight: 600; }
