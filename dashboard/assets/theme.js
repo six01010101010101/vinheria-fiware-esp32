@@ -25,14 +25,19 @@
   }
 
   function applyTheme(preference) {
-    var effectiveTheme = preference === "system" ? getSystemTheme() : preference;
+    var isSystem = preference === "system";
+    var effectiveTheme = isSystem ? getSystemTheme() : preference;
     document.documentElement.setAttribute("data-bs-theme", effectiveTheme);
+    document.documentElement.setAttribute("data-theme-mode", preference);
     var meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
-      meta.setAttribute("content", effectiveTheme === "dark" ? "#09090b" : "#f8fafc");
+      meta.setAttribute("content", effectiveTheme === "dark" ? "#09090b" : "#ffffff");
     }
     localStorage.setItem("vinheria_theme", preference);
     updateButtons(preference);
+    try {
+      window.dispatchEvent(new CustomEvent("themeChanged", { detail: { preference: preference, effectiveTheme: effectiveTheme } }));
+    } catch (_) {}
   }
 
   window.setDashboardTheme = function (theme) {

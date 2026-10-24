@@ -2,20 +2,32 @@
 @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap");
 
 :root {
-  --bg-body: #09090b; --bg-card: #121215; --bg-surface: #18181b; --border-subtle: #27272a; --border-input: #3f3f46;
+  --bg-body: #09090b; --bg-card: #121215; --bg-surface: #18181b; --navbar-bg: rgba(9, 9, 11, 0.88);
+  --border-subtle: #27272a; --border-input: #3f3f46;
   --text-primary: #f4f4f5; --text-secondary: #a1a1aa; --text-muted: #71717a;
   --wine-primary: #8b1527; --wine-hover: #a82337; --wine-gold: #c5a059;
   --wine-glow: rgba(139, 21, 39, 0.35); --wine-gold-glow: rgba(197, 160, 89, 0.25);
-  --neon-green: rgba(34, 197, 94, 0.40); --neon-ruby: rgba(239, 68, 68, 0.40); --neon-cyan: rgba(56, 189, 248, 0.40); --neon-amber: rgba(251, 191, 36, 0.40);
+  --neon-green: rgba(34, 197, 94, 0.40); --neon-ruby: rgba(239, 68, 68, 0.40); --neon-cyan: rgba(56, 189, 248, 0.40);
   --color-temp: #f87171; --color-hum: #38bdf8; --color-lum: #fbbf24; --color-dew: #a78bfa;
 }
 
 [data-bs-theme="light"] {
-  --bg-body: #f8fafc; --bg-card: #ffffff; --bg-surface: #f1f5f9; --border-subtle: #e2e8f0; --border-input: #cbd5e1;
-  --text-primary: #0f172a; --text-secondary: #475569; --text-muted: #64748b;
-  --wine-primary: #72202b; --wine-hover: #58141f; --wine-gold: #9b783e;
-  --wine-glow: rgba(114, 32, 43, 0.16); --wine-gold-glow: rgba(155, 120, 62, 0.16);
+  --bg-body: #ffffff; --bg-card: #ffffff; --bg-surface: #f8fafc; --navbar-bg: rgba(255, 255, 255, 0.92);
+  --border-subtle: #e5e7eb; --border-input: #d1d5db;
+  --text-primary: #111827; --text-secondary: #4b5563; --text-muted: #6b7280;
+  --wine-primary: #801223; --wine-hover: #5d0c18; --wine-gold: #9a7638;
+  --wine-glow: rgba(128, 18, 35, 0.12); --wine-gold-glow: rgba(154, 118, 56, 0.12);
   --color-temp: #dc2626; --color-hum: #0284c7; --color-lum: #d97706; --color-dew: #7c3aed;
+}
+
+[data-theme-mode="system"][data-bs-theme="light"] {
+  --bg-body: #ffffff; --bg-card: #ffffff; --bg-surface: #f1f3f4; --navbar-bg: rgba(255, 255, 255, 0.95);
+  --border-subtle: #dadce0; --border-input: #dadce0; --text-primary: #202124; --text-secondary: #5f6368;
+}
+
+[data-theme-mode="system"][data-bs-theme="dark"] {
+  --bg-body: #121212; --bg-card: #1e1e1e; --bg-surface: #2d2d2d; --navbar-bg: rgba(18, 18, 18, 0.92);
+  --border-subtle: #3c4043; --border-input: #5f6368; --text-primary: #e8eaed; --text-secondary: #9aa0a6;
 }
 
 body {
@@ -28,7 +40,11 @@ h1, h2, h3, h4, .section-title { font-family: "Plus Jakarta Sans", sans-serif; f
 .navbar-brand-title { font-family: "Cinzel", serif !important; font-size: 1.24rem; color: var(--wine-primary) !important; font-weight: 800; letter-spacing: 0.08em; text-shadow: 0 0 12px var(--wine-glow); }
 .navbar-brand-sub { font-size: 0.65rem; letter-spacing: 0.12em; color: var(--wine-gold) !important; font-weight: 700; text-transform: uppercase; }
 
-.clean-navbar { background: rgba(18, 18, 21, 0.90) !important; backdrop-filter: blur(16px); border-bottom: 1px solid var(--border-subtle) !important; }
+.clean-navbar, .pro-navbar {
+  background: var(--navbar-bg) !important; backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%); border-bottom: 1px solid var(--border-subtle) !important;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
 .clean-card {
   background: var(--bg-card) !important; border: 1px solid var(--border-subtle) !important;
   border-radius: 14px !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
@@ -138,9 +154,10 @@ h1, h2, h3, h4, .section-title { font-family: "Plus Jakarta Sans", sans-serif; f
 /* Botões com Toque Neon & Efeito Háptico */
 .btn-wine { background: var(--wine-primary) !important; color: #ffffff !important; border: 1px solid var(--wine-hover) !important; font-weight: 600; border-radius: 8px; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
 .btn-wine:hover { background: var(--wine-hover) !important; box-shadow: 0 4px 16px var(--wine-glow), 0 0 10px var(--wine-glow); transform: translateY(-1px); }
-.theme-btn-group { display: inline-flex; background: #18181b; padding: 2px; border-radius: 8px; border: 1px solid var(--border-subtle); }
-.theme-btn { border: none !important; background: transparent !important; font-size: 0.72rem !important; font-weight: 600 !important; padding: 3px 9px !important; border-radius: 6px !important; color: var(--text-muted) !important; }
-.theme-btn.active { background-color: var(--wine-primary) !important; color: #ffffff !important; box-shadow: 0 0 10px var(--wine-glow); }
+.theme-btn-group { display: inline-flex; background: var(--bg-surface); padding: 2px; border-radius: 8px; border: 1px solid var(--border-subtle); }
+.theme-btn { border: none !important; background: transparent !important; font-size: 0.72rem !important; font-weight: 600 !important; padding: 3px 9px !important; border-radius: 6px !important; color: var(--text-muted) !important; transition: all 0.2s ease !important; }
+.theme-btn:hover { color: var(--text-primary) !important; }
+.theme-btn.active { background-color: var(--wine-primary) !important; color: #ffffff !important; box-shadow: 0 0 10px var(--wine-glow) !important; }
 .status-pill { display: inline-flex; align-items: center; font-size: 0.74rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; }
 .status-pill-live { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.35); box-shadow: 0 0 12px rgba(34, 197, 94, 0.15); }
 .status-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background-color: #22c55e; box-shadow: 0 0 8px #22c55e; animation: pulseDot 1.4s infinite; }
@@ -150,9 +167,13 @@ h1, h2, h3, h4, .section-title { font-family: "Plus Jakarta Sans", sans-serif; f
 .chart-panel-box { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; overflow: hidden; }
 .custom-icon { width: 20px; height: 20px; object-fit: contain; }
 .custom-icon-sm { width: 16px; height: 16px; object-fit: contain; }
-.form-control, .form-select { border-color: var(--border-input) !important; color: var(--text-primary) !important; background-color: #121215 !important; border-radius: 8px !important; font-weight: 600; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.form-control, .form-select {
+  border-color: var(--border-input) !important; color: var(--text-primary) !important;
+  background-color: var(--bg-card) !important; border-radius: 8px !important;
+  font-weight: 600; transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
 .form-control:focus, .form-select:focus { border-color: var(--wine-gold) !important; box-shadow: 0 0 0 3px var(--wine-gold-glow), 0 0 12px var(--wine-gold-glow) !important; }
-.input-group-text { background-color: #18181b !important; border-color: var(--border-input) !important; color: var(--text-secondary) !important; font-size: 0.76rem !important; font-weight: 600; }
+.input-group-text { background-color: var(--bg-surface) !important; border-color: var(--border-input) !important; color: var(--text-secondary) !important; font-size: 0.76rem !important; font-weight: 600; }
 .btn, .btn-wine, .theme-btn, .sc-btn, .btn-portal { transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.16s ease, background 0.2s ease !important; }
 .btn:active, .btn-wine:active, .btn-portal:active, .sc-btn:active { transform: scale(0.96) !important; }
 .vineyard-card:active { transform: scale(0.98) !important; }

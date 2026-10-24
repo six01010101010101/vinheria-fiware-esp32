@@ -173,6 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   document.querySelectorAll(".wine-pill-btn").forEach(b => b.addEventListener("click", () => onWinePresetChange(b.dataset.wine)));
   document.querySelectorAll(".sc-btn").forEach(b => b.addEventListener("click", () => applyScenario(b.dataset.sc)));
+  window.addEventListener("themeChanged", () => { if (typeof initScadaPlotly === "function") initScadaPlotly(); });
   if (typeof Plotly !== "undefined") initScadaPlotly();
   else { const it = setInterval(() => { if (typeof Plotly !== "undefined") { clearInterval(it); initScadaPlotly(); } }, 150); }
   updateHardwarePlaque(15.6, 68, 12); setInterval(fetchLiveTicker, 1800);
