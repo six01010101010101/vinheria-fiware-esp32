@@ -31,16 +31,17 @@
     const score = calcHealthScore(t, h, l, preset);
     const st = evalStatus(t, h, l, preset, isWokwi);
     const prTag = (function () {
-      const nm = (preset.name || "").toLowerCase();
+      const nm = ((preset.name || "") + " " + (preset.wine || "")).toLowerCase();
       if (nm.includes("brut") || nm.includes("espumante") || nm.includes("champ")) return "BRUT";
       if (nm.includes("rose") || nm.includes("rosé")) return "ROSE";
       if (nm.includes("branco")) return "BRANCO";
       return "TINTO";
     })();
 
+    const isCrit = (score < 70) || (st.lbl && st.lbl.includes("CRÍTICO"));
+    const statTag = st.ok ? "1UP" : (isCrit ? "CRT" : "ALR");
     const l1Text = `🪙 ${t.toFixed(1)}°C 💧${h.toFixed(0)}%${!isWokwi ? " *" : ""}`;
-    const statPart = mode === "normal" ? `${prTag} 1UP:${score}%` : `ALR:${mode.substring(0, 3).toUpperCase()} HP:${score}%`;
-    const l2Text = `⭐ ${l.toFixed(0)}% ${statPart}`;
+    const l2Text = `⭐ ${l.toFixed(0)}% ${prTag} ${statTag}:${score}%`;
 
     const elL1 = document.getElementById("wokwi-lcd-l1"), elL2 = document.getElementById("wokwi-lcd-l2");
     if (elL1) elL1.textContent = formatLcd16(l1Text);
@@ -48,13 +49,13 @@
 
     const t1 = document.getElementById("barrel-mini-t1"), t2 = document.getElementById("barrel-mini-t2");
     if (t1) t1.textContent = `T:${t.toFixed(1)}°C U:${h.toFixed(0)}%`;
-    if (t2) t2.textContent = `${prTag} ${st.ok ? "1UP" : "ALR"}:${score}%`;
+    if (t2) t2.textContent = `${prTag} ${statTag}:${score}%`;
 
     const crtTerroir = document.getElementById("crt-terroir-val");
     if (crtTerroir) crtTerroir.textContent = `${terroir.flag || "📟"} ${terroir.name || "ESP32 Wokwi"}`;
 
     const crtWine = document.getElementById("crt-wine-val");
-    if (crtWine) crtWine.textContent = preset.wine || "Vinho Tinto Grand Cru";
+    if (crtWine) crtWine.textContent = preset.wine || preset.name || "Vinho Tinto Grand Cru";
 
     const crtStatus = document.getElementById("crt-status-val");
     if (crtStatus) {
@@ -64,11 +65,10 @@
 
     const crtTag = document.getElementById("crt-status-tag") || document.getElementById("crt-status-pill");
     if (crtTag) {
-      crtTag.textContent = st.ok ? "STATUS: PRESERVADO" : "STATUS: ALERTA";
-      crtTag.style.color = st.ok ? "#4ade80" : "#f87171";
+      crtTag.textContent = st.ok ? "STATUS: PRESERVADO" : (isCrit ? "STATUS: CRÍTICO" : "STATUS: ALERTA");
+      crtTag.style.color = st.ok ? "#4ade80" : (isCrit ? "#f87171" : "#fbbf24");
     }
 
-    const isCrit = (score < 70) || (st.lbl && st.lbl.includes("CRÍTICO"));
     const crtApogee = document.getElementById("crt-apogee-val");
     if (crtApogee) {
       crtApogee.textContent = `${score}% [${st.ok ? "PRESERVADO" : (isCrit ? "PERIGO TOTAL" : "ANOMALIA")}]`;
@@ -86,8 +86,8 @@
     if (lblG) lblG.textContent = st.ok ? "D5: ON" : "D5: OFF";
     if (ledR) ledR.className = st.ok ? "led-indicator led-red-off" : (isCrit ? "led-indicator led-red-on led-red-blinking" : "led-indicator led-red-on");
     if (lblR) lblR.textContent = st.ok ? "D18: OFF" : (isCrit ? "D18: PERIGO!" : "D18: ALERTA");
-    if (ledB) ledB.className = !isWokwi ? "led-indicator led-blue-blinking" : "led-indicator led-blue-off";
-    if (lblB) lblB.textContent = !isWokwi ? "D2: SATÉLITE" : "D2: OFF";
+    if (ledB) ledB.className = (!st.ok || !isWokwi) ? "led-indicator led-blue-blinking" : "led-indicator led-blue-off";
+    if (lblB) lblB.textContent = !st.ok ? (isCrit ? "D2: ALARME!" : "D2: PULSO") : (!isWokwi ? "D2: SATÉLITE" : "D2: OFF");
     const bzIcon = document.getElementById("buzzer-status-icon"), bzTxt = document.getElementById("buzzer-status-text");
     if (bzIcon) bzIcon.textContent = st.ok ? "🔇" : (isCrit ? "🚨" : "🔊");
     if (bzTxt) bzTxt.textContent = st.ok ? "D4 Mudo" : (isCrit ? "D4 PERIGO CRÍTICO!" : ("D4 " + (st.lbl.replace("ALERTA ", "") || "Alerta")));

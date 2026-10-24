@@ -39,7 +39,7 @@ function renderCellarLots(activeStyle, currentTemp, currentHum, currentLum, onSe
     if (lot.dynamicScore >= 88) okCount++;
     return `
     <div class="col-lg-6 col-xl-3 col-md-6 col-12">
-      <div class="vineyard-card h-100 ${isAct ? "border-gold active-vineyard" : ""}" data-lstyle="${lot.style}" style="cursor:pointer;" title="Clique para ativar este perfil enológico na adega">
+      <div class="vineyard-card h-100 ${isAct ? "border-gold active-vineyard" : ""}" data-lstyle="${lot.style}" data-terroir="${lot.terroirId || ""}" style="cursor:pointer;" title="Clique para ativar este lote (${lot.country} · ${lot.style})">
         <div class="d-flex justify-content-between align-items-center mb-1">
           <span class="sommelier-tag">${lot.code}</span>
           <span class="badge bg-secondary" style="font-size:0.62rem;">${lot.flag || "🍷"} ${lot.country} · ${lot.vintage}</span>
@@ -68,17 +68,23 @@ function renderCellarLots(activeStyle, currentTemp, currentHum, currentLum, onSe
     badge.innerHTML = `<span class="status-dot"></span>CAVA DIGITALIZADA (${okCount}/8 PRESERVADOS)`;
   }
 
-  const handler = onSelectCallback || window.onWinePresetChange;
+  const handler = onSelectCallback || window.onLotSelect || window.onWinePresetChange;
   if (handler) {
     c.querySelectorAll(".vineyard-card").forEach(card => {
-      card.addEventListener("click", () => handler(card.dataset.lstyle));
+      card.addEventListener("click", () => {
+        if (typeof window.onLotSelect === "function") {
+          window.onLotSelect(card.dataset.lstyle, card.dataset.terroir);
+        } else if (typeof handler === "function") {
+          handler(card.dataset.lstyle, card.dataset.terroir);
+        }
+      });
     });
   }
 }
 
 function autoBootCellarLots() {
   if (typeof renderCellarLots === "function") {
-    renderCellarLots(window.curPr || "tinto", 15.6, 68, 12, window.onWinePresetChange);
+    renderCellarLots(window.curPr || "tinto", 15.6, 68, 12, window.onLotSelect || window.onWinePresetChange);
   }
 }
 

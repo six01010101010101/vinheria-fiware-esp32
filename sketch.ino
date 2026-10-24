@@ -21,11 +21,7 @@ float validTemp = 15.5f, validHum = 68.0f, validLum = 12.0f, hwTemp = 15.5f, hwH
 void lcdExpanderWrite(uint8_t d) { Wire.beginTransmission(LCD_ADDR); Wire.write(d | 0x08); Wire.endTransmission(); }
 void lcdWrite4(uint8_t v) { lcdExpanderWrite(v); lcdExpanderWrite(v | 0x04); delayMicroseconds(2); lcdExpanderWrite(v & ~0x04); delayMicroseconds(40); }
 void lcdSend(uint8_t v, uint8_t m) { lcdWrite4((v & 0xF0) | m); lcdWrite4(((v << 4) & 0xF0) | m); }
-void lcdCreateChar(uint8_t loc, const uint8_t map[8]) {
-  lcdSend(0x40 | ((loc & 0x7) << 3), 0);
-  for (int i = 0; i < 8; i++) lcdSend(map[i], 1);
-  lcdSend(0x80, 0);
-}
+void lcdCreateChar(uint8_t loc, const uint8_t map[8]) { lcdSend(0x40 | ((loc & 0x7) << 3), 0); for (int i = 0; i < 8; i++) lcdSend(map[i], 1); lcdSend(0x80, 0); }
 void lcdInit() {
   Wire.begin(21, 22); Wire.setClock(400000); delay(40); lcdExpanderWrite(0x00); delay(15);
   lcdWrite4(0x30); delayMicroseconds(4500); lcdWrite4(0x30); delayMicroseconds(4500);
@@ -87,7 +83,10 @@ void applyCommand(String msg) {
   int at = msg.indexOf('@'); if (at != -1) msg = msg.substring(at + 1);
   String prev = curMode; int sep = msg.indexOf('|');
   if (sep == -1) {
-    msg.trim(); if (msg == "normal" || msg == "temp" || msg == "hum" || msg == "lum" || msg == "multi") curMode = msg; else return;
+    msg.trim();
+    if (msg == "normal" || msg == "temp" || msg == "hum" || msg == "lum" || msg == "multi") curMode = msg;
+    else if (msg == "tinto" || msg == "branco" || msg == "rose" || msg == "brut" || msg == "espumante") { curPreset = (msg == "espumante") ? "BRUT" : msg; curPreset.toUpperCase(); }
+    else return;
   } else {
     String cmd = msg.substring(0, sep), args = msg.substring(sep + 1);
     if (cmd == "live") { remoteSync = false; validTemp = hwTemp; validHum = hwHum; validLum = hwLum; }
@@ -101,6 +100,7 @@ void applyCommand(String msg) {
         if (p2 != -1) { curHealth = rest.substring(0, p2).toInt(); String rest2 = rest.substring(p2 + 1); int p3 = rest2.indexOf('|'); if (p3 != -1) { curVerdict = rest2.substring(0, p3); curPreset = rest2.substring(p3 + 1); } }
       }
     } else if (cmd == "alert") { int p1 = args.indexOf('|'); curMode = (p1 != -1) ? args.substring(0, p1) : args; }
+    else if (cmd == "preset" || cmd == "wine") { curPreset = args; curPreset.toUpperCase(); }
   }
   curMode.trim(); if (curMode.length() == 0) curMode = "normal";
   if (curMode == "normal") {
