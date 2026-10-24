@@ -70,8 +70,8 @@ async function fetchLiveStatus() {
   const t = (tel.temperature_c || 15.5).toFixed(1), h = (tel.humidity_pct || 68).toFixed(0), l = (tel.luminosity_pct || 12).toFixed(0);
 
   const m1 = document.getElementById("barrel-mini-t1"), m2 = document.getElementById("barrel-mini-t2");
-  if (m1) m1.textContent = `T:${t}C U:${h}%`;
-  if (m2) m2.textContent = `S:${score}% OK`;
+  if (m1) m1.textContent = `T:${t}°C U:${h}%`;
+  if (m2) m2.textContent = `TINTO ${score >= 85 ? "1UP" : "ALR"}:${score}%`;
 
   const crt = document.getElementById("green-crt-text");
   if (crt) {

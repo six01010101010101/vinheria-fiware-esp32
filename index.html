@@ -31,15 +31,24 @@
         </div>
         <p class="hero-subtitle">Barrica de Carvalho Francês Allier 225L · Telemetria IoT ESP32 & Algoritmo de Preservação</p>
         <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:20px;align-items:center;margin:22px 0;">
-          <div class="proto-thumb-box">
-            <div class="barrel-lid-mini">
-              <img src="dashboard/assets/icons/tampa_barril_lcd.png" class="barrel-lid-mini-img" alt="Tampa com LCD">
-              <div class="barrel-lcd-mini-slot">
-                <div id="barrel-mini-t1" class="barrel-lcd-mini-text">T:15.5C U:68%</div>
-                <div id="barrel-mini-t2" class="barrel-lcd-mini-text">S:100% OK</div>
-              </div>
+          <div class="proto-thumb-box" style="flex-direction:column;gap:10px;">
+            <div style="display:flex;justify-content:space-between;width:100%;font-size:0.65rem;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:4px;">
+              <span class="sommelier-tag" style="font-size:0.64rem;">📟 BARRICA IOT WOKWI</span>
+              <span style="color:#22c55e;font-weight:700;">● ESP32 TWIN</span>
             </div>
-            <img src="dashboard/assets/icons/corpo_barril_3d.png" class="barrel-3d-mini-img" alt="Barril 3D">
+            <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
+              <div class="barrel-lid-mini">
+                <img src="dashboard/assets/icons/tampa_barril_lcd.png" class="barrel-lid-mini-img" alt="Tampa com LCD">
+                <div class="barrel-lcd-mini-slot">
+                  <div id="barrel-mini-t1" class="barrel-lcd-mini-text">T:15.5°C U:68%</div>
+                  <div id="barrel-mini-t2" class="barrel-lcd-mini-text">TINTO 1UP:100%</div>
+                </div>
+              </div>
+              <img src="dashboard/assets/icons/corpo_barril_3d.png" class="barrel-3d-mini-img" alt="Barril 3D">
+            </div>
+            <div style="display:flex;justify-content:center;gap:6px;width:100%;font-size:0.60rem;font-family:monospace;border-top:1px solid rgba(255,255,255,0.08);padding-top:4px;color:#a1a1aa;">
+              <span>I2C: 0x27</span><span>•</span><span>DHT22: D15</span><span>•</span><span>LDR: D34</span><span>•</span><span>BZ: D4</span>
+            </div>
           </div>
           <div class="green-crt-frame" style="padding:12px;background:#031408;border:1px solid #14532d;border-radius:10px;box-shadow:inset 0 0 18px rgba(34,197,94,0.15);">
             <div style="display:flex;justify-content:space-between;font-size:0.70rem;color:#4ade80;font-family:'Courier New',monospace;margin-bottom:6px;font-weight:bold;">

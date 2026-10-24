@@ -68,8 +68,9 @@ function updateHardwarePlaque(t, h, l) {
   const score = calcHealthScore(t, h, l, pr), st = evalStatus(t, h, l, pr, curArea);
   sim.score = score;
   const t1 = document.getElementById("barrel-mini-t1"), t2 = document.getElementById("barrel-mini-t2");
-  if (t1) t1.textContent = `T:${t.toFixed(1)}C U:${h.toFixed(0)}%`;
-  if (t2) t2.textContent = `S:${score}% ${st.ok ? "OK" : "ALR"}`;
+  if (t1) t1.textContent = `T:${t.toFixed(1)}°C U:${h.toFixed(0)}%`;
+  const prTag = pr.name ? pr.name.substring(6, 11).toUpperCase().trim() : "TINTO";
+  if (t2) t2.textContent = `${prTag} ${st.ok ? "1UP" : "ALR"}:${score}%`;
   const crt = document.getElementById("green-crt-text");
   const areaPad = `${tr.flag} ${tr.name}`.padEnd(20, " ").substring(0, 20), winePad = `${pr.wine}`.padEnd(23, " ").substring(0, 23);
   if (crt) crt.textContent = `+--------------------------------+\n| TERROIR: ${areaPad}|\n| VINHO: ${winePad}|\n| T: ${t.toFixed(1).padStart(4," ")}°C  U: ${h.toFixed(0).padStart(2," ")}%  L: ${l.toFixed(0).padStart(2," ")}%       |\n| STATUS: ${st.lbl.padEnd(23, " ")}|\n| APOGEU: ${score}% [${st.ok ? "PRESERVADO" : "ANOMALIA"}]       |\n+--------------------------------+`;
