@@ -79,6 +79,10 @@ class ArcadeAudioEngine {
     this.playTone(280, 0.20, "sawtooth", 90, 0.12);
   }
 
+  playClick() {
+    this.playTone(987.77, 0.05, 'square');
+  }
+
   toggle() {
     this.enabled = !this.enabled;
     if (this.enabled) this.playCoin();
@@ -87,6 +91,7 @@ class ArcadeAudioEngine {
 }
 
 window.arcadeAudio = new ArcadeAudioEngine();
+window.ArcadeAudio = window.arcadeAudio;
 
 // Auto-ligação nos botões, abas, selects e caixas de texto
 document.addEventListener("DOMContentLoaded", () => {
