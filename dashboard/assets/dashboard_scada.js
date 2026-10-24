@@ -9,6 +9,7 @@ function calcHealthScore(t, h, l, pr) {
   sc -= (l > pr.lMax ? Math.min(30, (l - pr.lMax) * 2) : 0);
   return Math.max(15, Math.min(100, Math.round(sc)));
 }
+
 function evalStatus(t, h, l, pr, area) {
   const ok = (t >= pr.tMin && t <= pr.tMax && h >= pr.hMin && h <= pr.hMax && l <= pr.lMax);
   let lbl = area === "wokwi_esp32" ? "CAVA PRESERVADA" : "TERROIR ADEQUADO";
@@ -113,20 +114,15 @@ function onAreaTerroirChange(areaKey) {
   if (sel && sel.value !== curArea) sel.value = curArea;
   const desc = document.getElementById("terroir-description-text");
   if (desc) desc.textContent = curArea === "wokwi_esp32" ? "Telemetria climática autêntica por satélite e coordenadas GPS." : `Telemetria climática de ${tr.country} sincronizada via Open-Meteo GPS.`;
-  if (curArea !== "wokwi_esp32") {
-    sim.t = tr.t; sim.h = tr.h; sim.l = tr.l;
-    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${tr.lat}&longitude=${tr.lon}&current=temperature_2m,relative_humidity_2m,shortwave_radiation&timezone=auto`)
-      .then(r => r.json()).then(d => {
-        const c = d.current || {};
-        if (c.temperature_2m !== undefined && curArea === areaKey) {
-          tr.t = +c.temperature_2m.toFixed(1); tr.h = +c.relative_humidity_2m.toFixed(0);
-          tr.l = Math.min(100, Math.round((c.shortwave_radiation || 0) / 10));
-          sim.t = tr.t; sim.h = tr.h; sim.l = tr.l;
-          updateHardwarePlaque(sim.t, sim.h, sim.l); updateScadaPlotly(sim.t, sim.h, sim.l); renderRealVineyards();
-        }
-      }).catch(() => {});
-  } else { sim.t = pr.defT; sim.h = pr.defH; sim.l = pr.defL; }
+  if (curArea !== "wokwi_esp32") { sim.t = tr.t; sim.h = tr.h; sim.l = tr.l; }
+  else { sim.t = pr.defT; sim.h = pr.defH; sim.l = pr.defL; }
   updateHardwarePlaque(sim.t, sim.h, sim.l); initScadaPlotly(); renderRealVineyards(); renderCellarLots(); syncCloudConfig();
+}
+
+function renderRealVineyards() {
+  if (typeof window.renderRealVineyards === "function") {
+    window.renderRealVineyards(curArea, onAreaTerroirChange);
+  }
 }
 
 function syncCloudConfig() {
@@ -150,17 +146,6 @@ function renderCellarLots() {
   c.innerHTML = sorted.slice(0, 8).map(l => `<div class="col-lg-6 col-xl-3 col-md-6 col-12"><div class="vineyard-card h-100 ${l.style === curPr ? "border-gold" : ""}"><div class="d-flex justify-content-between align-items-center mb-1"><span class="sommelier-tag">${l.code}</span><span class="badge bg-secondary" style="font-size:0.62rem;">${l.country} · ${l.vintage}</span></div><div class="lot-wine-title text-truncate mb-1">${l.winery} — ${l.wine}</div><div class="progress mb-2 rounded-pill" style="height:4px;"><div class="progress-bar bg-success" style="width:${l.health}%;"></div></div><div class="text-muted text-truncate mb-1" style="font-size:0.70rem;">Terroir: ${l.soil}</div><div class="d-flex justify-content-between small text-muted" style="font-size:0.72rem;"><span>Barrica: ${l.barrel.substring(0, 18)}</span><span class="text-wine fw-bold">Guarda: ${l.apogee}</span></div></div></div>`).join("");
 }
 
-function renderRealVineyards() {
-  const c = document.getElementById("real-vineyards-grid");
-  if (!c) return;
-  const list = Object.values(TERROIRS).filter(x => x.id !== "wokwi_esp32");
-  c.innerHTML = list.map(v => {
-    const dew = ((v.t + v.h * 0.1) * 0.5).toFixed(1);
-    return `<div class="col-lg-4 col-md-6 col-12"><div class="vineyard-card ${v.id === curArea ? "active-vineyard" : ""}" data-vid="${v.id}" style="cursor:pointer;" title="Clique para ativar este terroir"><div class="d-flex justify-content-between align-items-center mb-1"><div class="d-flex align-items-center gap-2"><span class="flag-circle">${v.flag}</span><div><div class="lot-wine-title text-truncate" style="font-size:0.86rem;">${v.name}</div><span class="text-country" style="font-size:0.72rem;">${v.country} · ${v.reg}</span></div></div><span class="sommelier-tag">${v.id === curArea ? "● ATIVO" : "GPS"}</span></div><div class="d-flex justify-content-between align-items-center p-2 rounded bg-black bg-opacity-25 border border-secondary border-opacity-25 mt-2"><span class="text-temp small">🌡️ ${v.t.toFixed(1)}°C</span><span class="text-hum small">💧 ${v.h.toFixed(0)}%</span><span class="text-lum small">☀️ ${v.l.toFixed(0)}%</span><span class="text-dew small">💨 ${dew}°C</span></div></div></div>`;
-  }).join("");
-  c.querySelectorAll(".vineyard-card").forEach(card => card.addEventListener("click", () => onAreaTerroirChange(card.dataset.vid)));
-}
-
 async function fetchLiveTicker() {
   if (sim.mode !== "normal") return;
   if (curArea === "wokwi_esp32") {
@@ -172,14 +157,23 @@ async function fetchLiveTicker() {
       }
     } catch (_) {}
   } else {
-    sim.t = +(sim.t + Math.sin(Date.now() / 2500) * 0.12).toFixed(1);
-    sim.h = Math.min(100, Math.max(20, +(sim.h + Math.cos(Date.now() / 3200) * 0.3).toFixed(0)));
+    const tr = TERROIRS[curArea];
+    if (tr && tr.t !== undefined) { sim.t = tr.t; sim.h = tr.h; sim.l = tr.l; }
   }
   updateHardwarePlaque(sim.t, sim.h, sim.l); updateScadaPlotly(sim.t, sim.h, sim.l);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   renderCellarLots(); renderRealVineyards();
+  if (typeof window.startSatelliteLiveLoop === "function") {
+    window.startSatelliteLiveLoop(() => curArea, onAreaTerroirChange);
+  }
+  window.addEventListener("satellitesUpdated", () => {
+    if (curArea !== "wokwi_esp32") {
+      const tr = TERROIRS[curArea];
+      if (tr && sim.mode === "normal") { sim.t = tr.t; sim.h = tr.h; sim.l = tr.l; updateHardwarePlaque(sim.t, sim.h, sim.l); updateScadaPlotly(sim.t, sim.h, sim.l); }
+    }
+  });
   const wineEl = document.getElementById("dropdown-wine-preset"), areaEl = document.getElementById("dropdown-area-terroir");
   if (wineEl) ["change", "input"].forEach(ev => wineEl.addEventListener(ev, e => onWinePresetChange(e.target.value)));
   if (areaEl) ["change", "input"].forEach(ev => areaEl.addEventListener(ev, e => onAreaTerroirChange(e.target.value)));
