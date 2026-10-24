@@ -81,9 +81,13 @@
     }
 
     const ledG = document.getElementById("led-green"), ledR = document.getElementById("led-red"), ledB = document.getElementById("led-blue");
+    const lblG = document.getElementById("led-green-lbl"), lblR = document.getElementById("led-red-lbl"), lblB = document.getElementById("led-blue-lbl");
     if (ledG) ledG.className = st.ok ? "led-indicator led-green-on" : "led-indicator led-green-off";
+    if (lblG) lblG.textContent = st.ok ? "D5: ON" : "D5: OFF";
     if (ledR) ledR.className = st.ok ? "led-indicator led-red-off" : (isCrit ? "led-indicator led-red-on led-red-blinking" : "led-indicator led-red-on");
+    if (lblR) lblR.textContent = st.ok ? "D18: OFF" : (isCrit ? "D18: PERIGO!" : "D18: ALERTA");
     if (ledB) ledB.className = !isWokwi ? "led-indicator led-blue-blinking" : "led-indicator led-blue-off";
+    if (lblB) lblB.textContent = !isWokwi ? "D2: SATÉLITE" : "D2: OFF";
     const bzIcon = document.getElementById("buzzer-status-icon"), bzTxt = document.getElementById("buzzer-status-text");
     if (bzIcon) bzIcon.textContent = st.ok ? "🔇" : (isCrit ? "🚨" : "🔊");
     if (bzTxt) bzTxt.textContent = st.ok ? "D4 Mudo" : (isCrit ? "D4 PERIGO CRÍTICO!" : ("D4 " + (st.lbl.replace("ALERTA ", "") || "Alerta")));

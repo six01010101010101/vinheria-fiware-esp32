@@ -168,7 +168,13 @@ void readAndPubSensors() {
   }
   bool moved = (fabs(t - hwTemp) >= 0.2f) || (fabs(h - hwHum) >= 0.5f) || (fabs(l - hwLum) >= 1.0f);
   if (moved) { hwTemp = t; hwHum = h; hwLum = l; remoteSync = false; }
-  if (!remoteSync) { validTemp = hwTemp; validHum = hwHum; validLum = hwLum; }
+  if (!remoteSync) {
+    validTemp = hwTemp; validHum = hwHum; validLum = hwLum;
+    if (validTemp > 24.0f || validTemp < 5.0f) curMode = "temp";
+    else if (validHum < 45.0f || validHum > 88.0f) curMode = "hum";
+    else if (validLum > 65.0f) curMode = "lum";
+    else curMode = "normal";
+  }
   if (moved || (now - lastPubMs >= 1500)) {
     lastPubMs = now;
     String rFlag = remoteSync ? "|r|1" : "|r|0";

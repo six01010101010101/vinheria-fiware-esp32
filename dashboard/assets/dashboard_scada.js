@@ -77,15 +77,22 @@ function updateHardwarePlaque(t, h, l, userTriggered = false) {
   if (!window.WokwiLCD) return;
   const res = window.WokwiLCD.renderWokwiTwin({ t, h, l, preset: pr, terroir: tr, isWokwi: curArea === "wokwi_esp32", mode: sim.mode });
   if (res && res.score !== undefined) sim.score = res.score;
-  const bzIcon = document.getElementById("buzzer-status-icon"), bzTxt = document.getElementById("buzzer-status-text");
-  if (res?.st?.ok) {
-    if (bzIcon) bzIcon.textContent = "🔇"; if (bzTxt) bzTxt.textContent = "D4 Mudo (Equilíbrio)";
-    if (userTriggered) window.ArcadeAudio?.playPowerup?.();
-  } else {
-    const isCrit = (res?.score < 70) || sim.mode === "multi" || (res?.st?.lbl?.includes("CRÍTICO"));
-    if (bzIcon) bzIcon.textContent = isCrit ? "🚨" : "🔊";
-    if (bzTxt) bzTxt.textContent = isCrit ? "D4 PERIGO CRÍTICO!" : ("D4 " + (res?.st?.lbl?.replace("ALERTA ", "") || "Alerta"));
-    if (userTriggered) { if (isCrit) window.ArcadeAudio?.playCritical?.(); else window.ArcadeAudio?.playAlert?.(); }
+  const isOk = res?.st?.ok;
+  let cmd = "normal";
+  if (!isOk) {
+    if (res?.score < 70 || sim.mode === "multi" || res?.st?.lbl?.includes("CRÍTICO")) cmd = "multi";
+    else if (res?.st?.lbl?.includes("TÉRMICO")) cmd = "temp";
+    else if (res?.st?.lbl?.includes("HIGRO")) cmd = "hum";
+    else cmd = "lum";
+  }
+  const bge = document.getElementById("mqtt-cmd-badge");
+  if (bge) bge.innerHTML = `<span class="status-dot"></span>MQTT /cmd: ${cmd.toUpperCase()}`;
+  if (userTriggered) {
+    if (isOk) window.ArcadeAudio?.playPowerup?.();
+    else if (cmd === "multi") window.ArcadeAudio?.playCritical?.();
+    else window.ArcadeAudio?.playAlert?.();
+    fetch("/api/v1/command", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ command: cmd }) }).catch(() => {});
+    fetch("/api/v1/telemetry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ temperature: t, humidity: h, luminosity: l, device_id: "vine001", alert_mode: cmd }) }).catch(() => {});
   }
 }
 
@@ -106,7 +113,6 @@ function onWinePresetChange(presetKey) {
     const tr = TERROIRS[curArea] || {}; sim.t = tr.t; sim.h = tr.h; sim.l = tr.l;
   }
   updateHardwarePlaque(sim.t, sim.h, sim.l, true); initScadaPlotly(); renderRealVineyards(); renderCellarLots(); syncCloudConfig();
-  fetch("/api/v1/telemetry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ temperature: sim.t, humidity: sim.h, luminosity: sim.l, device_id: "vine001" }) }).catch(() => {});
 }
 
 function onThresholdInputChange() {
@@ -131,7 +137,6 @@ function onAreaTerroirChange(areaKey) {
     const vals = getScenarioValues(sim.mode, curPr); sim.t = vals[0]; sim.h = vals[1]; sim.l = vals[2];
   }
   updateHardwarePlaque(sim.t, sim.h, sim.l, true); initScadaPlotly(); renderRealVineyards(); renderCellarLots(); syncCloudConfig();
-  fetch("/api/v1/telemetry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ temperature: sim.t, humidity: sim.h, luminosity: sim.l, device_id: "vine001" }) }).catch(() => {});
 }
 
 function renderRealVineyards() { if (typeof window.renderRealVineyards === "function") window.renderRealVineyards(curArea, onAreaTerroirChange); }
@@ -146,10 +151,6 @@ function applyScenario(sc) {
   sim.t = d[0]; sim.h = d[1]; sim.l = d[2]; sim.mode = sc;
   updateHardwarePlaque(sim.t, sim.h, sim.l, true); updateScadaPlotly(sim.t, sim.h, sim.l); renderCellarLots();
   document.querySelectorAll(".sc-btn").forEach(b => b.classList.toggle("active", b.dataset.sc === sc));
-  const bge = document.getElementById("mqtt-cmd-badge");
-  fetch("/api/v1/command", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ command: sc }) })
-    .then(r => r.json()).then(res => { if (bge) bge.innerHTML = `<span class="status-dot"></span>MQTT: ${sc.toUpperCase()} (${res.ok ? "200" : "SYNC"})`; }).catch(() => {});
-  fetch("/api/v1/telemetry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ temperature: sim.t, humidity: sim.h, luminosity: sim.l, device_id: "vine001", alert_mode: sc }) }).catch(() => {});
 }
 
 async function fetchLiveTicker() {
@@ -159,7 +160,9 @@ async function fetchLiveTicker() {
       const res = await fetch("/api/v1/status", { cache: "no-store" });
       if (res.ok) {
         const d = await res.json();
-        if (d.telemetry) { sim.t = d.telemetry.temperature_c; sim.h = d.telemetry.humidity_pct; sim.l = d.telemetry.luminosity_pct; }
+        if (d.meta?.live && d.telemetry) {
+          sim.t = d.telemetry.temperature_c; sim.h = d.telemetry.humidity_pct; sim.l = d.telemetry.luminosity_pct;
+        }
       }
     } catch (_) {}
   } else {
