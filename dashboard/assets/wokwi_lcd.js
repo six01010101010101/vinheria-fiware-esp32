@@ -68,24 +68,25 @@
       crtTag.style.color = st.ok ? "#4ade80" : "#f87171";
     }
 
+    const isCrit = (score < 70) || (st.lbl && st.lbl.includes("CRÍTICO"));
     const crtApogee = document.getElementById("crt-apogee-val");
     if (crtApogee) {
-      crtApogee.textContent = `${score}% [${st.ok ? "PRESERVADO" : "ANOMALIA"}]`;
+      crtApogee.textContent = `${score}% [${st.ok ? "PRESERVADO" : (isCrit ? "PERIGO TOTAL" : "ANOMALIA")}]`;
       crtApogee.className = st.ok ? "text-success fw-bold" : "text-danger fw-bold";
     }
 
     const crt = document.getElementById("green-crt-text");
     if (crt) {
-      crt.textContent = `+--------------------------------+\n| TERROIR: ${(terroir.name || "ESP32 Wokwi").padEnd(20, " ").substring(0, 20)}|\n| VINHO: ${(preset.wine || "Vinho Tinto").padEnd(23, " ").substring(0, 23)}|\n| T: ${t.toFixed(1).padStart(4, " ")}°C  U: ${h.toFixed(0).padStart(2, " ")}%  L: ${l.toFixed(0).padStart(2, " ")}%       |\n| STATUS: ${st.lbl.padEnd(23, " ")}|\n| APOGEU: ${score}% [${st.ok ? "PRESERVADO" : "ANOMALIA"}]       |\n+--------------------------------+`;
+      crt.textContent = `+--------------------------------+\n| TERROIR: ${(terroir.name || "ESP32 Wokwi").padEnd(20, " ").substring(0, 20)}|\n| VINHO: ${(preset.wine || "Vinho Tinto").padEnd(23, " ").substring(0, 23)}|\n| T: ${t.toFixed(1).padStart(4, " ")}°C  U: ${h.toFixed(0).padStart(2, " ")}%  L: ${l.toFixed(0).padStart(2, " ")}%       |\n| STATUS: ${st.lbl.padEnd(23, " ")}|\n| APOGEU: ${score}% [${st.ok ? "PRESERVADO" : (isCrit ? "PERIGO TOTAL" : "ANOMALIA")}]       |\n+--------------------------------+`;
     }
 
     const ledG = document.getElementById("led-green"), ledR = document.getElementById("led-red"), ledB = document.getElementById("led-blue");
     if (ledG) ledG.className = st.ok ? "led-indicator led-green-on" : "led-indicator led-green-off";
-    if (ledR) ledR.className = st.ok ? "led-indicator led-red-off" : "led-indicator led-red-on";
+    if (ledR) ledR.className = st.ok ? "led-indicator led-red-off" : (isCrit ? "led-indicator led-red-on led-red-blinking" : "led-indicator led-red-on");
     if (ledB) ledB.className = !isWokwi ? "led-indicator led-blue-blinking" : "led-indicator led-blue-off";
     const bzIcon = document.getElementById("buzzer-status-icon"), bzTxt = document.getElementById("buzzer-status-text");
-    if (bzIcon) bzIcon.textContent = st.ok ? "🔇" : "🔊";
-    if (bzTxt) bzTxt.textContent = st.ok ? "D4 Mudo" : ("D4 " + (st.lbl.replace("ALERTA ", "") || "Alerta"));
+    if (bzIcon) bzIcon.textContent = st.ok ? "🔇" : (isCrit ? "🚨" : "🔊");
+    if (bzTxt) bzTxt.textContent = st.ok ? "D4 Mudo" : (isCrit ? "D4 PERIGO CRÍTICO!" : ("D4 " + (st.lbl.replace("ALERTA ", "") || "Alerta")));
 
     return { score, st, l1Text, l2Text };
   }

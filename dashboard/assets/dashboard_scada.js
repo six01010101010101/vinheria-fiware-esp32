@@ -24,8 +24,8 @@ function updateChartBadges(t, h, l, pr) {
 
 function initScadaPlotly() {
   const now = new Date(); hTime = []; hT = []; hH = []; hL = [];
-  for (let i = 12; i >= 0; i--) {
-    hTime.push(new Date(now - i * 2000).toLocaleTimeString());
+  for (let i = 14; i >= 0; i--) {
+    hTime.push(new Date(now - i * 1800).toLocaleTimeString());
     hT.push(+(sim.t + (Math.random() - 0.5) * 0.25).toFixed(1));
     hH.push(+(sim.h + (Math.random() - 0.5) * 0.8).toFixed(0));
     hL.push(+(sim.l + (Math.random() - 0.5) * 0.6).toFixed(0));
@@ -34,41 +34,58 @@ function initScadaPlotly() {
   const p = { bg: isDark ? "#121215" : "#ffffff", text: isDark ? "#f4f4f5" : "#111827", grid: isDark ? "#27272a" : "#e5e7eb" };
   const pr = PRESETS[curPr] || { tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMin: 0, lMax: 25 };
   const makeFig = (id, stroke, fill, unit, vals, low, high, yRng) => {
-    Plotly.newPlot(id, [{
+    const el = document.getElementById(id);
+    if (!el || typeof Plotly === "undefined") return;
+    const data = [{
       x: hTime, y: vals, type: "scatter", mode: "lines", fill: "tozeroy", fillcolor: fill,
-      line: { color: stroke, width: 2.5, shape: "spline", smoothing: 1.1 },
+      line: { color: stroke, width: 2.8, shape: "spline", smoothing: 1.2 },
       hovertemplate: `<b>%{y:.1f} ${unit}</b><br><span style="font-size:0.68rem;color:#a1a1aa">%{x}</span><extra></extra>`
-    }], {
+    }];
+    const layout = {
       paper_bgcolor: p.bg, plot_bgcolor: p.bg, font: { color: p.text, family: "Plus Jakarta Sans", size: 10 },
-      margin: { t: 15, r: 15, l: 36, b: 26 },
-      xaxis: { gridcolor: p.grid, zeroline: false, nticks: 5, tickangle: 0, showline: false },
+      margin: { t: 15, r: 15, l: 36, b: 26 }, xaxis: { gridcolor: p.grid, zeroline: false, nticks: 5, tickangle: 0, showline: false },
       yaxis: { gridcolor: p.grid, range: yRng, zeroline: false, nticks: 5 },
       shapes: [
         { type: "rect", xref: "paper", x0: 0, x1: 1, y0: low, y1: high, fillcolor: "rgba(34,197,94,0.14)", line: { width: 0 } },
         { type: "line", xref: "paper", x0: 0, x1: 1, y0: high, line: { color: "rgba(34,197,94,0.55)", width: 1.2, dash: "dot" } },
         { type: "line", xref: "paper", x0: 0, x1: 1, y0: low, line: { color: "rgba(34,197,94,0.55)", width: 1.2, dash: "dot" } }
       ]
-    }, { responsive: true, displayModeBar: false });
+    };
+    try { Plotly.react(id, data, layout, { responsive: true, displayModeBar: false }); } catch (_) {}
   };
-  makeFig("graph-temperature", "#ef4444", "rgba(239,68,68,0.10)", "°C", hT, pr.tMin, pr.tMax, [Math.min(2, pr.tMin - 4), Math.max(28, pr.tMax + 4)]);
-  makeFig("graph-humidity", "#0284c7", "rgba(2,132,199,0.10)", "%", hH, pr.hMin, pr.hMax, [Math.min(20, pr.hMin - 10), Math.max(98, pr.hMax + 10)]);
-  makeFig("graph-luminosity", "#d4af62", "rgba(212,175,98,0.10)", "%", hL, pr.lMin, pr.lMax, [0, Math.max(50, pr.lMax + 25)]);
+  makeFig("graph-temperature", "#ef4444", "rgba(239,68,68,0.12)", "°C", hT, pr.tMin, pr.tMax, [Math.min(0, pr.tMin - 4), Math.max(30, pr.tMax + 6)]);
+  makeFig("graph-humidity", "#0284c7", "rgba(2,132,199,0.12)", "%", hH, pr.hMin, pr.hMax, [Math.min(15, pr.hMin - 15), 100]);
+  makeFig("graph-luminosity", "#d4af62", "rgba(212,175,98,0.12)", "%", hL, pr.lMin, pr.lMax, [0, Math.max(50, pr.lMax + 40)]);
   updateChartBadges(sim.t, sim.h, sim.l, pr);
 }
 
 function updateScadaPlotly(t, h, l) {
   hTime.push(new Date().toLocaleTimeString()); hT.push(t); hH.push(h); hL.push(l);
   if (hTime.length > 20) { hTime.shift(); hT.shift(); hH.shift(); hL.shift(); }
-  Plotly.update("graph-temperature", { x: [hTime], y: [hT] }); Plotly.update("graph-humidity", { x: [hTime], y: [hH] }); Plotly.update("graph-luminosity", { x: [hTime], y: [hL] });
-  updateChartBadges(t, h, l);
+  const pr = PRESETS[curPr] || {};
+  ["graph-temperature", "graph-humidity", "graph-luminosity"].forEach((id, idx) => {
+    const el = document.getElementById(id);
+    if (!el || typeof Plotly === "undefined" || !el._fullLayout) return;
+    try { Plotly.update(el, { x: [hTime], y: [[hT, hH, hL][idx]] }); } catch (_) { initScadaPlotly(); }
+  });
+  updateChartBadges(t, h, l, pr);
 }
 
-function updateHardwarePlaque(t, h, l) {
+function updateHardwarePlaque(t, h, l, userTriggered = false) {
   const pr = PRESETS[curPr] || { wine: "Vinho Tinto", tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMin: 0, lMax: 25 };
   const tr = TERROIRS[curArea] || { name: "ESP32 Wokwi", flag: "📟", country: "Wokwi" };
-  if (window.WokwiLCD) {
-    const res = window.WokwiLCD.renderWokwiTwin({ t, h, l, preset: pr, terroir: tr, isWokwi: curArea === "wokwi_esp32", mode: sim.mode });
-    if (res && res.score !== undefined) sim.score = res.score;
+  if (!window.WokwiLCD) return;
+  const res = window.WokwiLCD.renderWokwiTwin({ t, h, l, preset: pr, terroir: tr, isWokwi: curArea === "wokwi_esp32", mode: sim.mode });
+  if (res && res.score !== undefined) sim.score = res.score;
+  const bzIcon = document.getElementById("buzzer-status-icon"), bzTxt = document.getElementById("buzzer-status-text");
+  if (res?.st?.ok) {
+    if (bzIcon) bzIcon.textContent = "🔇"; if (bzTxt) bzTxt.textContent = "D4 Mudo (Equilíbrio)";
+    if (userTriggered) window.ArcadeAudio?.playPowerup?.();
+  } else {
+    const isCrit = (res?.score < 70) || sim.mode === "multi" || (res?.st?.lbl?.includes("CRÍTICO"));
+    if (bzIcon) bzIcon.textContent = isCrit ? "🚨" : "🔊";
+    if (bzTxt) bzTxt.textContent = isCrit ? "D4 PERIGO CRÍTICO!" : ("D4 " + (res?.st?.lbl?.replace("ALERTA ", "") || "Alerta"));
+    if (userTriggered) { if (isCrit) window.ArcadeAudio?.playCritical?.(); else window.ArcadeAudio?.playAlert?.(); }
   }
 }
 
@@ -88,9 +105,7 @@ function onWinePresetChange(presetKey) {
   } else {
     const tr = TERROIRS[curArea] || {}; sim.t = tr.t; sim.h = tr.h; sim.l = tr.l;
   }
-  const ok = (sim.t >= p.tMin && sim.t <= p.tMax && sim.h >= p.hMin && sim.h <= p.hMax && sim.l <= p.lMax);
-  if (window.ArcadeAudio) { if (ok) window.ArcadeAudio.playClick(); else window.ArcadeAudio.playAlert(); }
-  updateHardwarePlaque(sim.t, sim.h, sim.l); initScadaPlotly(); renderRealVineyards(); renderCellarLots(); syncCloudConfig();
+  updateHardwarePlaque(sim.t, sim.h, sim.l, true); initScadaPlotly(); renderRealVineyards(); renderCellarLots(); syncCloudConfig();
   fetch("/api/v1/telemetry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ temperature: sim.t, humidity: sim.h, luminosity: sim.l, device_id: "vine001" }) }).catch(() => {});
 }
 
@@ -100,7 +115,7 @@ function onThresholdInputChange() {
   p.tMin = getVal("trigger-temp-min", p.tMin); p.tMax = getVal("trigger-temp-max", p.tMax);
   p.hMin = getVal("trigger-hum-min", p.hMin); p.hMax = getVal("trigger-hum-max", p.hMax);
   p.lMin = getVal("trigger-lum-min", p.lMin); p.lMax = getVal("trigger-lum-max", p.lMax);
-  updateHardwarePlaque(sim.t, sim.h, sim.l); initScadaPlotly(); renderCellarLots(); syncCloudConfig();
+  updateHardwarePlaque(sim.t, sim.h, sim.l, true); initScadaPlotly(); renderCellarLots(); syncCloudConfig();
 }
 
 function onAreaTerroirChange(areaKey) {
@@ -115,20 +130,12 @@ function onAreaTerroirChange(areaKey) {
   } else {
     const vals = getScenarioValues(sim.mode, curPr); sim.t = vals[0]; sim.h = vals[1]; sim.l = vals[2];
   }
-  const ok = (sim.t >= p.tMin && sim.t <= p.tMax && sim.h >= p.hMin && sim.h <= p.hMax && sim.l <= p.lMax);
-  if (window.ArcadeAudio) { if (ok) window.ArcadeAudio.playClick(); else window.ArcadeAudio.playAlert(); }
-  updateHardwarePlaque(sim.t, sim.h, sim.l); initScadaPlotly(); renderRealVineyards(); renderCellarLots(); syncCloudConfig();
+  updateHardwarePlaque(sim.t, sim.h, sim.l, true); initScadaPlotly(); renderRealVineyards(); renderCellarLots(); syncCloudConfig();
   fetch("/api/v1/telemetry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ temperature: sim.t, humidity: sim.h, luminosity: sim.l, device_id: "vine001" }) }).catch(() => {});
 }
 
-function renderRealVineyards() {
-  if (typeof window.renderRealVineyards === "function") window.renderRealVineyards(curArea, onAreaTerroirChange);
-}
-
-function renderCellarLots() {
-  if (typeof window.renderCellarLots === "function") window.renderCellarLots(curPr, sim.t, sim.h, sim.l, onWinePresetChange);
-}
-
+function renderRealVineyards() { if (typeof window.renderRealVineyards === "function") window.renderRealVineyards(curArea, onAreaTerroirChange); }
+function renderCellarLots() { if (typeof window.renderCellarLots === "function") window.renderCellarLots(curPr, sim.t, sim.h, sim.l, onWinePresetChange); }
 function syncCloudConfig() {
   const tr = TERROIRS[curArea] || {};
   fetch("/api/v1/cloud/firebase/sync", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ device_id: "vine001", preset_key: curPr, terroir: { id: curArea, name: tr.name, country: tr.country } }) }).catch(() => {});
@@ -137,13 +144,8 @@ function syncCloudConfig() {
 function applyScenario(sc) {
   const d = getScenarioValues(sc, curPr);
   sim.t = d[0]; sim.h = d[1]; sim.l = d[2]; sim.mode = sc;
-  if (sc === "normal") window.ArcadeAudio?.playPowerup?.(); else window.ArcadeAudio?.playAlert?.();
-  updateHardwarePlaque(sim.t, sim.h, sim.l); updateScadaPlotly(sim.t, sim.h, sim.l); renderCellarLots();
+  updateHardwarePlaque(sim.t, sim.h, sim.l, true); updateScadaPlotly(sim.t, sim.h, sim.l); renderCellarLots();
   document.querySelectorAll(".sc-btn").forEach(b => b.classList.toggle("active", b.dataset.sc === sc));
-  const bzIcon = document.getElementById("buzzer-status-icon"), bzTxt = document.getElementById("buzzer-status-text");
-  const bzMap = { normal:["🔇","D4 Mudo"], temp:["🔊","D4 Bip Temp"], hum:["🔊","D4 Pulso Higro"], lum:["🔊","D4 Alerta LDR"], multi:["🚨","D4 Sirene"] };
-  const bz = bzMap[sc] || bzMap.normal;
-  if (bzIcon) bzIcon.textContent = bz[0]; if (bzTxt) bzTxt.textContent = bz[1];
   const bge = document.getElementById("mqtt-cmd-badge");
   fetch("/api/v1/command", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ command: sc }) })
     .then(r => r.json()).then(res => { if (bge) bge.innerHTML = `<span class="status-dot"></span>MQTT: ${sc.toUpperCase()} (${res.ok ? "200" : "SYNC"})`; }).catch(() => {});
@@ -164,7 +166,7 @@ async function fetchLiveTicker() {
     const tr = TERROIRS[curArea];
     if (tr && tr.t !== undefined) { sim.t = tr.t; sim.h = tr.h; sim.l = tr.l; }
   }
-  updateHardwarePlaque(sim.t, sim.h, sim.l); updateScadaPlotly(sim.t, sim.h, sim.l); renderCellarLots();
+  updateHardwarePlaque(sim.t, sim.h, sim.l, false); updateScadaPlotly(sim.t, sim.h, sim.l); renderCellarLots();
 }
 
 function bootScada() {
@@ -172,7 +174,7 @@ function bootScada() {
   window.startSatelliteLiveLoop?.(() => curArea, onAreaTerroirChange);
   window.addEventListener("satellitesUpdated", () => {
     const tr = TERROIRS[curArea];
-    if (curArea !== "wokwi_esp32" && tr && sim.mode === "normal") { sim.t = tr.t; sim.h = tr.h; sim.l = tr.l; updateHardwarePlaque(sim.t, sim.h, sim.l); updateScadaPlotly(sim.t, sim.h, sim.l); renderCellarLots(); }
+    if (curArea !== "wokwi_esp32" && tr && sim.mode === "normal") { sim.t = tr.t; sim.h = tr.h; sim.l = tr.l; updateHardwarePlaque(sim.t, sim.h, sim.l, false); updateScadaPlotly(sim.t, sim.h, sim.l); renderCellarLots(); }
   });
   const wineEl = document.getElementById("dropdown-wine-preset"), areaEl = document.getElementById("dropdown-area-terroir");
   if (wineEl) ["change", "input"].forEach(ev => wineEl.addEventListener(ev, e => onWinePresetChange(e.target.value)));
@@ -184,9 +186,10 @@ function bootScada() {
   document.querySelectorAll(".wine-pill-btn").forEach(b => b.addEventListener("click", () => onWinePresetChange(b.dataset.wine)));
   document.querySelectorAll(".sc-btn").forEach(b => b.addEventListener("click", () => applyScenario(b.dataset.sc)));
   window.addEventListener("themeChanged", () => { if (typeof initScadaPlotly === "function") initScadaPlotly(); });
+  window.addEventListener("resize", () => { ["graph-temperature", "graph-humidity", "graph-luminosity"].forEach(id => { try { Plotly.Plots.resize(document.getElementById(id)); } catch (_) {} }); });
   if (typeof Plotly !== "undefined") initScadaPlotly();
   else { const it = setInterval(() => { if (typeof Plotly !== "undefined") { clearInterval(it); initScadaPlotly(); } }, 150); }
-  updateHardwarePlaque(15.6, 68, 12); setInterval(fetchLiveTicker, 1800);
+  updateHardwarePlaque(15.6, 68, 12, false); setInterval(fetchLiveTicker, 1800);
 }
 
 if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", bootScada); } else { bootScada(); }

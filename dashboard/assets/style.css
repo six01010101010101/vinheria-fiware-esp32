@@ -125,7 +125,9 @@ h1, h2, h3, h4, .section-title { font-family: "Plus Jakarta Sans", sans-serif; f
 .led-red-on { background: #ef4444; box-shadow: 0 0 12px #ef4444, 0 0 4px #fca5a5; border: 2px solid #fca5a5; }
 .led-red-off { background: #27272a; border: 2px solid #3f3f46; }
 @keyframes pulseBlue { 0%, 100% { background: #0284c7; box-shadow: 0 0 12px #0284c7; } 50% { background: #7dd3fc; box-shadow: 0 0 4px #0284c7; } }
+@keyframes pulseRed { 0%, 100% { background: #ef4444; box-shadow: 0 0 16px #ef4444; } 50% { background: #7f1d1d; box-shadow: 0 0 4px #ef4444; } }
 .led-blue-blinking { border: 2px solid #bae6fd; animation: pulseBlue 0.65s infinite ease-in-out; }
+.led-red-blinking { animation: pulseRed 0.35s infinite ease-in-out; }
 
 /* Barril e Tampa LCD 3D — Layout Estilo Hardware Wokwi */
 .proto-thumb-box {

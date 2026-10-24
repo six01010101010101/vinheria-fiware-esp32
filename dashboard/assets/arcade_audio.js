@@ -1,14 +1,14 @@
 /**
  * Motor Sonoro Arcade & Fliperama em 8-bits — Vinheria Agnello & Wokwi
  * Sintetizador Web Audio API NATIVO (Zero Dependências Externas, Zero Latência).
- * Efeitos de Moeda do Mario, Cano/Warp, 1-UP/Power-Up e Blip nos Inputs.
+ * Efeitos de Moeda do Mario, Cano/Warp, 1-UP/Power-Up, Blip e Alarmes Enológicos.
  */
 
 class ArcadeAudioEngine {
   constructor() {
     this.ctx = null;
     this.enabled = true;
-    this.volume = 0.08;
+    this.volume = 0.09;
   }
 
   ensureContext() {
@@ -73,14 +73,24 @@ class ArcadeAudioEngine {
     this.playTone(880, 0.04, "square");
   }
 
-  // 5. Alerta de Anomalia Estilo Fliperama
+  // 5. Alerta de Anomalia Térmica / Higro Estilo Fliperama
   playAlert() {
-    this.playTone(320, 0.15, "sawtooth", 120);
-    this.playTone(280, 0.20, "sawtooth", 90, 0.12);
+    this.ensureContext();
+    this.playTone(480, 0.14, "sawtooth", 160);
+    this.playTone(360, 0.22, "sawtooth", 120, 0.12);
+  }
+
+  // 6. Sirene de Perigo Crítico / Múltipla Anomalia (Bowser Castle Alert)
+  playCritical() {
+    this.ensureContext();
+    const siren = [880, 1175, 1480, 1760, 1480, 1175];
+    siren.forEach((freq, idx) => {
+      this.playTone(freq, 0.09, "sawtooth", freq * 0.85, idx * 0.08);
+    });
   }
 
   playClick() {
-    this.playTone(987.77, 0.05, 'square');
+    this.playTone(987.77, 0.05, "square");
   }
 
   toggle() {
@@ -97,12 +107,11 @@ window.ArcadeAudio = window.arcadeAudio;
 document.addEventListener("DOMContentLoaded", () => {
   const audio = window.arcadeAudio;
 
-  // Botões -> Moeda Mario
   document.addEventListener("click", (e) => {
     const card = e.target.closest(".vineyard-card");
-    if (card) { audio.ensureContext(); audio.playPowerup(); return; }
+    if (card) { audio.ensureContext(); return; }
     const sc = e.target.closest(".sc-btn");
-    if (sc) { audio.ensureContext(); audio.playAlert(); return; }
+    if (sc) { audio.ensureContext(); return; }
     const target = e.target.closest("button, .btn, .btn-portal, a.btn, a.btn-portal, .theme-btn");
     if (target) {
       audio.ensureContext();
@@ -110,7 +119,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Selects & Dropdowns -> Warp
   document.addEventListener("change", (e) => {
     if (e.target.matches("select, .form-select, input[type='radio'], input[type='checkbox']")) {
       audio.ensureContext();
@@ -118,7 +126,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Caixas de Texto & Inputs -> Blip suave
   document.addEventListener("focusin", (e) => {
     if (e.target.matches("input[type='text'], input[type='number'], input[type='search'], textarea")) {
       audio.ensureContext();
