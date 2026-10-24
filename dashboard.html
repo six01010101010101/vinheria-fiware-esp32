@@ -108,14 +108,19 @@
           </div>
         </div>
         <div class="col-lg-5 col-md-12">
-          <div class="green-crt-frame">
-            <div class="d-flex justify-content-between align-items-center mb-1"><span class="crt-tag">📟 ESP32 LCD 16x2 HD44780 (I2C 0x27)</span><span id="crt-status-tag" class="crt-tag">STATUS: ATIVO</span></div>
-            <pre id="green-crt-text" class="green-crt-display">+--------------------------------+
-| VINHERIA AGNELLO - CAVA ATIVA   |
-| T:15.5°C  U:68%  L:12%         |
-| STATUS: CAVA PRESERVADA        |
-| APOGEU: 100% [PRESERVADO]       |
-+--------------------------------+</pre>
+          <div class="green-crt-frame h-100 d-flex flex-column justify-content-between">
+            <div class="d-flex justify-content-between align-items-center mb-1"><span class="crt-tag"><span class="status-dot"></span>ESP32 LCD 16x2 (0x27)</span><span id="crt-status-tag" class="crt-tag text-success">STATUS: ATIVO</span></div>
+            <div class="wokwi-lcd-bezel my-1"><div class="wokwi-lcd-screen">
+              <div id="wokwi-lcd-l1" class="wokwi-lcd-line">🪙 15.5°C   💧 68% *</div>
+              <div id="wokwi-lcd-l2" class="wokwi-lcd-line">⭐ 12%  TINTO 1UP:100%</div>
+            </div></div>
+            <div class="crt-telemetry-hud p-2 rounded bg-black bg-opacity-40 border border-success border-opacity-25 small font-monospace">
+              <div class="d-flex justify-content-between mb-1"><span class="text-secondary">TERROIR:</span><span id="crt-terroir-val" class="text-truncate text-wine fw-bold ms-2">📟 ESP32 Wokwi</span></div>
+              <div class="d-flex justify-content-between mb-1"><span class="text-secondary">VINHO:</span><span id="crt-wine-val" class="text-truncate text-light fw-bold ms-2">🍷 Vinho Tinto Grand Cru</span></div>
+              <div class="d-flex justify-content-between mb-1"><span class="text-secondary">ESTADO:</span><span id="crt-status-val" class="text-success fw-bold">🟢 CAVA PRESERVADA</span></div>
+              <div class="d-flex justify-content-between align-items-center"><span class="text-secondary">APOGEU:</span><span id="crt-apogee-val" class="text-success fw-bold">100% [PRESERVADO]</span></div>
+            </div>
+            <pre id="green-crt-text" style="display:none;"></pre>
           </div>
         </div>
         <div class="col-lg-4 col-md-12">
@@ -182,6 +187,7 @@
   <script src="dashboard/assets/ecosystem.js"></script>
   <script src="dashboard/assets/theme.js"></script>
   <script src="dashboard/assets/satellite_terroirs.js"></script>
+  <script src="dashboard/assets/wokwi_lcd.js"></script>
   <script src="dashboard/assets/dashboard_scada.js"></script>
 </body>
 </html>

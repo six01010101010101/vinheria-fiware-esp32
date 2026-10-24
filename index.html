@@ -52,15 +52,20 @@
           </div>
           <div class="green-crt-frame" style="padding:12px;background:#031408;border:1px solid #14532d;border-radius:10px;box-shadow:inset 0 0 18px rgba(34,197,94,0.15);">
             <div style="display:flex;justify-content:space-between;font-size:0.70rem;color:#4ade80;font-family:'Courier New',monospace;margin-bottom:6px;font-weight:bold;">
-              <span>📟 ESP32 LCD 16x2 HD44780 (I2C 0x27)</span>
+              <span>📟 ESP32 LCD 16x2 HD44780 (0x27)</span>
               <span id="crt-status-pill">STATUS: ATIVO</span>
             </div>
-            <pre id="green-crt-text" style="margin:0;color:#22c55e;font-family:'Courier New',monospace;font-size:0.86rem;line-height:1.4;white-space:pre;text-shadow:0 0 6px rgba(34,197,94,0.45);">+--------------------------------+
-| VINHERIA AGNELLO - CAVA ATIVA  |
-| T: 15.5°C  U: 68%  L: 12%      |
-| STATUS: CAVA PRESERVADA        |
-| APOGEU: 100% [PRESERVADO]      |
-+--------------------------------+</pre>
+            <div class="wokwi-lcd-bezel" style="margin:6px 0;"><div class="wokwi-lcd-screen">
+              <div id="wokwi-lcd-l1" class="wokwi-lcd-line">🪙 15.5°C   💧 68% *</div>
+              <div id="wokwi-lcd-l2" class="wokwi-lcd-line">⭐ 12%  TINTO 1UP:100%</div>
+            </div></div>
+            <div class="crt-telemetry-hud" style="padding:6px 10px;background:rgba(0,0,0,0.4);border:1px solid rgba(34,197,94,0.25);border-radius:6px;font-family:monospace;font-size:0.70rem;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:2px;"><span style="color:#a1a1aa;">TERROIR:</span><span id="crt-terroir-val" style="color:#c5a059;font-weight:bold;">🍷 Adega Central Agnello</span></div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:2px;"><span style="color:#a1a1aa;">VINHO:</span><span id="crt-wine-val" style="color:#f4f4f5;font-weight:bold;">Château Margaux 2015</span></div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:2px;"><span style="color:#a1a1aa;">ESTADO:</span><span id="crt-status-val" style="color:#22c55e;font-weight:bold;">🟢 CAVA PRESERVADA</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#a1a1aa;">APOGEU:</span><span id="crt-apogee-val" style="color:#22c55e;font-weight:bold;">100% [PRESERVADO]</span></div>
+            </div>
+            <pre id="green-crt-text" style="display:none;"></pre>
           </div>
         </div>
         <div style="margin-top:20px;">
@@ -76,6 +81,7 @@
   </div>
 
   <script src="dashboard/assets/arcade_audio.js"></script>
+  <script src="dashboard/assets/wokwi_lcd.js"></script>
   <script src="dashboard/assets/portal.js"></script>
 </body>
 </html>

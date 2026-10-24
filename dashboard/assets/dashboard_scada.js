@@ -4,17 +4,11 @@ let curPr = "tinto", curArea = "wokwi_esp32", hTime = [], hT = [], hH = [], hL =
 let sim = { t: 15.6, h: 68.0, l: 12.0, score: 100, mode: "normal" };
 
 function calcHealthScore(t, h, l, pr) {
-  let sc = 100 - (t < pr.tMin || t > pr.tMax ? Math.min(45, Math.abs(t - (pr.tMin + pr.tMax) / 2) * 8) : 0);
-  sc -= (h < pr.hMin || h > pr.hMax ? Math.min(35, Math.abs(h - (pr.hMin + pr.hMax) / 2) * 2) : 0);
-  sc -= (l > pr.lMax ? Math.min(30, (l - pr.lMax) * 2) : 0);
-  return Math.max(15, Math.min(100, Math.round(sc)));
+  return window.WokwiLCD ? window.WokwiLCD.calcHealthScore(t, h, l, pr) : 100;
 }
 
 function evalStatus(t, h, l, pr, area) {
-  const ok = (t >= pr.tMin && t <= pr.tMax && h >= pr.hMin && h <= pr.hMax && l <= pr.lMax);
-  let lbl = area === "wokwi_esp32" ? "CAVA PRESERVADA" : "TERROIR ADEQUADO";
-  if (!ok) lbl = (t < pr.tMin || t > pr.tMax) ? "ALERTA TÉRMICO" : (h < pr.hMin || h > pr.hMax ? "ALERTA HIGRO" : "ALERTA LUZ/LDR");
-  return { ok, lbl };
+  return window.WokwiLCD ? window.WokwiLCD.evalStatus(t, h, l, pr, area === "wokwi_esp32") : { ok: true, lbl: "OK" };
 }
 
 function initScadaPlotly() {
@@ -65,21 +59,12 @@ function updateScadaPlotly(t, h, l) {
 function updateHardwarePlaque(t, h, l) {
   const pr = PRESETS[curPr] || { wine: "Vinho Tinto", tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMin: 0, lMax: 25 };
   const tr = TERROIRS[curArea] || { name: "ESP32 Wokwi", flag: "📟", country: "Wokwi" };
-  const score = calcHealthScore(t, h, l, pr), st = evalStatus(t, h, l, pr, curArea);
-  sim.score = score;
-  const t1 = document.getElementById("barrel-mini-t1"), t2 = document.getElementById("barrel-mini-t2");
-  if (t1) t1.textContent = `T:${t.toFixed(1)}°C U:${h.toFixed(0)}%`;
-  const prTag = pr.name ? pr.name.substring(6, 11).toUpperCase().trim() : "TINTO";
-  if (t2) t2.textContent = `${prTag} ${st.ok ? "1UP" : "ALR"}:${score}%`;
-  const crt = document.getElementById("green-crt-text");
-  const areaPad = `${tr.flag} ${tr.name}`.padEnd(20, " ").substring(0, 20), winePad = `${pr.wine}`.padEnd(23, " ").substring(0, 23);
-  if (crt) crt.textContent = `+--------------------------------+\n| TERROIR: ${areaPad}|\n| VINHO: ${winePad}|\n| T: ${t.toFixed(1).padStart(4," ")}°C  U: ${h.toFixed(0).padStart(2," ")}%  L: ${l.toFixed(0).padStart(2," ")}%       |\n| STATUS: ${st.lbl.padEnd(23, " ")}|\n| APOGEU: ${score}% [${st.ok ? "PRESERVADO" : "ANOMALIA"}]       |\n+--------------------------------+`;
-  const crtTag = document.getElementById("crt-status-tag");
-  if (crtTag) { crtTag.textContent = st.ok ? "STATUS: PRESERVADO" : "STATUS: ALERTA"; crtTag.style.color = st.ok ? "#4ade80" : "#f87171"; }
-  const ledG = document.getElementById("led-green"), ledR = document.getElementById("led-red"), ledB = document.getElementById("led-blue");
-  if (ledG) ledG.className = st.ok ? "led-indicator led-green-on" : "led-indicator led-green-off";
-  if (ledR) ledR.className = st.ok ? "led-indicator led-red-off" : "led-indicator led-red-on";
-  if (ledB) ledB.className = (curArea !== "wokwi_esp32") ? "led-indicator led-blue-blinking" : "led-indicator led-blue-off";
+  if (window.WokwiLCD) {
+    const res = window.WokwiLCD.renderWokwiTwin({
+      t, h, l, preset: pr, terroir: tr, isWokwi: curArea === "wokwi_esp32", mode: sim.mode
+    });
+    if (res && res.score !== undefined) sim.score = res.score;
+  }
 }
 
 function onWinePresetChange(presetKey) {

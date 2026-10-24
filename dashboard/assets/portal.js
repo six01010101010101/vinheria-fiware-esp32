@@ -67,16 +67,21 @@ async function fetchLiveStatus() {
     } catch (_) { backendApiActive = false; }
   }
   if (!tel) { tel = window.AgnelloAPI.getTelemetry(); score = tel.health_score; }
-  const t = (tel.temperature_c || 15.5).toFixed(1), h = (tel.humidity_pct || 68).toFixed(0), l = (tel.luminosity_pct || 12).toFixed(0);
-
-  const m1 = document.getElementById("barrel-mini-t1"), m2 = document.getElementById("barrel-mini-t2");
-  if (m1) m1.textContent = `T:${t}°C U:${h}%`;
-  if (m2) m2.textContent = `TINTO ${score >= 85 ? "1UP" : "ALR"}:${score}%`;
-
-  const crt = document.getElementById("green-crt-text");
-  if (crt) {
+  const tNum = parseFloat(tel.temperature_c || 15.5), hNum = parseFloat(tel.humidity_pct || 68), lNum = parseFloat(tel.luminosity_pct || 12);
+  if (window.WokwiLCD) {
+    window.WokwiLCD.renderWokwiTwin({
+      t: tNum, h: hNum, l: lNum,
+      preset: { name: "Vinho Tinto", wine: "Château Margaux 2015", tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMin: 0, lMax: 25 },
+      terroir: { name: "Adega Central Agnello", flag: "🍷", country: "Brasil" },
+      isWokwi: true, mode: score >= 85 ? "normal" : "alerta"
+    });
+  } else {
     const ok = score >= 85;
-    crt.textContent = `+--------------------------------+\n| VINHERIA AGNELLO - CAVA ATIVA  |\n| T: ${t}°C  U: ${h}%  L: ${l}%        |\n| STATUS: CAVA PRESERVADA        |\n| APOGEU: ${score}% [${ok ? "PRESERVADO" : "ANOMALIA"}]       |\n+--------------------------------+`;
+    const m1 = document.getElementById("barrel-mini-t1"), m2 = document.getElementById("barrel-mini-t2");
+    if (m1) m1.textContent = `T:${tNum.toFixed(1)}°C U:${hNum.toFixed(0)}%`;
+    if (m2) m2.textContent = `TINTO ${ok ? "1UP" : "ALR"}:${score}%`;
+    const crt = document.getElementById("green-crt-text");
+    if (crt) crt.textContent = `+--------------------------------+\n| VINHERIA AGNELLO - CAVA ATIVA  |\n| T: ${tNum.toFixed(1)}°C  U: ${hNum.toFixed(0)}%  L: ${lNum.toFixed(0)}%        |\n| STATUS: ${ok ? "CAVA PRESERVADA" : "ALERTA ENOLÓGICO"}        |\n| APOGEU: ${score}% [${ok ? "PRESERVADO" : "ANOMALIA"}]       |\n+--------------------------------+`;
   }
 }
 
