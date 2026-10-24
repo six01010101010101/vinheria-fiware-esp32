@@ -11,6 +11,14 @@ function evalStatus(t, h, l, pr, area) {
   return window.WokwiLCD ? window.WokwiLCD.evalStatus(t, h, l, pr, area === "wokwi_esp32") : { ok: true, lbl: "OK" };
 }
 
+function updateChartBadges(t, h, l, pr) {
+  const p = pr || PRESETS[curPr] || { tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMin: 0, lMax: 25 };
+  const vt = document.getElementById("chart-val-temp"), vh = document.getElementById("chart-val-hum"), vl = document.getElementById("chart-val-lum");
+  if (vt) { vt.textContent = `${t.toFixed(1)}°C`; const ok = t >= p.tMin && t <= p.tMax; vt.className = `badge font-monospace ${ok ? "bg-success bg-opacity-25 text-success border border-success border-opacity-50" : "bg-danger bg-opacity-25 text-danger border border-danger border-opacity-50"}`; }
+  if (vh) { vh.textContent = `${h.toFixed(0)}%`; const ok = h >= p.hMin && h <= p.hMax; vh.className = `badge font-monospace ${ok ? "bg-info bg-opacity-25 text-info border border-info border-opacity-50" : "bg-warning bg-opacity-25 text-warning border border-warning border-opacity-50"}`; }
+  if (vl) { vl.textContent = `${l.toFixed(0)}%`; const ok = l <= p.lMax; vl.className = `badge font-monospace ${ok ? "bg-warning bg-opacity-25 text-warning border border-warning border-opacity-50" : "bg-danger bg-opacity-25 text-danger border border-danger border-opacity-50"}`; }
+}
+
 function initScadaPlotly() {
   const now = new Date(); hTime = []; hT = []; hH = []; hL = [];
   for (let i = 12; i >= 0; i--) {
@@ -20,7 +28,7 @@ function initScadaPlotly() {
     hL.push(+(sim.l + (Math.random() - 0.5) * 0.6).toFixed(0));
   }
   const isDark = document.documentElement.getAttribute("data-bs-theme") !== "light";
-  const p = { bg: isDark ? "#121215" : "#ffffff", text: isDark ? "#f4f4f5" : "#0f172a", grid: isDark ? "#27272a" : "#e2e8f0" };
+  const p = { bg: isDark ? "#121215" : "#ffffff", text: isDark ? "#f4f4f5" : "#111827", grid: isDark ? "#27272a" : "#e5e7eb" };
   const pr = PRESETS[curPr] || { tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMin: 0, lMax: 25 };
   const makeFig = (id, stroke, fill, unit, vals, low, high, yRng) => {
     Plotly.newPlot(id, [{
@@ -33,15 +41,16 @@ function initScadaPlotly() {
       xaxis: { gridcolor: p.grid, zeroline: false, nticks: 5, tickangle: 0, showline: false },
       yaxis: { gridcolor: p.grid, range: yRng, zeroline: false, nticks: 5 },
       shapes: [
-        { type: "rect", xref: "paper", x0: 0, x1: 1, y0: low, y1: high, fillcolor: "rgba(34,197,94,0.12)", line: { width: 0 } },
-        { type: "line", xref: "paper", x0: 0, x1: 1, y0: high, line: { color: "rgba(34,197,94,0.45)", width: 1, dash: "dot" } },
-        { type: "line", xref: "paper", x0: 0, x1: 1, y0: low, line: { color: "rgba(34,197,94,0.45)", width: 1, dash: "dot" } }
+        { type: "rect", xref: "paper", x0: 0, x1: 1, y0: low, y1: high, fillcolor: "rgba(34,197,94,0.14)", line: { width: 0 } },
+        { type: "line", xref: "paper", x0: 0, x1: 1, y0: high, line: { color: "rgba(34,197,94,0.55)", width: 1.2, dash: "dot" } },
+        { type: "line", xref: "paper", x0: 0, x1: 1, y0: low, line: { color: "rgba(34,197,94,0.55)", width: 1.2, dash: "dot" } }
       ]
     }, { responsive: true, displayModeBar: false });
   };
-  makeFig("graph-temperature", "#ef4444", "rgba(239,68,68,0.10)", "°C", hT, pr.tMin, pr.tMax, [4, 30]);
-  makeFig("graph-humidity", "#0284c7", "rgba(2,132,199,0.10)", "%", hH, pr.hMin, pr.hMax, [20, 100]);
-  makeFig("graph-luminosity", "#d4af62", "rgba(212,175,98,0.10)", "%", hL, pr.lMin, pr.lMax, [0, 90]);
+  makeFig("graph-temperature", "#ef4444", "rgba(239,68,68,0.10)", "°C", hT, pr.tMin, pr.tMax, [Math.min(4, pr.tMin - 4), Math.max(28, pr.tMax + 4)]);
+  makeFig("graph-humidity", "#0284c7", "rgba(2,132,199,0.10)", "%", hH, pr.hMin, pr.hMax, [Math.min(30, pr.hMin - 10), Math.max(95, pr.hMax + 10)]);
+  makeFig("graph-luminosity", "#d4af62", "rgba(212,175,98,0.10)", "%", hL, pr.lMin, pr.lMax, [0, Math.max(50, pr.lMax + 25)]);
+  updateChartBadges(sim.t, sim.h, sim.l, pr);
 }
 
 function updateScadaPlotly(t, h, l) {
@@ -50,10 +59,7 @@ function updateScadaPlotly(t, h, l) {
   Plotly.update("graph-temperature", { x: [hTime], y: [hT] });
   Plotly.update("graph-humidity", { x: [hTime], y: [hH] });
   Plotly.update("graph-luminosity", { x: [hTime], y: [hL] });
-  const vt = document.getElementById("chart-val-temp"), vh = document.getElementById("chart-val-hum"), vl = document.getElementById("chart-val-lum");
-  if (vt) vt.textContent = `${t.toFixed(1)}°C`;
-  if (vh) vh.textContent = `${h.toFixed(0)}%`;
-  if (vl) vl.textContent = `${l.toFixed(0)}%`;
+  updateChartBadges(t, h, l);
 }
 
 function updateHardwarePlaque(t, h, l) {
@@ -69,7 +75,6 @@ function updateHardwarePlaque(t, h, l) {
 
 function onWinePresetChange(presetKey) {
   curPr = presetKey; const p = PRESETS[curPr] || {};
-  if (window.ArcadeAudio) window.ArcadeAudio.playClick();
   const sel = document.getElementById("dropdown-wine-preset");
   if (sel && sel.value !== curPr) sel.value = curPr;
   document.querySelectorAll(".wine-pill-btn").forEach(b => b.classList.toggle("active", b.dataset.wine === curPr));
@@ -81,6 +86,8 @@ function onWinePresetChange(presetKey) {
   if (descEl) descEl.textContent = p.desc;
   if (curArea === "wokwi_esp32") { if (sim.mode === "normal") { sim.t = p.defT; sim.h = p.defH; sim.l = p.defL; } }
   else { const tr = TERROIRS[curArea] || {}; sim.t = tr.t; sim.h = tr.h; sim.l = tr.l; }
+  const ok = (sim.t >= p.tMin && sim.t <= p.tMax && sim.h >= p.hMin && sim.h <= p.hMax && sim.l <= p.lMax);
+  if (window.ArcadeAudio) { if (ok) window.ArcadeAudio.playClick(); else window.ArcadeAudio.playAlert(); }
   updateHardwarePlaque(sim.t, sim.h, sim.l); initScadaPlotly(); renderRealVineyards(); renderCellarLots(); syncCloudConfig();
 }
 
@@ -94,14 +101,15 @@ function onThresholdInputChange() {
 }
 
 function onAreaTerroirChange(areaKey) {
-  curArea = areaKey; const tr = TERROIRS[curArea] || {}, pr = PRESETS[curPr] || {};
-  if (window.ArcadeAudio) window.ArcadeAudio.playClick();
+  curArea = areaKey; const tr = TERROIRS[curArea] || {}, p = PRESETS[curPr] || {};
   const sel = document.getElementById("dropdown-area-terroir");
   if (sel && sel.value !== curArea) sel.value = curArea;
   const desc = document.getElementById("terroir-description-text");
   if (desc) desc.textContent = curArea === "wokwi_esp32" ? "Telemetria climática autêntica por satélite e coordenadas GPS." : `Telemetria climática de ${tr.country} sincronizada via Open-Meteo GPS.`;
   if (curArea !== "wokwi_esp32") { sim.t = tr.t; sim.h = tr.h; sim.l = tr.l; }
-  else { sim.t = pr.defT; sim.h = pr.defH; sim.l = pr.defL; }
+  else { sim.t = p.defT; sim.h = p.defH; sim.l = p.defL; }
+  const ok = (sim.t >= p.tMin && sim.t <= p.tMax && sim.h >= p.hMin && sim.h <= p.hMax && sim.l <= p.lMax);
+  if (window.ArcadeAudio) { if (ok) window.ArcadeAudio.playClick(); else window.ArcadeAudio.playAlert(); }
   updateHardwarePlaque(sim.t, sim.h, sim.l); initScadaPlotly(); renderRealVineyards(); renderCellarLots(); syncCloudConfig();
 }
 

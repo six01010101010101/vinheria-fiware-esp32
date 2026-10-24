@@ -75,6 +75,9 @@
     if (ledG) ledG.className = st.ok ? "led-indicator led-green-on" : "led-indicator led-green-off";
     if (ledR) ledR.className = st.ok ? "led-indicator led-red-off" : "led-indicator led-red-on";
     if (ledB) ledB.className = !isWokwi ? "led-indicator led-blue-blinking" : "led-indicator led-blue-off";
+    const bzIcon = document.getElementById("buzzer-status-icon"), bzTxt = document.getElementById("buzzer-status-text");
+    if (bzIcon) bzIcon.textContent = st.ok ? "🔇" : "🔊";
+    if (bzTxt) bzTxt.textContent = st.ok ? "D4 Mudo" : ("D4 " + (st.lbl.replace("ALERTA ", "") || "Alerta"));
 
     return { score, st, l1Text, l2Text };
   }
