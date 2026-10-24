@@ -12,23 +12,13 @@
 <body class="bg-body">
   <nav class="navbar navbar-expand-lg border-bottom sticky-top shadow-sm px-3 px-md-4">
     <div class="container-fluid px-0">
-      <a class="navbar-brand d-flex align-items-center gap-2" href="#">
-        <span class="fs-4">🍷</span>
-        <div class="d-flex flex-column">
-          <span class="navbar-brand-title">Vinheria Agnello</span>
-          <small class="navbar-brand-sub">CARTA DA ADEGA · RESERVA DO SOMMELIER</small>
-        </div>
-      </a>
+      <a class="navbar-brand d-flex align-items-center gap-2" href="#"><span class="fs-4">🍷</span><div class="d-flex flex-column"><span class="navbar-brand-title">Vinheria Agnello</span><small class="navbar-brand-sub">CARTA DA ADEGA · RESERVA DO SOMMELIER</small></div></a>
       <div class="d-flex flex-wrap align-items-center gap-2 mt-2 mt-md-0">
         <a class="status-pill status-pill-live text-decoration-none" href="https://wokwi.com/projects/478106752109243393" target="_blank"><span class="status-dot status-dot-live"></span><span>Wokwi Ao Vivo</span></a>
         <a href="index.html" class="nav-ghost-link ms-2">🍷 Início / Barril</a>
         <a href="/api/v1/status" target="_blank" class="nav-ghost-link ms-2">API REST</a>
         <a href="https://github.com/six01010101010101/vinheria-fiware-esp32" target="_blank" class="nav-ghost-link ms-2">GitHub</a>
-        <div class="theme-btn-group ms-md-3">
-          <button id="theme-btn-light" class="btn btn-sm theme-btn" type="button">Claro</button>
-          <button id="theme-btn-dark" class="btn btn-sm theme-btn active btn-wine" type="button">Escuro</button>
-          <button id="theme-btn-system" class="btn btn-sm theme-btn" type="button">Auto</button>
-        </div>
+        <div class="theme-btn-group ms-md-3"><button id="theme-btn-light" class="btn btn-sm theme-btn" type="button">Claro</button><button id="theme-btn-dark" class="btn btn-sm theme-btn active btn-wine" type="button">Escuro</button><button id="theme-btn-system" class="btn btn-sm theme-btn" type="button">Auto</button></div>
       </div>
     </div>
   </nav>
@@ -176,8 +166,18 @@
     </div></div>
   </main>
 
-  <footer class="text-center text-muted small py-3 border-top mt-4" style="font-size:0.76rem;">
-    Check Point 5 — Vinheria Agnello • FIWARE STH-Comet (:8666) & IoT Agent (:4041) • ESP32 Wokwi MQTT (:1883) • Firebase & Supabase • Render.com
+  <footer class="text-center text-muted small py-3 border-top mt-4" style="font-size:0.74rem;">
+    <div class="mb-2">Check Point 5 — Vinheria Agnello • FIWARE STH-Comet (:8666) &amp; IoT Agent (:4041) • ESP32 Wokwi MQTT (:1883) • Firebase &amp; Supabase • Render.com</div>
+    <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 pt-2 border-top border-secondary border-opacity-10">
+      <span class="text-wine fw-bold me-1" style="font-size:0.70rem;">📚 FONTES &amp; AUTORIDADES GLOBAIS:</span>
+      <a href="https://www.oiv.int" target="_blank" rel="noopener noreferrer" class="badge text-decoration-none bg-black bg-opacity-50 text-secondary border border-secondary border-opacity-25 hover-gold" title="Organização Internacional da Vinha e do Vinho">🍇 OIV</a>
+      <a href="https://www.winespectator.com" target="_blank" rel="noopener noreferrer" class="badge text-decoration-none bg-black bg-opacity-50 text-secondary border border-secondary border-opacity-25 hover-gold" title="Wine Spectator - Avaliação de Safras e Guarda">🍷 Wine Spectator</a>
+      <a href="https://winefolly.com" target="_blank" rel="noopener noreferrer" class="badge text-decoration-none bg-black bg-opacity-50 text-secondary border border-secondary border-opacity-25 hover-gold" title="Wine Folly - Guia Educacional Enológico">📖 Wine Folly</a>
+      <a href="https://www.decanter.com" target="_blank" rel="noopener noreferrer" class="badge text-decoration-none bg-black bg-opacity-50 text-secondary border border-secondary border-opacity-25 hover-gold" title="Decanter - Painel de Sommeliers">🏆 Decanter</a>
+      <a href="https://www.vivino.com" target="_blank" rel="noopener noreferrer" class="badge text-decoration-none bg-black bg-opacity-50 text-secondary border border-secondary border-opacity-25 hover-gold" title="Vivino - Acervo Global de Rótulos">🍾 Vivino</a>
+      <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer" class="badge text-decoration-none bg-black bg-opacity-50 text-secondary border border-secondary border-opacity-25 hover-gold" title="Open-Meteo - Modelos Meteorológicos Globais">🛰️ Open-Meteo</a>
+      <a href="https://www.fiware.org" target="_blank" rel="noopener noreferrer" class="badge text-decoration-none bg-black bg-opacity-50 text-secondary border border-secondary border-opacity-25 hover-gold" title="FIWARE Foundation - Smart Agrifood & IoT">🌐 FIWARE Agrifood</a>
+    </div>
   </footer>
 
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
