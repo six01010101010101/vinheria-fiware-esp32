@@ -3,12 +3,15 @@ const PRESETS = window.PRESETS || {}, TERROIRS = window.TERROIRS || {};
 let curPr = "tinto", curArea = "wokwi_esp32", hTime = [], hT = [], hH = [], hL = [];
 let sim = { t: 15.6, h: 68.0, l: 12.0, score: 100, mode: "normal" };
 
-function calcHealthScore(t, h, l, pr) {
-  return window.WokwiLCD ? window.WokwiLCD.calcHealthScore(t, h, l, pr) : 100;
-}
-
-function evalStatus(t, h, l, pr, area) {
-  return window.WokwiLCD ? window.WokwiLCD.evalStatus(t, h, l, pr, area === "wokwi_esp32") : { ok: true, lbl: "OK" };
+function getScenarioValues(sc, presetKey) {
+  const p = PRESETS[presetKey] || PRESETS.tinto || { defT: 15.6, defH: 68, defL: 12, tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMin: 0, lMax: 25 };
+  switch (sc) {
+    case "temp": return [+(p.tMax + 5.5).toFixed(1), p.defH, p.defL];
+    case "hum": return [p.defT, Math.max(20, +(p.hMin - 22).toFixed(0)), p.defL];
+    case "lum": return [p.defT, p.defH, Math.min(100, Math.max(70, +(p.lMax + 50).toFixed(0)))];
+    case "multi": return [+(p.tMax + 7.5).toFixed(1), Math.max(20, +(p.hMin - 24).toFixed(0)), Math.min(100, Math.max(75, +(p.lMax + 55).toFixed(0)))];
+    case "normal": default: return [p.defT, p.defH, p.defL];
+  }
 }
 
 function updateChartBadges(t, h, l, pr) {
@@ -47,8 +50,8 @@ function initScadaPlotly() {
       ]
     }, { responsive: true, displayModeBar: false });
   };
-  makeFig("graph-temperature", "#ef4444", "rgba(239,68,68,0.10)", "°C", hT, pr.tMin, pr.tMax, [Math.min(4, pr.tMin - 4), Math.max(28, pr.tMax + 4)]);
-  makeFig("graph-humidity", "#0284c7", "rgba(2,132,199,0.10)", "%", hH, pr.hMin, pr.hMax, [Math.min(30, pr.hMin - 10), Math.max(95, pr.hMax + 10)]);
+  makeFig("graph-temperature", "#ef4444", "rgba(239,68,68,0.10)", "°C", hT, pr.tMin, pr.tMax, [Math.min(2, pr.tMin - 4), Math.max(28, pr.tMax + 4)]);
+  makeFig("graph-humidity", "#0284c7", "rgba(2,132,199,0.10)", "%", hH, pr.hMin, pr.hMax, [Math.min(20, pr.hMin - 10), Math.max(98, pr.hMax + 10)]);
   makeFig("graph-luminosity", "#d4af62", "rgba(212,175,98,0.10)", "%", hL, pr.lMin, pr.lMax, [0, Math.max(50, pr.lMax + 25)]);
   updateChartBadges(sim.t, sim.h, sim.l, pr);
 }
@@ -56,9 +59,7 @@ function initScadaPlotly() {
 function updateScadaPlotly(t, h, l) {
   hTime.push(new Date().toLocaleTimeString()); hT.push(t); hH.push(h); hL.push(l);
   if (hTime.length > 20) { hTime.shift(); hT.shift(); hH.shift(); hL.shift(); }
-  Plotly.update("graph-temperature", { x: [hTime], y: [hT] });
-  Plotly.update("graph-humidity", { x: [hTime], y: [hH] });
-  Plotly.update("graph-luminosity", { x: [hTime], y: [hL] });
+  Plotly.update("graph-temperature", { x: [hTime], y: [hT] }); Plotly.update("graph-humidity", { x: [hTime], y: [hH] }); Plotly.update("graph-luminosity", { x: [hTime], y: [hL] });
   updateChartBadges(t, h, l);
 }
 
@@ -66,9 +67,7 @@ function updateHardwarePlaque(t, h, l) {
   const pr = PRESETS[curPr] || { wine: "Vinho Tinto", tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMin: 0, lMax: 25 };
   const tr = TERROIRS[curArea] || { name: "ESP32 Wokwi", flag: "📟", country: "Wokwi" };
   if (window.WokwiLCD) {
-    const res = window.WokwiLCD.renderWokwiTwin({
-      t, h, l, preset: pr, terroir: tr, isWokwi: curArea === "wokwi_esp32", mode: sim.mode
-    });
+    const res = window.WokwiLCD.renderWokwiTwin({ t, h, l, preset: pr, terroir: tr, isWokwi: curArea === "wokwi_esp32", mode: sim.mode });
     if (res && res.score !== undefined) sim.score = res.score;
   }
 }
@@ -84,11 +83,15 @@ function onWinePresetChange(presetKey) {
   });
   const descEl = document.getElementById("preset-description-text");
   if (descEl) descEl.textContent = p.desc;
-  if (curArea === "wokwi_esp32") { if (sim.mode === "normal") { sim.t = p.defT; sim.h = p.defH; sim.l = p.defL; } }
-  else { const tr = TERROIRS[curArea] || {}; sim.t = tr.t; sim.h = tr.h; sim.l = tr.l; }
+  if (curArea === "wokwi_esp32") {
+    const vals = getScenarioValues(sim.mode, curPr); sim.t = vals[0]; sim.h = vals[1]; sim.l = vals[2];
+  } else {
+    const tr = TERROIRS[curArea] || {}; sim.t = tr.t; sim.h = tr.h; sim.l = tr.l;
+  }
   const ok = (sim.t >= p.tMin && sim.t <= p.tMax && sim.h >= p.hMin && sim.h <= p.hMax && sim.l <= p.lMax);
   if (window.ArcadeAudio) { if (ok) window.ArcadeAudio.playClick(); else window.ArcadeAudio.playAlert(); }
   updateHardwarePlaque(sim.t, sim.h, sim.l); initScadaPlotly(); renderRealVineyards(); renderCellarLots(); syncCloudConfig();
+  fetch("/api/v1/telemetry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ temperature: sim.t, humidity: sim.h, luminosity: sim.l, device_id: "vine001" }) }).catch(() => {});
 }
 
 function onThresholdInputChange() {
@@ -105,24 +108,25 @@ function onAreaTerroirChange(areaKey) {
   const sel = document.getElementById("dropdown-area-terroir");
   if (sel && sel.value !== curArea) sel.value = curArea;
   const desc = document.getElementById("terroir-description-text");
-  if (desc) desc.textContent = curArea === "wokwi_esp32" ? "Telemetria climática autêntica por satélite e coordenadas GPS." : `Telemetria climática de ${tr.country} sincronizada via Open-Meteo GPS.`;
-  if (curArea !== "wokwi_esp32") { sim.t = tr.t; sim.h = tr.h; sim.l = tr.l; }
-  else { sim.t = p.defT; sim.h = p.defH; sim.l = p.defL; }
+  if (desc) desc.textContent = curArea === "wokwi_esp32" ? "Telemetria climática autêntica por satélite e coordenadas GPS." : `Telemetria climática de ${tr.country} (${tr.name}) sincronizada via Open-Meteo GPS.`;
+  if (curArea !== "wokwi_esp32") {
+    sim.t = tr.t; sim.h = tr.h; sim.l = tr.l; sim.mode = "normal";
+    document.querySelectorAll(".sc-btn").forEach(b => b.classList.toggle("active", b.dataset.sc === "normal"));
+  } else {
+    const vals = getScenarioValues(sim.mode, curPr); sim.t = vals[0]; sim.h = vals[1]; sim.l = vals[2];
+  }
   const ok = (sim.t >= p.tMin && sim.t <= p.tMax && sim.h >= p.hMin && sim.h <= p.hMax && sim.l <= p.lMax);
   if (window.ArcadeAudio) { if (ok) window.ArcadeAudio.playClick(); else window.ArcadeAudio.playAlert(); }
   updateHardwarePlaque(sim.t, sim.h, sim.l); initScadaPlotly(); renderRealVineyards(); renderCellarLots(); syncCloudConfig();
+  fetch("/api/v1/telemetry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ temperature: sim.t, humidity: sim.h, luminosity: sim.l, device_id: "vine001" }) }).catch(() => {});
 }
 
 function renderRealVineyards() {
-  if (typeof window.renderRealVineyards === "function") {
-    window.renderRealVineyards(curArea, onAreaTerroirChange);
-  }
+  if (typeof window.renderRealVineyards === "function") window.renderRealVineyards(curArea, onAreaTerroirChange);
 }
 
 function renderCellarLots() {
-  if (typeof window.renderCellarLots === "function") {
-    window.renderCellarLots(curPr, sim.t, sim.h, sim.l, onWinePresetChange);
-  }
+  if (typeof window.renderCellarLots === "function") window.renderCellarLots(curPr, sim.t, sim.h, sim.l, onWinePresetChange);
 }
 
 function syncCloudConfig() {
@@ -131,11 +135,9 @@ function syncCloudConfig() {
 }
 
 function applyScenario(sc) {
-  const map = { normal:[15.6,68,12], temp:[24.5,68,12], hum:[15.6,42,12], lum:[15.6,68,78], multi:[26,38,85] };
-  const d = map[sc] || map.normal;
+  const d = getScenarioValues(sc, curPr);
   sim.t = d[0]; sim.h = d[1]; sim.l = d[2]; sim.mode = sc;
-  if (sc === "normal") window.ArcadeAudio?.playPowerup?.();
-  else window.ArcadeAudio?.playAlert?.();
+  if (sc === "normal") window.ArcadeAudio?.playPowerup?.(); else window.ArcadeAudio?.playAlert?.();
   updateHardwarePlaque(sim.t, sim.h, sim.l); updateScadaPlotly(sim.t, sim.h, sim.l); renderCellarLots();
   document.querySelectorAll(".sc-btn").forEach(b => b.classList.toggle("active", b.dataset.sc === sc));
   const bzIcon = document.getElementById("buzzer-status-icon"), bzTxt = document.getElementById("buzzer-status-text");
@@ -145,7 +147,7 @@ function applyScenario(sc) {
   const bge = document.getElementById("mqtt-cmd-badge");
   fetch("/api/v1/command", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ command: sc }) })
     .then(r => r.json()).then(res => { if (bge) bge.innerHTML = `<span class="status-dot"></span>MQTT: ${sc.toUpperCase()} (${res.ok ? "200" : "SYNC"})`; }).catch(() => {});
-  fetch("/api/v1/telemetry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ temperature: sim.t, humidity: sim.h, luminosity: sim.l }) }).catch(() => {});
+  fetch("/api/v1/telemetry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ temperature: sim.t, humidity: sim.h, luminosity: sim.l, device_id: "vine001", alert_mode: sc }) }).catch(() => {});
 }
 
 async function fetchLiveTicker() {

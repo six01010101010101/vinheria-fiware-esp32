@@ -10,12 +10,14 @@
 
   function evalStatus(t, h, l, pr, isWokwi) {
     const p = pr || { tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMin: 0, lMax: 25 };
-    const ok = t >= p.tMin && t <= p.tMax && h >= p.hMin && h <= p.hMax && l <= p.lMax;
+    const tErr = t < p.tMin || t > p.tMax, hErr = h < p.hMin || h > p.hMax, lErr = l > p.lMax;
+    const ok = !tErr && !hErr && !lErr;
     let lbl = isWokwi ? "CAVA PRESERVADA" : "TERROIR ADEQUADO", detail = "1UP: 100%";
     if (!ok) {
-      if (t < p.tMin || t > p.tMax) { lbl = "ALERTA TÉRMICO"; detail = `${t.toFixed(1)}°C`; }
-      else if (h < p.hMin || h > p.hMax) { lbl = "ALERTA HIGRO"; detail = `${h.toFixed(0)}%`; }
-      else { lbl = "ALERTA LUZ/LDR"; detail = `${l.toFixed(0)}%`; }
+      if ((tErr && hErr) || (tErr && lErr) || (hErr && lErr)) { lbl = "ALERTA CRÍTICO"; detail = `${t.toFixed(1)}°C ${h.toFixed(0)}%`; }
+      else if (tErr) { lbl = "ALERTA TÉRMICO"; detail = `${t.toFixed(1)}°C`; }
+      else if (hErr) { lbl = "ALERTA HIGRO"; detail = `${h.toFixed(0)}%`; }
+      else { lbl = "ALERTA PENUMBRA"; detail = `${l.toFixed(0)}%`; }
     }
     return { ok, lbl, detail };
   }
@@ -28,7 +30,13 @@
     const { t = 15.5, h = 68, l = 12, preset = {}, terroir = {}, isWokwi = true, mode = "normal" } = opts || {};
     const score = calcHealthScore(t, h, l, preset);
     const st = evalStatus(t, h, l, preset, isWokwi);
-    const prTag = preset.name ? preset.name.substring(6, 11).toUpperCase().trim() : "TINTO";
+    const prTag = (function () {
+      const nm = (preset.name || "").toLowerCase();
+      if (nm.includes("brut") || nm.includes("espumante") || nm.includes("champ")) return "BRUT";
+      if (nm.includes("rose") || nm.includes("rosé")) return "ROSE";
+      if (nm.includes("branco")) return "BRANCO";
+      return "TINTO";
+    })();
 
     const l1Text = `🪙 ${t.toFixed(1)}°C 💧${h.toFixed(0)}%${!isWokwi ? " *" : ""}`;
     const statPart = mode === "normal" ? `${prTag} 1UP:${score}%` : `ALR:${mode.substring(0, 3).toUpperCase()} HP:${score}%`;
