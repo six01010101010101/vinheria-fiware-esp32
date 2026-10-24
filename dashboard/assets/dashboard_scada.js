@@ -141,9 +141,18 @@ function applyScenario(sc) {
   const map = { normal:[15.6,68,12], temp:[24.5,68,12], hum:[15.6,42,12], lum:[15.6,68,78], multi:[26,38,85] };
   const d = map[sc] || map.normal;
   sim.t = d[0]; sim.h = d[1]; sim.l = d[2]; sim.mode = sc;
-  if (window.ArcadeAudio) window.ArcadeAudio.playClick();
+  if (sc === "normal") window.ArcadeAudio?.playPowerup?.();
+  else window.ArcadeAudio?.playAlert?.();
   updateHardwarePlaque(sim.t, sim.h, sim.l); updateScadaPlotly(sim.t, sim.h, sim.l); renderCellarLots();
   document.querySelectorAll(".sc-btn").forEach(b => b.classList.toggle("active", b.dataset.sc === sc));
+  const bzIcon = document.getElementById("buzzer-status-icon"), bzTxt = document.getElementById("buzzer-status-text");
+  const bzMap = { normal:["🔇","D4 Mudo"], temp:["🔊","D4 Bip Temp"], hum:["🔊","D4 Pulso Higro"], lum:["🔊","D4 Alerta LDR"], multi:["🚨","D4 Sirene"] };
+  const bz = bzMap[sc] || bzMap.normal;
+  if (bzIcon) bzIcon.textContent = bz[0]; if (bzTxt) bzTxt.textContent = bz[1];
+  const bge = document.getElementById("mqtt-cmd-badge");
+  fetch("/api/v1/command", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ command: sc }) })
+    .then(r => r.json()).then(res => { if (bge) bge.innerHTML = `<span class="status-dot"></span>MQTT: ${sc.toUpperCase()} (${res.ok ? "200" : "SYNC"})`; }).catch(() => {});
+  fetch("/api/v1/telemetry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ temperature: sim.t, humidity: sim.h, luminosity: sim.l }) }).catch(() => {});
 }
 
 async function fetchLiveTicker() {
@@ -165,14 +174,10 @@ async function fetchLiveTicker() {
 
 document.addEventListener("DOMContentLoaded", () => {
   renderCellarLots(); renderRealVineyards();
-  if (typeof window.startSatelliteLiveLoop === "function") {
-    window.startSatelliteLiveLoop(() => curArea, onAreaTerroirChange);
-  }
+  window.startSatelliteLiveLoop?.(() => curArea, onAreaTerroirChange);
   window.addEventListener("satellitesUpdated", () => {
-    if (curArea !== "wokwi_esp32") {
-      const tr = TERROIRS[curArea];
-      if (tr && sim.mode === "normal") { sim.t = tr.t; sim.h = tr.h; sim.l = tr.l; updateHardwarePlaque(sim.t, sim.h, sim.l); updateScadaPlotly(sim.t, sim.h, sim.l); renderCellarLots(); }
-    }
+    const tr = TERROIRS[curArea];
+    if (curArea !== "wokwi_esp32" && tr && sim.mode === "normal") { sim.t = tr.t; sim.h = tr.h; sim.l = tr.l; updateHardwarePlaque(sim.t, sim.h, sim.l); updateScadaPlotly(sim.t, sim.h, sim.l); renderCellarLots(); }
   });
   const wineEl = document.getElementById("dropdown-wine-preset"), areaEl = document.getElementById("dropdown-area-terroir");
   if (wineEl) ["change", "input"].forEach(ev => wineEl.addEventListener(ev, e => onWinePresetChange(e.target.value)));

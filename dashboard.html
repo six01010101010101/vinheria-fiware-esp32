@@ -119,19 +119,23 @@
           </div>
         </div>
         <div class="col-lg-4 col-md-12">
-          <div class="card p-3 border rounded shadow-none bg-body-tertiary">
-            <div class="small fw-bold text-wine mb-2">Simulação e Teste de Anomalias</div>
-            <div class="d-flex flex-wrap gap-1 mb-2">
-              <button class="btn btn-sm btn-outline-success sc-btn active" data-sc="normal">Equilíbrio</button>
-              <button class="btn btn-sm btn-outline-danger sc-btn" data-sc="temp">Térmico</button>
-              <button class="btn btn-sm btn-outline-warning sc-btn" data-sc="hum">Umidade</button>
-              <button class="btn btn-sm btn-outline-info sc-btn" data-sc="lum">Luminosidade</button>
-              <button class="btn btn-sm btn-outline-dark sc-btn" data-sc="multi">Crítico</button>
+          <div class="proto-thumb-box h-100 d-flex flex-column justify-content-between p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom border-secondary border-opacity-25 w-100">
+              <span class="sommelier-tag" style="font-size:0.64rem;">🕹️ ATUADORES &amp; COMANDOS WOKWI</span>
+              <span id="mqtt-cmd-badge" class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 font-monospace" style="font-size:0.60rem;"><span class="status-dot"></span>MQTT /cmd: NORMAL</span>
             </div>
-            <div class="d-flex align-items-center gap-3 pt-2 border-top">
-              <div class="d-flex align-items-center gap-1"><span id="led-green" class="led-indicator led-green-on"></span><small>LED Verde</small></div>
-              <div class="d-flex align-items-center gap-1"><span id="led-red" class="led-indicator led-red-off"></span><small>LED Vermelho</small></div>
-              <div class="d-flex align-items-center gap-1"><span id="led-blue" class="led-indicator led-blue-off"></span><small>LED Azul</small></div>
+            <div class="d-flex flex-wrap gap-1 my-2">
+              <button class="btn btn-sm btn-outline-success sc-btn active" data-sc="normal" title="Simular Cava Equilibrada (1-UP)">🟢 Normal</button>
+              <button class="btn btn-sm btn-outline-danger sc-btn" data-sc="temp" title="Simular Anomalia Térmica (Alerta Vermelho)">🌡️ Térmico</button>
+              <button class="btn btn-sm btn-outline-info sc-btn" data-sc="hum" title="Simular Anomalia de Higrometria">💧 Umidade</button>
+              <button class="btn btn-sm btn-outline-warning sc-btn" data-sc="lum" title="Simular Excesso de Luz no LDR">☀️ Penumbra</button>
+              <button class="btn btn-sm btn-outline-secondary sc-btn" data-sc="multi" title="Simular Cenário Crítico Múltiplo">⚡ Crítico</button>
+            </div>
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25 mt-auto">
+              <div class="d-flex align-items-center gap-1"><span id="led-green" class="led-indicator led-green-on"></span><small class="text-secondary font-monospace" style="font-size:0.68rem;">D5 (Verde)</small></div>
+              <div class="d-flex align-items-center gap-1"><span id="led-red" class="led-indicator led-red-off"></span><small class="text-secondary font-monospace" style="font-size:0.68rem;">D18 (Vermelho)</small></div>
+              <div class="d-flex align-items-center gap-1"><span id="led-blue" class="led-indicator led-blue-off"></span><small class="text-secondary font-monospace" style="font-size:0.68rem;">D2 (Azul Nuvem)</small></div>
+              <div class="d-flex align-items-center gap-1"><span id="buzzer-status-icon" style="font-size:0.75rem;">🔇</span><small id="buzzer-status-text" class="text-secondary font-monospace" style="font-size:0.68rem;">D4 Buzzer</small></div>
             </div>
           </div>
         </div>

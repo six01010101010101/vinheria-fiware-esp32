@@ -150,7 +150,7 @@ class WokwiMqttRepository:
             return False
         return self.client.publish(self.cmd_topic, payload, qos=0, retain=False).rc == mqtt.MQTT_ERR_SUCCESS
 
-    def publish_alert_command(self, command_code: str) -> Tuple[bool, str]:
+    def publish_alert_command(self, command_code: str, force: bool = False) -> Tuple[bool, str]:
         """Publica 'vine001@alert|<cmd>' (mesmo formato do IoT Agent FIWARE)."""
         payload = proto.build_alert(self.device_id, command_code)
         ok = self._publish(payload)
