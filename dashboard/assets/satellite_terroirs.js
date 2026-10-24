@@ -58,23 +58,34 @@ async function fetchSatelliteData() {
             tItem.dew = calcDewPoint(tItem.t, tItem.h);
             tItem.local_time = (c.time || "").split("T")[1] || "--:--";
             tItem.source = "Open-Meteo Satélite WMO";
+            updated = true;
           }
         });
       }
     } catch (_) {}
   }
   const badge = document.getElementById("satellite-live-badge");
-  if (badge) badge.innerHTML = `<span class="status-dot"></span>SATÉLITE WMO AO VIVO (${new Date().toLocaleTimeString()})`;
+  if (badge) {
+    badge.className = `badge font-monospace ${updated ? "bg-success bg-opacity-25 text-success border border-success border-opacity-50" : "bg-warning bg-opacity-25 text-warning border border-warning border-opacity-50"}`;
+    badge.innerHTML = `<span class="status-dot"></span>SATÉLITE WMO AO VIVO (${new Date().toLocaleTimeString()})`;
+  }
   window.dispatchEvent(new CustomEvent("satellitesUpdated", { detail: { terroirs } }));
+  return updated;
 }
 
 function renderRealVineyards(activeId, onSelectCallback) {
   const c = document.getElementById("real-vineyards-grid");
   if (!c) return;
+  const act = activeId || window.curArea || "esp32";
+  const handler = onSelectCallback || window.onAreaTerroirChange;
   const list = Object.values(window.TERROIRS || {}).filter(x => x.id !== "wokwi_esp32");
+  if (list.length === 0) {
+    c.innerHTML = '<div class="col-12 text-center py-3 text-muted small"><span class="spinner-border spinner-border-sm me-2 text-wine" role="status"></span>Sincronizando terroirs globais...</div>';
+    return;
+  }
   c.innerHTML = list.map(v => {
     const dew = v.dew !== undefined ? v.dew : calcDewPoint(v.t, v.h);
-    const isAct = v.id === activeId;
+    const isAct = v.id === act;
     return `
     <div class="col-lg-4 col-md-6 col-12">
       <div class="vineyard-card ${isAct ? "active-vineyard" : ""}" data-vid="${v.id}" style="cursor:pointer;" title="Clique para ativar este terroir e sincronizar a cava">
@@ -92,22 +103,25 @@ function renderRealVineyards(activeId, onSelectCallback) {
           <span class="text-dew small">💨 ${dew}°C</span>
         </div>
         <div class="d-flex justify-content-between align-items-center mt-2 px-1 text-muted" style="font-size:0.65rem;">
-          <span>📡 Fonte: Open-Meteo Satélite</span>
+          <span>📡 Fonte: ${v.source || "Open-Meteo Satélite"}</span>
           <span>🕒 Local: ${v.local_time || "--:--"}</span>
         </div>
       </div>
     </div>`;
   }).join("");
-  if (onSelectCallback) {
-    c.querySelectorAll(".vineyard-card").forEach(card => card.addEventListener("click", () => onSelectCallback(card.dataset.vid)));
+  if (handler) {
+    c.querySelectorAll(".vineyard-card").forEach(card => card.addEventListener("click", () => {
+      window.playBeep?.(720, 0.05, "sine", 0.12);
+      handler(card.dataset.vid);
+    }));
   }
 }
 
 function startSatelliteLiveLoop(getActiveId, onSelectCallback) {
-  fetchSatelliteData().then(() => renderRealVineyards(getActiveId(), onSelectCallback));
+  fetchSatelliteData().then(() => renderRealVineyards(getActiveId?.(), onSelectCallback));
   setInterval(async () => {
     await fetchSatelliteData();
-    renderRealVineyards(getActiveId(), onSelectCallback);
+    renderRealVineyards(getActiveId?.(), onSelectCallback);
   }, 25000);
   setInterval(() => {
     const terroirs = window.TERROIRS || {};
@@ -116,10 +130,23 @@ function startSatelliteLiveLoop(getActiveId, onSelectCallback) {
         v.t = +(v.t + (Math.random() - 0.5) * 0.08).toFixed(1);
       }
     });
-    renderRealVineyards(getActiveId(), onSelectCallback);
+    renderRealVineyards(getActiveId?.(), onSelectCallback);
   }, 2200);
+}
+
+function autoBootSatelliteTerroirs() {
+  if (typeof renderRealVineyards === "function") {
+    renderRealVineyards(window.curArea || "esp32", window.onAreaTerroirChange);
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", autoBootSatelliteTerroirs);
+} else {
+  autoBootSatelliteTerroirs();
 }
 
 window.renderRealVineyards = renderRealVineyards;
 window.fetchSatelliteData = fetchSatelliteData;
 window.startSatelliteLiveLoop = startSatelliteLiveLoop;
+window.calcDewPoint = calcDewPoint;
