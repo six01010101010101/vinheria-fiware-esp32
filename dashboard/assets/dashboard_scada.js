@@ -54,15 +54,13 @@ function initScadaPlotly() {
     try { Plotly.react(id, data, layout, { responsive: true, displayModeBar: false }); } catch (_) {}
   };
   makeFig("graph-temperature", "#ef4444", "rgba(239,68,68,0.12)", "°C", hT, pr.tMin, pr.tMax, [Math.min(0, pr.tMin - 4), Math.max(30, pr.tMax + 6)]);
-  makeFig("graph-humidity", "#0284c7", "rgba(2,132,199,0.12)", "%", hH, pr.hMin, pr.hMax, [Math.min(15, pr.hMin - 15), 100]);
-  makeFig("graph-luminosity", "#d4af62", "rgba(212,175,98,0.12)", "%", hL, pr.lMin, pr.lMax, [0, Math.max(50, pr.lMax + 40)]);
+  makeFig("graph-humidity", "#0284c7", "rgba(2,132,199,0.12)", "%", hH, pr.hMin, pr.hMax, [Math.min(15, pr.hMin - 15), 100]); makeFig("graph-luminosity", "#d4af62", "rgba(212,175,98,0.12)", "%", hL, pr.lMin, pr.lMax, [0, Math.max(50, pr.lMax + 40)]);
   updateChartBadges(sim.t, sim.h, sim.l, pr);
 }
 
 function updateScadaPlotly(t, h, l) {
   hTime.push(new Date().toLocaleTimeString()); hT.push(t); hH.push(h); hL.push(l);
-  if (hTime.length > 20) { hTime.shift(); hT.shift(); hH.shift(); hL.shift(); }
-  initScadaPlotly();
+  if (hTime.length > 20) { hTime.shift(); hT.shift(); hH.shift(); hL.shift(); } initScadaPlotly();
 }
 
 function updateHardwarePlaque(t, h, l, userTriggered = false) {
@@ -83,10 +81,12 @@ function updateHardwarePlaque(t, h, l, userTriggered = false) {
   if (bge) bge.innerHTML = `<span class="status-dot"></span>MQTT /cmd: ${cmd.toUpperCase()}`;
   document.querySelectorAll(".sc-btn").forEach(b => b.classList.toggle("active", b.dataset.sc === cmd));
   if (userTriggered) {
+    window.arcadeAudio?.ensureContext?.();
     if (isOk) window.ArcadeAudio?.playPowerup?.();
     else if (cmd === "multi") window.ArcadeAudio?.playCritical?.();
     else window.ArcadeAudio?.playAlert?.();
-    fetch("/api/v1/command", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ command: cmd }) }).catch(() => {});
+    const tag = (pr.name||"").toUpperCase().includes("BRUT")?"BRUT":(pr.name||"").toUpperCase().includes("ROSE")?"ROSE":(pr.name||"").toUpperCase().includes("BRANCO")?"BRANCO":"TINTO";
+    fetch("/api/v1/command", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ command: cmd, preset: tag, health: res?.score||100, verdict: isOk?"OK":(cmd==="multi"?"CRT":"ALR"), temperature: t, humidity: h, luminosity: l }) }).catch(() => {});
     fetch("/api/v1/telemetry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ temperature: t, humidity: h, luminosity: l, device_id: "vine001", alert_mode: cmd }) }).catch(() => {});
   }
 }

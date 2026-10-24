@@ -111,7 +111,8 @@ function renderRealVineyards(activeId, onSelectCallback) {
   }).join("");
   if (handler) {
     c.querySelectorAll(".vineyard-card").forEach(card => card.addEventListener("click", () => {
-      window.playBeep?.(720, 0.05, "sine", 0.12);
+      window.arcadeAudio?.ensureContext?.();
+      window.playBeep?.(720, 0.08, "sine");
       handler(card.dataset.vid);
     }));
   }

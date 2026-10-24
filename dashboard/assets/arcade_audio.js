@@ -102,21 +102,23 @@ class ArcadeAudioEngine {
 
 window.arcadeAudio = new ArcadeAudioEngine();
 window.ArcadeAudio = window.arcadeAudio;
+window.playBeep = (freq = 720, duration = 0.08, type = "sine") => {
+  window.arcadeAudio?.ensureContext?.();
+  window.arcadeAudio?.playTone?.(freq, duration, type);
+};
 
 // Auto-ligação nos botões, abas, selects e caixas de texto
 document.addEventListener("DOMContentLoaded", () => {
   const audio = window.arcadeAudio;
 
   document.addEventListener("click", (e) => {
+    audio.ensureContext();
     const card = e.target.closest(".vineyard-card");
-    if (card) { audio.ensureContext(); return; }
+    if (card) return;
     const sc = e.target.closest(".sc-btn");
-    if (sc) { audio.ensureContext(); return; }
+    if (sc) return;
     const target = e.target.closest("button, .btn, .btn-portal, a.btn, a.btn-portal, .theme-btn");
-    if (target) {
-      audio.ensureContext();
-      if (!target.id?.includes("audio-toggle")) audio.playCoin();
-    }
+    if (target && !target.id?.includes("audio-toggle")) audio.playCoin();
   });
 
   document.addEventListener("change", (e) => {

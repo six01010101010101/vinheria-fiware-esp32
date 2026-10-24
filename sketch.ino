@@ -75,13 +75,12 @@ void mqttPub(const char* top, const String &pl) {
   espClient.print(top); espClient.print(pl);
 }
 void mqttSub(const char* top) {
-  uint16_t tl = strlen(top);
-  uint8_t pkt[6] = {0x82, (uint8_t)(5 + tl), 0x00, 0x01, (uint8_t)(tl >> 8), (uint8_t)(tl & 0xFF)};
+  uint16_t tl = strlen(top); uint8_t pkt[6] = {0x82, (uint8_t)(5 + tl), 0x00, 0x01, (uint8_t)(tl >> 8), (uint8_t)(tl & 0xFF)};
   espClient.write(pkt, 6); espClient.print(top); espClient.write((uint8_t)0x00);
 }
 void applyCommand(String msg) {
   int at = msg.indexOf('@'); if (at != -1) msg = msg.substring(at + 1);
-  String prev = curMode; int sep = msg.indexOf('|');
+  String prev = curMode, prevPr = curPreset; int sep = msg.indexOf('|');
   if (sep == -1) {
     msg.trim();
     if (msg == "normal" || msg == "temp" || msg == "hum" || msg == "lum" || msg == "multi") curMode = msg;
@@ -103,11 +102,14 @@ void applyCommand(String msg) {
     else if (cmd == "preset" || cmd == "wine") { curPreset = args; curPreset.toUpperCase(); }
   }
   curMode.trim(); if (curMode.length() == 0) curMode = "normal";
+  bool chg = (prev != curMode) || (prevPr != curPreset);
   if (curMode == "normal") {
-    digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW);
-    digitalWrite(PIN_LED_BLUE, LOW); noTone(PIN_BUZZER); ledState = false;
-    if (prev != "normal") { tone(PIN_BUZZER, 988, 70); delay(75); tone(PIN_BUZZER, 1319, 220); }
-  } else { digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH); }
+    digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW); digitalWrite(PIN_LED_BLUE, LOW); noTone(PIN_BUZZER); ledState = false;
+    if (chg) { tone(PIN_BUZZER, 988, 70); delay(75); tone(PIN_BUZZER, 1319, 220); }
+  } else {
+    digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH);
+    if (chg) { tone(PIN_BUZZER, 440, 100); delay(110); tone(PIN_BUZZER, 220, 160); }
+  }
   updateLcd(); Serial.println("[MARIO-ARCADE] Modo=" + curMode + " 1-UP=" + String(curHealth) + "%");
 }
 void checkMqtt() {
@@ -185,8 +187,7 @@ void readAndPubSensors() {
 }
 void setup() {
   Serial.begin(115200);
-  pinMode(PIN_LED_GREEN, OUTPUT); pinMode(PIN_LED_RED, OUTPUT); pinMode(PIN_LED_BLUE, OUTPUT);
-  pinMode(PIN_BUZZER, OUTPUT); pinMode(PIN_LDR, INPUT);
+  pinMode(PIN_LED_GREEN, OUTPUT); pinMode(PIN_LED_RED, OUTPUT); pinMode(PIN_LED_BLUE, OUTPUT); pinMode(PIN_BUZZER, OUTPUT); pinMode(PIN_LDR, INPUT);
   digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW); digitalWrite(PIN_LED_BLUE, LOW);
   lcdInit(); updateLcd();
   int mario[] = {659, 659, 0, 659, 0, 523, 659, 0, 784, 0, 392};

@@ -72,6 +72,8 @@ function renderCellarLots(activeStyle, currentTemp, currentHum, currentLum, onSe
   if (handler) {
     c.querySelectorAll(".vineyard-card").forEach(card => {
       card.addEventListener("click", () => {
+        window.arcadeAudio?.ensureContext?.();
+        window.arcadeAudio?.playWarp?.();
         if (typeof window.onLotSelect === "function") {
           window.onLotSelect(card.dataset.lstyle, card.dataset.terroir);
         } else if (typeof handler === "function") {

@@ -47,15 +47,10 @@ def register_api_routes(server: Flask) -> None:
             "status": "online",
             "timestamp": datetime.now().isoformat(),
             "links": {
-                "dashboard": f"{base_url}/",
-                "dashboard_local": f"{base_url}/",
-                "api_status": f"{base_url}/api/v1/status",
-                "api_cellar_lots": f"{base_url}/api/v1/lots",
-                "api_real_vineyards": f"{base_url}/api/v1/vineyards",
-                "api_cloud_info": f"{base_url}/api/v1/cloud/info",
-                "api_openapi_spec": f"{base_url}/api/v1/openapi.json",
-                "wokwi_simulation": WOKWI_PROJECT_URL,
-                "github_repository": GITHUB_REPO_URL,
+                "dashboard": f"{base_url}/", "api_status": f"{base_url}/api/v1/status",
+                "api_cellar_lots": f"{base_url}/api/v1/lots", "api_real_vineyards": f"{base_url}/api/v1/vineyards",
+                "api_cloud_info": f"{base_url}/api/v1/cloud/info", "api_openapi_spec": f"{base_url}/api/v1/openapi.json",
+                "wokwi_simulation": WOKWI_PROJECT_URL, "github_repository": GITHUB_REPO_URL,
                 "supabase_cloud": supa.project_url or "https://slqozouuqzxwmfswyroo.supabase.co",
             },
             "ports_and_protocols": {
@@ -182,12 +177,20 @@ def register_api_routes(server: Flask) -> None:
 
     @server.route("/api/v1/command", methods=["POST"])
     def dispatch_direct_command():  # type: ignore[no-untyped-def]
-        """Envia imediatamente um comando ('normal', 'temp', 'hum', 'lum', 'multi') ao ESP32."""
+        """Envia comando, preset enológico, diagnóstico e telemetria ao ESP32 Wokwi."""
         data = request.get_json(silent=True) or {}
-        cmd = str(data.get("command", "normal")).strip().lower()
-        if cmd not in ("normal", "temp", "hum", "lum", "multi"):
-            return jsonify({"ok": False, "error": "Comando inválido. Use: normal, temp, hum, lum, multi"}), 400
-        wokwi_repo = WokwiMqttRepository.get_instance()
-        wokwi_repo.ensure_connected()
-        ok, msg = wokwi_repo.publish_alert_command(cmd, force=True)
-        return jsonify({"ok": ok, "command": cmd, "topic": f"/{DEFAULT_API_KEY}/{DEFAULT_DEVICE_ID}/cmd", "detail": msg})
+        raw_cmd = str(data.get("command", "normal")).strip().lower()
+        cmd = raw_cmd if raw_cmd in ("normal", "temp", "hum", "lum", "multi") else "normal"
+        pr = str(data.get("preset", data.get("wine", "TINTO"))).strip().upper()[:5]
+        health = int(data.get("health", 100))
+        verdict = str(data.get("verdict", "OK")).strip().upper()[:3]
+        wokwi = WokwiMqttRepository.get_instance()
+        wokwi.ensure_connected()
+        if "temperature" in data:
+            try:
+                wokwi.publish_sync(float(data["temperature"]), float(data.get("humidity", 68)), float(data.get("luminosity", 12)))
+            except (ValueError, TypeError):
+                pass
+        ok, msg = wokwi.publish_diagnostic(cmd, health, verdict, pr, force=True)
+        wokwi.publish_alert_command(cmd, force=True)
+        return jsonify({"ok": ok, "command": cmd, "preset": pr, "health": health, "topic": f"/{DEFAULT_API_KEY}/{DEFAULT_DEVICE_ID}/cmd", "detail": msg})
