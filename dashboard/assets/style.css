@@ -106,3 +106,6 @@ h1, h2, h3, h4, .section-title { font-family: "Plus Jakarta Sans", sans-serif; f
 .border-gold { border-color: var(--wine-gold) !important; box-shadow: 0 0 12px var(--wine-gold-glow) !important; }
 .nav-ghost-link { color: var(--text-secondary); text-decoration: none; font-size: 0.78rem; font-weight: 600; transition: color 0.2s ease; }
 .nav-ghost-link:hover { color: var(--wine-gold); }
+.wine-pill-btn { font-size: 0.70rem !important; padding: 2px 7px !important; border-radius: 6px !important; border: 1px solid var(--border-subtle) !important; background: var(--bg-card) !important; color: var(--text-secondary) !important; font-weight: 600; cursor: pointer; transition: all 0.16s ease; }
+.wine-pill-btn:hover { border-color: var(--wine-gold) !important; color: var(--text-primary) !important; }
+.wine-pill-btn.active { background: var(--wine-primary) !important; color: #ffffff !important; border-color: var(--wine-gold) !important; box-shadow: 0 0 8px var(--wine-glow) !important; }

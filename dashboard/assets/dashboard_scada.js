@@ -22,11 +22,17 @@ let curPr = "tinto", curArea = "wokwi_esp32", hTime = [], hT = [], hH = [], hL =
 let sim = { t: 15.6, h: 68.0, l: 12.0, score: 100, mode: "normal" };
 
 function calcHealthScore(t, h, l, pr) {
-  let sc = 100;
-  if (t < pr.tMin || t > pr.tMax) sc -= Math.min(45, Math.abs(t - (pr.tMin + pr.tMax) / 2) * 8);
-  if (h < pr.hMin || h > pr.hMax) sc -= Math.min(35, Math.abs(h - (pr.hMin + pr.hMax) / 2) * 2);
-  if (l > pr.lMax) sc -= Math.min(30, (l - pr.lMax) * 2);
+  let sc = 100 - (t < pr.tMin || t > pr.tMax ? Math.min(45, Math.abs(t - (pr.tMin + pr.tMax) / 2) * 8) : 0);
+  sc -= (h < pr.hMin || h > pr.hMax ? Math.min(35, Math.abs(h - (pr.hMin + pr.hMax) / 2) * 2) : 0);
+  sc -= (l > pr.lMax ? Math.min(30, (l - pr.lMax) * 2) : 0);
   return Math.max(15, Math.min(100, Math.round(sc)));
+}
+
+function evalStatus(t, h, l, pr, area) {
+  const ok = (t >= pr.tMin && t <= pr.tMax && h >= pr.hMin && h <= pr.hMax && l <= pr.lMax);
+  let lbl = area === "wokwi_esp32" ? "CAVA PRESERVADA" : "TERROIR ADEQUADO";
+  if (!ok) lbl = (t < pr.tMin || t > pr.tMax) ? "ALERTA TÉRMICO" : (h < pr.hMin || h > pr.hMax ? "ALERTA HIGRO" : "ALERTA LUZ/LDR");
+  return { ok, lbl };
 }
 
 function initScadaPlotly() {
@@ -40,7 +46,6 @@ function initScadaPlotly() {
   const isDark = document.documentElement.getAttribute("data-bs-theme") !== "light";
   const p = { bg: isDark ? "#121215" : "#ffffff", text: isDark ? "#f4f4f5" : "#0f172a", grid: isDark ? "#27272a" : "#e2e8f0" };
   const pr = PRESETS[curPr] || PRESETS.tinto;
-
   const makeFig = (id, color, name, vals, low, high, yRng) => {
     Plotly.newPlot(id, [{ x: hTime, y: vals, name, type: "scatter", mode: "lines+markers", line: { color, width: 2 } }], {
       paper_bgcolor: p.bg, plot_bgcolor: p.bg, font: { color: p.text, family: "Plus Jakarta Sans" },
@@ -61,37 +66,45 @@ function updateScadaPlotly(t, h, l) {
   Plotly.update("graph-luminosity", { x: [hTime], y: [hL] });
 }
 
-function updateHardwarePlaque(t, h, l, ok, lbl, score) {
+function updateHardwarePlaque(t, h, l) {
   const pr = PRESETS[curPr] || PRESETS.tinto, tr = TERROIRS[curArea] || TERROIRS.wokwi_esp32;
+  const score = calcHealthScore(t, h, l, pr), st = evalStatus(t, h, l, pr, curArea);
+  sim.score = score;
   const t1 = document.getElementById("barrel-mini-t1"), t2 = document.getElementById("barrel-mini-t2");
   if (t1) t1.textContent = `T:${t.toFixed(1)}C U:${h.toFixed(0)}%`;
-  if (t2) t2.textContent = `S:${score}% ${ok ? "OK" : "ALR"}`;
-
+  if (t2) t2.textContent = `S:${score}% ${st.ok ? "OK" : "ALR"}`;
   const crt = document.getElementById("green-crt-text");
-  const areaPad = `${tr.flag} ${tr.name}`.padEnd(20, " ").substring(0, 20);
-  const winePad = `${pr.wine}`.padEnd(23, " ").substring(0, 23);
-  if (crt) crt.textContent = `+--------------------------------+\n| TERROIR: ${areaPad}|\n| VINHO: ${winePad}|\n| T: ${t.toFixed(1).padStart(4," ")}°C  U: ${h.toFixed(0).padStart(2," ")}%  L: ${l.toFixed(0).padStart(2," ")}%       |\n| STATUS: ${lbl.padEnd(23, " ")}|\n| APOGEU: ${score}% [${ok ? "PRESERVADO" : "ANOMALIA"}]       |\n+--------------------------------+`;
-
+  const areaPad = `${tr.flag} ${tr.name}`.padEnd(20, " ").substring(0, 20), winePad = `${pr.wine}`.padEnd(23, " ").substring(0, 23);
+  if (crt) crt.textContent = `+--------------------------------+\n| TERROIR: ${areaPad}|\n| VINHO: ${winePad}|\n| T: ${t.toFixed(1).padStart(4," ")}°C  U: ${h.toFixed(0).padStart(2," ")}%  L: ${l.toFixed(0).padStart(2," ")}%       |\n| STATUS: ${st.lbl.padEnd(23, " ")}|\n| APOGEU: ${score}% [${st.ok ? "PRESERVADO" : "ANOMALIA"}]       |\n+--------------------------------+`;
+  const crtTag = document.getElementById("crt-status-tag");
+  if (crtTag) { crtTag.textContent = st.ok ? "STATUS: PRESERVADO" : "STATUS: ALERTA"; crtTag.style.color = st.ok ? "#4ade80" : "#f87171"; }
   const ledG = document.getElementById("led-green"), ledR = document.getElementById("led-red"), ledB = document.getElementById("led-blue");
-  if (ledG) ledG.className = ok ? "led-indicator led-green-on" : "led-indicator led-green-off";
-  if (ledR) ledR.className = ok ? "led-indicator led-red-off" : "led-indicator led-red-on";
+  if (ledG) ledG.className = st.ok ? "led-indicator led-green-on" : "led-indicator led-green-off";
+  if (ledR) ledR.className = st.ok ? "led-indicator led-red-off" : "led-indicator led-red-on";
   if (ledB) ledB.className = (curArea !== "wokwi_esp32") ? "led-indicator led-blue-blinking" : "led-indicator led-blue-off";
 }
 
 function onWinePresetChange(presetKey) {
   curPr = presetKey; const p = PRESETS[curPr] || PRESETS.tinto;
+  const sel = document.getElementById("dropdown-wine-preset");
+  if (sel && sel.value !== curPr) sel.value = curPr;
+  document.querySelectorAll(".wine-pill-btn").forEach(b => b.classList.toggle("active", b.dataset.wine === curPr));
   ["temp-min","temp-max","hum-min","hum-max","lum-min","lum-max"].forEach((k, i) => {
-    document.getElementById(`trigger-${k}`).value = [p.tMin, p.tMax, p.hMin, p.hMax, p.lMin, p.lMax][i];
+    const el = document.getElementById(`trigger-${k}`);
+    if (el) el.value = [p.tMin, p.tMax, p.hMin, p.hMax, p.lMin, p.lMax][i];
   });
-  document.getElementById("preset-description-text").textContent = p.desc;
-  if (sim.mode === "normal") { sim.t = p.defT; sim.h = p.defH; sim.l = p.defL; }
-  sim.score = calcHealthScore(sim.t, sim.h, sim.l, p);
-  updateHardwarePlaque(sim.t, sim.h, sim.l, sim.score >= 85, "CAVA PRESERVADA", sim.score);
+  const descEl = document.getElementById("preset-description-text");
+  if (descEl) descEl.textContent = p.desc;
+  if (curArea === "wokwi_esp32") { if (sim.mode === "normal") { sim.t = p.defT; sim.h = p.defH; sim.l = p.defL; } }
+  else { const tr = TERROIRS[curArea] || TERROIRS.wokwi_esp32; sim.t = tr.t; sim.h = tr.h; sim.l = tr.l; }
+  updateHardwarePlaque(sim.t, sim.h, sim.l);
   initScadaPlotly(); renderRealVineyards(); renderCellarLots(); syncCloudConfig();
 }
 
 function onAreaTerroirChange(areaKey) {
   curArea = areaKey; const tr = TERROIRS[curArea] || TERROIRS.wokwi_esp32, pr = PRESETS[curPr] || PRESETS.tinto;
+  const sel = document.getElementById("dropdown-area-terroir");
+  if (sel && sel.value !== curArea) sel.value = curArea;
   if (curArea !== "wokwi_esp32") {
     sim.t = tr.t; sim.h = tr.h; sim.l = tr.l;
     fetch(`https://api.open-meteo.com/v1/forecast?latitude=${tr.lat}&longitude=${tr.lon}&current=temperature_2m,relative_humidity_2m,shortwave_radiation&timezone=auto`)
@@ -100,31 +113,25 @@ function onAreaTerroirChange(areaKey) {
         if (c.temperature_2m !== undefined && curArea === areaKey) {
           tr.t = +c.temperature_2m.toFixed(1); tr.h = +c.relative_humidity_2m.toFixed(0);
           tr.l = Math.min(100, Math.round((c.shortwave_radiation || 0) / 10));
-          sim.t = tr.t; sim.h = tr.h; sim.l = tr.l; sim.score = calcHealthScore(sim.t, sim.h, sim.l, pr);
-          updateHardwarePlaque(sim.t, sim.h, sim.l, sim.score >= 85, "TERROIR ATIVO", sim.score);
-          updateScadaPlotly(sim.t, sim.h, sim.l); renderRealVineyards();
+          sim.t = tr.t; sim.h = tr.h; sim.l = tr.l;
+          updateHardwarePlaque(sim.t, sim.h, sim.l); updateScadaPlotly(sim.t, sim.h, sim.l); renderRealVineyards();
         }
       }).catch(() => {});
   } else { sim.t = pr.defT; sim.h = pr.defH; sim.l = pr.defL; }
-  sim.score = calcHealthScore(sim.t, sim.h, sim.l, pr);
-  updateHardwarePlaque(sim.t, sim.h, sim.l, sim.score >= 85, "TERROIR ATIVO", sim.score);
+  updateHardwarePlaque(sim.t, sim.h, sim.l);
   initScadaPlotly(); renderRealVineyards(); renderCellarLots(); syncCloudConfig();
 }
 
 function syncCloudConfig() {
   const tr = TERROIRS[curArea] || TERROIRS.wokwi_esp32;
-  fetch("/api/v1/cloud/firebase/sync", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ device_id: "vine001", preset_key: curPr, terroir: { id: curArea, name: tr.name, country: tr.country } })
-  }).catch(() => {});
+  fetch("/api/v1/cloud/firebase/sync", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ device_id: "vine001", preset_key: curPr, terroir: { id: curArea, name: tr.name, country: tr.country } }) }).catch(() => {});
 }
 
 function applyScenario(sc) {
-  const map = { normal:[15.6,68,12,true,"CAVA PRESERVADA",100], temp:[24.5,68,12,false,"ALERTA TERMICO",50], hum:[15.6,42,12,false,"ALERTA HIGRO",55], lum:[15.6,68,78,false,"ALERTA LUZ LDR",60], multi:[26,38,85,false,"CRITICO TOTAL",20] };
+  const map = { normal:[15.6,68,12], temp:[24.5,68,12], hum:[15.6,42,12], lum:[15.6,68,78], multi:[26,38,85] };
   const d = map[sc] || map.normal;
-  sim = { t: d[0], h: d[1], l: d[2], ok: d[3], lbl: d[4], score: d[5], mode: sc };
-  updateHardwarePlaque(d[0], d[1], d[2], d[3], d[4], d[5]);
-  updateScadaPlotly(d[0], d[1], d[2]);
+  sim.t = d[0]; sim.h = d[1]; sim.l = d[2]; sim.mode = sc;
+  updateHardwarePlaque(sim.t, sim.h, sim.l); updateScadaPlotly(sim.t, sim.h, sim.l);
   document.querySelectorAll(".sc-btn").forEach(b => b.classList.toggle("active", b.dataset.sc === sc));
 }
 
@@ -154,12 +161,7 @@ function renderRealVineyards() {
       <div class="d-flex justify-content-between align-items-center p-2 rounded bg-black bg-opacity-25 border border-secondary border-opacity-25 mt-2"><span class="text-temp small">🌡️ ${v.t.toFixed(1)}°C</span><span class="text-hum small">💧 ${v.h.toFixed(0)}%</span><span class="text-lum small">☀️ ${v.l.toFixed(0)}%</span><span class="text-dew small">💨 ${dew}°C</span></div>
     </div></div>`;
   }).join("");
-  c.querySelectorAll(".vineyard-card").forEach(card => card.addEventListener("click", () => {
-    const vid = card.dataset.vid;
-    const sel = document.getElementById("dropdown-area-terroir");
-    if (sel) sel.value = vid;
-    onAreaTerroirChange(vid);
-  }));
+  c.querySelectorAll(".vineyard-card").forEach(card => card.addEventListener("click", () => onAreaTerroirChange(card.dataset.vid)));
 }
 
 async function fetchLiveTicker() {
@@ -171,7 +173,6 @@ async function fetchLiveTicker() {
         const d = await res.json();
         if (d.telemetry) {
           sim.t = d.telemetry.temperature_c; sim.h = d.telemetry.humidity_pct; sim.l = d.telemetry.luminosity_pct;
-          sim.score = d.health_score || calcHealthScore(sim.t, sim.h, sim.l, PRESETS[curPr]);
         }
       }
     } catch (_) {}
@@ -179,19 +180,19 @@ async function fetchLiveTicker() {
     const wave = Math.sin(Date.now() / 2500) * 0.12;
     sim.t = +(sim.t + wave).toFixed(1);
     sim.h = Math.min(100, Math.max(20, +(sim.h + Math.cos(Date.now() / 3200) * 0.3).toFixed(0)));
-    sim.score = calcHealthScore(sim.t, sim.h, sim.l, PRESETS[curPr]);
   }
-  updateHardwarePlaque(sim.t, sim.h, sim.l, sim.score >= 85, "CAVA PRESERVADA", sim.score);
-  updateScadaPlotly(sim.t, sim.h, sim.l);
+  updateHardwarePlaque(sim.t, sim.h, sim.l); updateScadaPlotly(sim.t, sim.h, sim.l);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   renderCellarLots(); renderRealVineyards();
   document.getElementById("dropdown-wine-preset")?.addEventListener("change", (e) => onWinePresetChange(e.target.value));
+  document.getElementById("dropdown-wine-preset")?.addEventListener("input", (e) => onWinePresetChange(e.target.value));
   document.getElementById("dropdown-area-terroir")?.addEventListener("change", (e) => onAreaTerroirChange(e.target.value));
+  document.getElementById("dropdown-area-terroir")?.addEventListener("input", (e) => onAreaTerroirChange(e.target.value));
+  document.querySelectorAll(".wine-pill-btn").forEach(b => b.addEventListener("click", () => onWinePresetChange(b.dataset.wine)));
   document.querySelectorAll(".sc-btn").forEach(b => b.addEventListener("click", () => applyScenario(b.dataset.sc)));
   if (typeof Plotly !== "undefined") initScadaPlotly();
   else { const it = setInterval(() => { if (typeof Plotly !== "undefined") { clearInterval(it); initScadaPlotly(); } }, 150); }
-  updateHardwarePlaque(15.6, 68, 12, true, "CAVA PRESERVADA", 100);
-  setInterval(fetchLiveTicker, 1800);
+  updateHardwarePlaque(15.6, 68, 12); setInterval(fetchLiveTicker, 1800);
 });
