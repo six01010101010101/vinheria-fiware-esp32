@@ -104,7 +104,7 @@ function onThresholdInputChange() {
   p.tMin = getVal("trigger-temp-min", p.tMin); p.tMax = getVal("trigger-temp-max", p.tMax);
   p.hMin = getVal("trigger-hum-min", p.hMin); p.hMax = getVal("trigger-hum-max", p.hMax);
   p.lMin = getVal("trigger-lum-min", p.lMin); p.lMax = getVal("trigger-lum-max", p.lMax);
-  updateHardwarePlaque(sim.t, sim.h, sim.l); initScadaPlotly(); syncCloudConfig();
+  updateHardwarePlaque(sim.t, sim.h, sim.l); initScadaPlotly(); renderCellarLots(); syncCloudConfig();
 }
 
 function onAreaTerroirChange(areaKey) {
@@ -125,6 +125,12 @@ function renderRealVineyards() {
   }
 }
 
+function renderCellarLots() {
+  if (typeof window.renderCellarLots === "function") {
+    window.renderCellarLots(curPr, sim.t, sim.h, sim.l, onWinePresetChange);
+  }
+}
+
 function syncCloudConfig() {
   const tr = TERROIRS[curArea] || {};
   fetch("/api/v1/cloud/firebase/sync", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ device_id: "vine001", preset_key: curPr, terroir: { id: curArea, name: tr.name, country: tr.country } }) }).catch(() => {});
@@ -135,15 +141,8 @@ function applyScenario(sc) {
   const d = map[sc] || map.normal;
   sim.t = d[0]; sim.h = d[1]; sim.l = d[2]; sim.mode = sc;
   if (window.ArcadeAudio) window.ArcadeAudio.playClick();
-  updateHardwarePlaque(sim.t, sim.h, sim.l); updateScadaPlotly(sim.t, sim.h, sim.l);
+  updateHardwarePlaque(sim.t, sim.h, sim.l); updateScadaPlotly(sim.t, sim.h, sim.l); renderCellarLots();
   document.querySelectorAll(".sc-btn").forEach(b => b.classList.toggle("active", b.dataset.sc === sc));
-}
-
-function renderCellarLots() {
-  const c = document.getElementById("cellar-lots-grid");
-  if (!c || !window.CANONICAL_LOTS) return;
-  const sorted = [...window.CANONICAL_LOTS].sort((a, b) => (a.style === curPr ? -1 : (b.style === curPr ? 1 : 0)));
-  c.innerHTML = sorted.slice(0, 8).map(l => `<div class="col-lg-6 col-xl-3 col-md-6 col-12"><div class="vineyard-card h-100 ${l.style === curPr ? "border-gold" : ""}"><div class="d-flex justify-content-between align-items-center mb-1"><span class="sommelier-tag">${l.code}</span><span class="badge bg-secondary" style="font-size:0.62rem;">${l.country} · ${l.vintage}</span></div><div class="lot-wine-title text-truncate mb-1">${l.winery} — ${l.wine}</div><div class="progress mb-2 rounded-pill" style="height:4px;"><div class="progress-bar bg-success" style="width:${l.health}%;"></div></div><div class="text-muted text-truncate mb-1" style="font-size:0.70rem;">Terroir: ${l.soil}</div><div class="d-flex justify-content-between small text-muted" style="font-size:0.72rem;"><span>Barrica: ${l.barrel.substring(0, 18)}</span><span class="text-wine fw-bold">Guarda: ${l.apogee}</span></div></div></div>`).join("");
 }
 
 async function fetchLiveTicker() {
@@ -160,7 +159,7 @@ async function fetchLiveTicker() {
     const tr = TERROIRS[curArea];
     if (tr && tr.t !== undefined) { sim.t = tr.t; sim.h = tr.h; sim.l = tr.l; }
   }
-  updateHardwarePlaque(sim.t, sim.h, sim.l); updateScadaPlotly(sim.t, sim.h, sim.l);
+  updateHardwarePlaque(sim.t, sim.h, sim.l); updateScadaPlotly(sim.t, sim.h, sim.l); renderCellarLots();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -171,7 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("satellitesUpdated", () => {
     if (curArea !== "wokwi_esp32") {
       const tr = TERROIRS[curArea];
-      if (tr && sim.mode === "normal") { sim.t = tr.t; sim.h = tr.h; sim.l = tr.l; updateHardwarePlaque(sim.t, sim.h, sim.l); updateScadaPlotly(sim.t, sim.h, sim.l); }
+      if (tr && sim.mode === "normal") { sim.t = tr.t; sim.h = tr.h; sim.l = tr.l; updateHardwarePlaque(sim.t, sim.h, sim.l); updateScadaPlotly(sim.t, sim.h, sim.l); renderCellarLots(); }
     }
   });
   const wineEl = document.getElementById("dropdown-wine-preset"), areaEl = document.getElementById("dropdown-area-terroir");
