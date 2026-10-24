@@ -2,7 +2,6 @@
 const PRESETS = window.PRESETS || {}, TERROIRS = window.TERROIRS || {};
 let curPr = "tinto", curArea = "wokwi_esp32", hTime = [], hT = [], hH = [], hL = [];
 let sim = { t: 15.6, h: 68.0, l: 12.0, score: 100, mode: "normal" }, lastT = 15.6, lastH = 68, lastL = 12;
-
 function getScenarioValues(sc, presetKey) {
   const p = PRESETS[presetKey] || PRESETS.tinto || { defT: 15.6, defH: 68, defL: 12, tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMin: 0, lMax: 25 };
   switch (sc) {
@@ -54,13 +53,15 @@ function initScadaPlotly() {
     try { Plotly.react(id, data, layout, { responsive: true, displayModeBar: false }); } catch (_) {}
   };
   makeFig("graph-temperature", "#ef4444", "rgba(239,68,68,0.12)", "°C", hT, pr.tMin, pr.tMax, [Math.min(0, pr.tMin - 4), Math.max(30, pr.tMax + 6)]);
-  makeFig("graph-humidity", "#0284c7", "rgba(2,132,199,0.12)", "%", hH, pr.hMin, pr.hMax, [Math.min(15, pr.hMin - 15), 100]); makeFig("graph-luminosity", "#d4af62", "rgba(212,175,98,0.12)", "%", hL, pr.lMin, pr.lMax, [0, Math.max(50, pr.lMax + 40)]);
+  makeFig("graph-humidity", "#0284c7", "rgba(2,132,199,0.12)", "%", hH, pr.hMin, pr.hMax, [Math.min(15, pr.hMin - 15), 100]);
+  makeFig("graph-luminosity", "#d4af62", "rgba(212,175,98,0.12)", "%", hL, pr.lMin, pr.lMax, [0, Math.max(50, pr.lMax + 40)]);
   updateChartBadges(sim.t, sim.h, sim.l, pr);
 }
 
 function updateScadaPlotly(t, h, l) {
   hTime.push(new Date().toLocaleTimeString()); hT.push(t); hH.push(h); hL.push(l);
-  if (hTime.length > 20) { hTime.shift(); hT.shift(); hH.shift(); hL.shift(); } initScadaPlotly();
+  if (hTime.length > 20) { hTime.shift(); hT.shift(); hH.shift(); hL.shift(); }
+  initScadaPlotly();
 }
 
 function updateHardwarePlaque(t, h, l, userTriggered = false) {
@@ -72,10 +73,8 @@ function updateHardwarePlaque(t, h, l, userTriggered = false) {
   const isOk = res?.st?.ok;
   let cmd = "normal";
   if (!isOk) {
-    if (res?.score < 70 || sim.mode === "multi" || res?.st?.lbl?.includes("CRÍTICO")) cmd = "multi";
-    else if (res?.st?.lbl?.includes("TÉRMICO")) cmd = "temp";
-    else if (res?.st?.lbl?.includes("HIGRO")) cmd = "hum";
-    else cmd = "lum";
+    cmd = (res?.score < 70 || sim.mode === "multi" || res?.st?.lbl?.includes("CRÍTICO")) ? "multi" :
+      res?.st?.lbl?.includes("TÉRMICO") ? "temp" : res?.st?.lbl?.includes("HIGRO") ? "hum" : "lum";
   }
   const bge = document.getElementById("mqtt-cmd-badge");
   if (bge) bge.innerHTML = `<span class="status-dot"></span>MQTT /cmd: ${cmd.toUpperCase()}`;
@@ -86,25 +85,23 @@ function updateHardwarePlaque(t, h, l, userTriggered = false) {
     else if (cmd === "multi") window.ArcadeAudio?.playCritical?.();
     else window.ArcadeAudio?.playAlert?.();
     const tag = (pr.name||"").toUpperCase().includes("BRUT")?"BRUT":(pr.name||"").toUpperCase().includes("ROSE")?"ROSE":(pr.name||"").toUpperCase().includes("BRANCO")?"BRANCO":"TINTO";
-    fetch("/api/v1/command", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ command: cmd, preset: tag, health: res?.score||100, verdict: isOk?"OK":(cmd==="multi"?"CRT":"ALR"), temperature: t, humidity: h, luminosity: l }) }).catch(() => {});
+    const sc = res?.score || 100, v = isOk ? "OK" : (cmd === "multi" ? "CRT" : "ALR");
+    window.ScadaMQTT?.publishState?.({ t, h, l, cmd, score: sc, verdict: v, tag });
+    fetch("/api/v1/command", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ command: cmd, preset: tag, health: sc, verdict: v, temperature: t, humidity: h, luminosity: l }) }).catch(() => {});
     fetch("/api/v1/telemetry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ temperature: t, humidity: h, luminosity: l, device_id: "vine001", alert_mode: cmd }) }).catch(() => {});
   }
 }
 
 function onWinePresetChange(presetKey) {
   curPr = presetKey; const p = PRESETS[curPr] || {};
-  const sel = document.getElementById("dropdown-wine-preset");
-  if (sel && sel.value !== curPr) sel.value = curPr;
+  const sel = document.getElementById("dropdown-wine-preset"); if (sel && sel.value !== curPr) sel.value = curPr;
   document.querySelectorAll(".wine-pill-btn").forEach(b => b.classList.toggle("active", b.dataset.wine === curPr));
   ["temp-min","temp-max","hum-min","hum-max","lum-min","lum-max"].forEach((k, i) => {
     const el = document.getElementById(`trigger-${k}`); if (el) el.value = [p.tMin, p.tMax, p.hMin, p.hMax, p.lMin, p.lMax][i];
   });
   const descEl = document.getElementById("preset-description-text"); if (descEl) descEl.textContent = p.desc;
-  if (curArea === "wokwi_esp32") {
-    const vals = getScenarioValues(sim.mode, curPr); sim.t = vals[0]; sim.h = vals[1]; sim.l = vals[2];
-  } else {
-    const tr = TERROIRS[curArea] || {}; sim.t = tr.t; sim.h = tr.h; sim.l = tr.l;
-  }
+  const vals = curArea === "wokwi_esp32" ? getScenarioValues(sim.mode, curPr) : [TERROIRS[curArea]?.t, TERROIRS[curArea]?.h, TERROIRS[curArea]?.l];
+  sim.t = vals[0]; sim.h = vals[1]; sim.l = vals[2];
   updateHardwarePlaque(sim.t, sim.h, sim.l, true); initScadaPlotly(); renderRealVineyards(); renderCellarLots(); syncCloudConfig();
 }
 
@@ -118,7 +115,7 @@ function onThresholdInputChange() {
 }
 
 function onAreaTerroirChange(areaKey) {
-  curArea = areaKey; const tr = TERROIRS[curArea] || {}, p = PRESETS[curPr] || {};
+  curArea = areaKey; const tr = TERROIRS[curArea] || {};
   const sel = document.getElementById("dropdown-area-terroir"); if (sel && sel.value !== curArea) sel.value = curArea;
   const desc = document.getElementById("terroir-description-text");
   if (desc) desc.textContent = curArea === "wokwi_esp32" ? "Telemetria climática autêntica por satélite e coordenadas GPS." : `Telemetria climática de ${tr.country} (${tr.name}) sincronizada via Open-Meteo GPS.`;
@@ -150,7 +147,7 @@ async function fetchLiveTicker() {
         if (res.ok) {
           const d = await res.json();
           if (d.meta?.live && d.telemetry) { sim.t = d.telemetry.temperature_c; sim.h = d.telemetry.humidity_pct; sim.l = d.telemetry.luminosity_pct; }
-          else { sim.t = +(sim.t + (Math.random() - 0.5) * 0.08).toFixed(1); }
+          else sim.t = +(sim.t + (Math.random() - 0.5) * 0.08).toFixed(1);
         }
       } catch (_) { sim.t = +(sim.t + (Math.random() - 0.5) * 0.08).toFixed(1); }
     } else {
@@ -172,10 +169,17 @@ async function fetchLiveTicker() {
 
 function bootScada() {
   renderCellarLots(); renderRealVineyards();
+  window.ScadaMQTT?.init?.((d) => {
+    if (d.t !== undefined) sim.t = d.t; if (d.h !== undefined) sim.h = d.h; if (d.l !== undefined) sim.l = d.l;
+    updateHardwarePlaque(sim.t, sim.h, sim.l, false); updateScadaPlotly(sim.t, sim.h, sim.l);
+  });
   window.startSatelliteLiveLoop?.(() => curArea, onAreaTerroirChange);
   window.addEventListener("satellitesUpdated", () => {
     const tr = TERROIRS[curArea];
-    if (curArea !== "wokwi_esp32" && tr && sim.mode === "normal") { sim.t = tr.t; sim.h = tr.h; sim.l = tr.l; updateHardwarePlaque(sim.t, sim.h, sim.l, false); updateScadaPlotly(sim.t, sim.h, sim.l); renderCellarLots(); }
+    if (curArea !== "wokwi_esp32" && tr && sim.mode === "normal") {
+      sim.t = tr.t; sim.h = tr.h; sim.l = tr.l;
+      updateHardwarePlaque(sim.t, sim.h, sim.l, false); updateScadaPlotly(sim.t, sim.h, sim.l); renderCellarLots();
+    }
   });
   const wineEl = document.getElementById("dropdown-wine-preset"), areaEl = document.getElementById("dropdown-area-terroir");
   if (wineEl) ["change", "input"].forEach(ev => wineEl.addEventListener(ev, e => onWinePresetChange(e.target.value)));
@@ -192,7 +196,5 @@ function bootScada() {
   updateHardwarePlaque(15.6, 68, 12, false); setInterval(fetchLiveTicker, 1800);
 }
 
-window.onLotSelect = onLotSelect;
-window.onWinePresetChange = onWinePresetChange;
-window.onAreaTerroirChange = onAreaTerroirChange;
+window.onLotSelect = onLotSelect; window.onWinePresetChange = onWinePresetChange; window.onAreaTerroirChange = onAreaTerroirChange;
 if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", bootScada); } else { bootScada(); }
