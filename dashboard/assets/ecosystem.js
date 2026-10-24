@@ -102,4 +102,8 @@ function renderEcosystemPanel() {
   `).join("");
 }
 
-document.addEventListener("DOMContentLoaded", renderEcosystemPanel);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", renderEcosystemPanel);
+} else {
+  renderEcosystemPanel();
+}

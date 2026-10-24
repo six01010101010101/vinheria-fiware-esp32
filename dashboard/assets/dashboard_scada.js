@@ -165,7 +165,7 @@ async function fetchLiveTicker() {
   updateHardwarePlaque(sim.t, sim.h, sim.l); updateScadaPlotly(sim.t, sim.h, sim.l); renderCellarLots();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+function bootScada() {
   renderCellarLots(); renderRealVineyards();
   window.startSatelliteLiveLoop?.(() => curArea, onAreaTerroirChange);
   window.addEventListener("satellitesUpdated", () => {
@@ -185,4 +185,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (typeof Plotly !== "undefined") initScadaPlotly();
   else { const it = setInterval(() => { if (typeof Plotly !== "undefined") { clearInterval(it); initScadaPlotly(); } }, 150); }
   updateHardwarePlaque(15.6, 68, 12); setInterval(fetchLiveTicker, 1800);
-});
+}
+
+if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", bootScada); } else { bootScada(); }

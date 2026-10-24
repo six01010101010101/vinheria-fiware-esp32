@@ -63,14 +63,29 @@ function renderCellarLots(activeStyle, currentTemp, currentHum, currentLum, onSe
 
   const badge = document.getElementById("cellar-lots-live-badge");
   if (badge) {
+    const isHealthy = okCount >= 6;
+    badge.className = `badge font-monospace ${isHealthy ? "bg-success bg-opacity-25 text-success border border-success border-opacity-50" : "bg-danger bg-opacity-25 text-danger border border-danger border-opacity-50"}`;
     badge.innerHTML = `<span class="status-dot"></span>CAVA DIGITALIZADA (${okCount}/8 PRESERVADOS)`;
   }
 
-  if (onSelectCallback) {
+  const handler = onSelectCallback || window.onWinePresetChange;
+  if (handler) {
     c.querySelectorAll(".vineyard-card").forEach(card => {
-      card.addEventListener("click", () => onSelectCallback(card.dataset.lstyle));
+      card.addEventListener("click", () => handler(card.dataset.lstyle));
     });
   }
+}
+
+function autoBootCellarLots() {
+  if (typeof renderCellarLots === "function") {
+    renderCellarLots(window.curPr || "tinto", 15.6, 68, 12, window.onWinePresetChange);
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", autoBootCellarLots);
+} else {
+  autoBootCellarLots();
 }
 
 window.renderCellarLots = renderCellarLots;
