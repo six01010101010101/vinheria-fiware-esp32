@@ -85,27 +85,22 @@ void mqttSub(const char* top) {
 }
 void applyCommand(String msg) {
   int at = msg.indexOf('@'); if (at != -1) msg = msg.substring(at + 1);
-  int sep = msg.indexOf('|'); if (sep == -1) return;
-  String cmd = msg.substring(0, sep), args = msg.substring(sep + 1), prev = curMode;
-  if (cmd == "live") {
-    remoteSync = false; validTemp = hwTemp; validHum = hwHum; validLum = hwLum;
-  } else if (cmd == "sync") {
-    int p1 = args.indexOf('|'), p2 = args.lastIndexOf('|');
-    if (p1 != -1 && p2 > p1) {
-      validTemp = args.substring(0, p1).toFloat(); validHum = args.substring(p1 + 1, p2).toFloat();
-      validLum = args.substring(p2 + 1).toFloat(); remoteSync = true;
-    }
-  } else if (cmd == "diag") {
-    int p1 = args.indexOf('|');
-    if (p1 != -1) {
-      curMode = args.substring(0, p1); String rest = args.substring(p1 + 1); int p2 = rest.indexOf('|');
-      if (p2 != -1) {
-        curHealth = rest.substring(0, p2).toInt(); String rest2 = rest.substring(p2 + 1); int p3 = rest2.indexOf('|');
-        if (p3 != -1) { curVerdict = rest2.substring(0, p3); curPreset = rest2.substring(p3 + 1); }
+  String prev = curMode; int sep = msg.indexOf('|');
+  if (sep == -1) {
+    msg.trim(); if (msg == "normal" || msg == "temp" || msg == "hum" || msg == "lum" || msg == "multi") curMode = msg; else return;
+  } else {
+    String cmd = msg.substring(0, sep), args = msg.substring(sep + 1);
+    if (cmd == "live") { remoteSync = false; validTemp = hwTemp; validHum = hwHum; validLum = hwLum; }
+    else if (cmd == "sync") {
+      int p1 = args.indexOf('|'), p2 = args.lastIndexOf('|');
+      if (p1 != -1 && p2 > p1) { validTemp = args.substring(0, p1).toFloat(); validHum = args.substring(p1 + 1, p2).toFloat(); validLum = args.substring(p2 + 1).toFloat(); remoteSync = true; }
+    } else if (cmd == "diag") {
+      int p1 = args.indexOf('|');
+      if (p1 != -1) {
+        curMode = args.substring(0, p1); String rest = args.substring(p1 + 1); int p2 = rest.indexOf('|');
+        if (p2 != -1) { curHealth = rest.substring(0, p2).toInt(); String rest2 = rest.substring(p2 + 1); int p3 = rest2.indexOf('|'); if (p3 != -1) { curVerdict = rest2.substring(0, p3); curPreset = rest2.substring(p3 + 1); } }
       }
-    }
-  } else if (cmd == "alert") {
-    int p1 = args.indexOf('|'); curMode = (p1 != -1) ? args.substring(0, p1) : args;
+    } else if (cmd == "alert") { int p1 = args.indexOf('|'); curMode = (p1 != -1) ? args.substring(0, p1) : args; }
   }
   curMode.trim(); if (curMode.length() == 0) curMode = "normal";
   if (curMode == "normal") {
