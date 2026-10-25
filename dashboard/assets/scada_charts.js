@@ -140,9 +140,9 @@
     const p = pr || { name: "Vinho Tinto", tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMin: 0, lMax: 25 };
     updateChartBadges(t, h, l, p, lot);
     const wName = p.name || "Vinho Tinto";
-    buildSvgChart("graph-temperature", "#ef4444", "grad-temp", "°C", hT, p.tMin, p.tMax, 2.5, wName);
-    buildSvgChart("graph-humidity", "#0284c7", "grad-hum", "%", hH, p.hMin, p.hMax, 7.0, wName);
-    buildSvgChart("graph-luminosity", "#d4af62", "grad-lum", "%", hL, p.lMin, p.lMax, 5.0, wName);
+    buildSvgChart("graph-temperature", "#e11d48", "grad-temp", "°C", hT, p.tMin, p.tMax, 2.5, wName);
+    buildSvgChart("graph-humidity", "#0ea5e9", "grad-hum", "%", hH, p.hMin, p.hMax, 7.0, wName);
+    buildSvgChart("graph-luminosity", "#e2b86b", "grad-lum", "%", hL, p.lMin, p.lMax, 5.0, wName);
   }
 
   window.ScadaCharts = { renderAllCharts, reseedSeries, updateChartBadges };

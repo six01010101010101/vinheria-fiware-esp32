@@ -59,9 +59,9 @@
       return `
       <div class="col-lg-4 col-xl-3 col-md-6 col-12">
         <div class="${cardClasses}" data-lcode="${lot.code}" data-lstyle="${lot.style}" data-terroir="${lot.terroirId || ""}" style="cursor:pointer;" title="Clique para selecionar ${lot.winery} (${lot.wine})">
-          <div class="d-flex justify-content-between align-items-center mb-1">
+          <div class="d-flex justify-content-between align-items-center pb-2 mb-2 border-bottom border-secondary border-opacity-25">
             <span class="sommelier-tag ${isSelected ? "sommelier-tag-active" : ""}">${topTag}</span>
-            <span class="badge ${isSelected ? "bg-warning text-dark fw-bold" : (isSameStyle ? "bg-wine-pill" : "bg-secondary bg-opacity-50")}" style="font-size:0.62rem;">${lot.styleLabel || lot.style.toUpperCase()} · ${lot.flag} ${lot.vintage}</span>
+            <span class="badge ${isSelected || isSameStyle ? "bg-wine-pill" : "bg-secondary bg-opacity-25 text-secondary border border-secondary border-opacity-25"}" style="font-size:0.62rem;">${lot.styleLabel || lot.style.toUpperCase()} · ${lot.flag} ${lot.vintage}</span>
           </div>
           <div class="lot-wine-title text-truncate mb-1" style="font-size:0.84rem;font-weight:700;">${lot.winery} — ${lot.wine}</div>
           <div class="d-flex justify-content-between align-items-center px-2 py-1 mb-2 rounded bg-black bg-opacity-25 border border-secondary border-opacity-25 font-monospace" style="font-size:0.68rem;">

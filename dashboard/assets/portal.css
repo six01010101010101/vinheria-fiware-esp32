@@ -1,17 +1,17 @@
-/* Portal HTML5 Sommelier — Vinheria Agnello (Identidade Visual Clean & Moderna Inspirada em Sakura / Tailwind) */
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+/* Portal HTML5 Sommelier — Vinheria Agnello (Caixas Simétricas & Paleta Rubi Vívido Elegante) */
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
 
 :root, [data-theme="light"] {
-  --portal-bg: #f9fafb; --portal-card: #ffffff; --portal-surface: #f3f4f6; --portal-blush: #fef2f2;
-  --portal-border: #e5e7eb; --portal-text: #111827; --portal-muted: #4b5563;
-  --portal-wine: #b91c1c; --portal-wine-hover: #991b1b; --portal-gold: #b91c1c;
-  --portal-gold-glow: rgba(185, 28, 28, 0.10); --portal-wine-glow: rgba(185, 28, 28, 0.14);
+  --portal-bg: #f4f1f4; --portal-card: #ffffff; --portal-surface: #f8f5f7; --portal-subbox: #f1ecf0;
+  --portal-border: #e2dce0; --portal-text: #181118; --portal-muted: #5c4e5c;
+  --portal-wine: #be123c; --portal-vivid: #e11d48; --portal-gold: #be123c;
+  --portal-glow: rgba(225, 29, 72, 0.18); --portal-soft: #fdf2f4;
 }
 [data-theme="dark"] {
-  --portal-bg: #0f172a; --portal-card: #111827; --portal-surface: #1f2937; --portal-blush: rgba(127, 29, 29, 0.25);
-  --portal-border: #1f2937; --portal-text: #f9fafb; --portal-muted: #9ca3af;
-  --portal-wine: #b91c1c; --portal-wine-hover: #991b1b; --portal-gold: #f87171;
-  --portal-gold-glow: rgba(248, 113, 113, 0.15); --portal-wine-glow: rgba(185, 28, 28, 0.28);
+  --portal-bg: #0b0910; --portal-card: #13101a; --portal-surface: #1b1726; --portal-subbox: #221d30;
+  --portal-border: #2a2438; --portal-text: #f8fafc; --portal-muted: #94a3b8;
+  --portal-wine: #be123c; --portal-vivid: #e11d48; --portal-gold: #fb7185;
+  --portal-glow: rgba(225, 29, 72, 0.30); --portal-soft: rgba(190, 18, 60, 0.16);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -22,47 +22,48 @@ body {
 .portal-container { max-width: 1180px; margin: 0 auto; padding: 20px 16px; }
 .portal-header {
   display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
-  padding: 16px 20px; background: var(--portal-card); border: 1px solid var(--portal-border);
-  border-radius: 16px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 16px 22px; background: var(--portal-card); border: 1px solid var(--portal-border);
+  border-radius: 16px; margin-bottom: 24px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 .portal-brand h1 {
-  font-family: "Plus Jakarta Sans", sans-serif; font-size: 1.35rem; font-weight: 800; color: var(--portal-text);
-  letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px;
+  font-family: "Cinzel", serif; font-size: 1.35rem; font-weight: 700; color: var(--portal-text);
+  letter-spacing: 0.04em; display: flex; align-items: center; gap: 8px;
 }
-.portal-brand p { font-size: 0.70rem; color: var(--portal-gold); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.portal-brand p { font-size: 0.68rem; color: var(--portal-vivid); font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; }
 .portal-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .live-pill {
-  display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 9999px;
-  font-size: 0.74rem; font-weight: 600; background: rgba(34, 197, 94, 0.12); color: #16a34a;
-  border: 1px solid rgba(34, 197, 94, 0.28);
+  display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 9px;
+  font-size: 0.75rem; font-weight: 700; background: rgba(34, 197, 94, 0.12); color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.30);
 }
 [data-theme="dark"] .live-pill { color: #4ade80; }
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; animation: pulseDot 1.4s infinite; }
-@keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
+@keyframes pulseDot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
 .hero-barrel-card {
   background: var(--portal-card); border: 1px solid var(--portal-border);
   border-radius: 20px; padding: 28px 24px; text-align: center;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 30px -6px rgba(0, 0, 0, 0.14);
 }
 .active-wine-badge {
-  display: inline-flex; align-items: center; gap: 8px; padding: 6px 18px; border-radius: 9999px;
-  background: var(--portal-blush); border: 1px solid rgba(185, 28, 28, 0.3); color: var(--portal-gold); font-size: 0.82rem; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 10px;
+  background: var(--portal-soft); border: 1px solid rgba(225, 29, 72, 0.35); color: var(--portal-gold); font-size: 0.82rem; font-weight: 600;
 }
 .hero-subtitle { color: var(--portal-muted); font-size: 0.86rem; margin-top: 8px; }
 .sommelier-tag {
-  display: inline-block; font-size: 0.65rem; font-weight: 700; padding: 3px 10px; border-radius: 9999px;
-  border: 1px solid rgba(185, 28, 28, 0.3); background: var(--portal-gold-glow); color: var(--portal-gold);
+  display: inline-block; font-size: 0.65rem; font-weight: 700; padding: 4px 10px; border-radius: 7px;
+  border: 1px solid rgba(225, 29, 72, 0.30); background: var(--portal-soft); color: var(--portal-gold);
 }
 .btn-portal {
-  background: var(--portal-wine); color: #ffffff; border: 1px solid var(--portal-wine); padding: 8px 18px;
-  border-radius: 9999px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
-  text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(185, 28, 28, 0.2);
+  background: linear-gradient(135deg, var(--portal-wine), var(--portal-vivid)); color: #ffffff;
+  border: 1px solid var(--portal-vivid); height: 36px; padding: 0 16px;
+  border-radius: 9px; font-size: 0.80rem; font-weight: 600; cursor: pointer;
+  text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  transition: all 0.18s ease; box-shadow: 0 4px 12px var(--portal-glow);
 }
-.btn-portal:hover { background: var(--portal-wine-hover); transform: translateY(-1px); }
-.btn-outline { background: var(--portal-card); border: 1px solid var(--portal-border); color: var(--portal-text); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); }
-.btn-outline:hover { border-color: var(--portal-wine); color: var(--portal-gold); background: var(--portal-blush); }
+.btn-portal:hover { transform: translateY(-1px); filter: brightness(1.06); }
+.btn-outline { background: var(--portal-surface); border: 1px solid var(--portal-border); color: var(--portal-text); box-shadow: none; }
+.btn-outline:hover { border-color: var(--portal-vivid); color: var(--portal-gold); background: var(--portal-soft); }
 .portal-footer { text-align: center; padding: 24px 0; font-size: 0.76rem; color: var(--portal-muted); border-top: 1px solid var(--portal-border); margin-top: 32px; }
 
 /* Miniaturas 3D do Barril e Tampa LCD */
@@ -72,6 +73,6 @@ body {
 .barrel-3d-mini-img { width: 90px; height: 105px; object-fit: contain; }
 .barrel-lcd-mini-slot { position: absolute; left: 19%; top: 38%; width: 62%; height: 24%; background: radial-gradient(ellipse at center, #052610 0%, #021208 100%); border: 1px solid #15803d; border-radius: 4px; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; }
 .barrel-lcd-mini-text { color: #39ff14; font-family: "Consolas", monospace; font-weight: 700; font-size: 0.44rem; line-height: 1.2; white-space: pre; }
-.wokwi-lcd-bezel { background: #0b0f0c; border: 2px solid #14532d; border-radius: 8px; padding: 5px 8px; }
-.wokwi-lcd-screen { background: radial-gradient(ellipse at center, #052a10 0%, #021407 100%); border: 1px solid #166534; border-radius: 4px; padding: 6px 10px; font-family: "Consolas", monospace; }
+.wokwi-lcd-bezel { background: #090d0a; border: 1.5px solid #15803d; border-radius: 10px; padding: 6px 8px; }
+.wokwi-lcd-screen { background: radial-gradient(ellipse at center, #062c12 0%, #021407 100%); border: 1px solid #166534; border-radius: 6px; padding: 6px 10px; font-family: "Consolas", monospace; }
 .wokwi-lcd-line { color: #22c55e; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em; line-height: 1.45; text-shadow: 0 0 6px #22c55e; white-space: pre; text-align: left; }
