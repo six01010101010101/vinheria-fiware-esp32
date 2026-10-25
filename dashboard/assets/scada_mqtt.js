@@ -1,11 +1,15 @@
 // SCADA MQTT Transport — HiveMQ WebSockets client for browser direct bridge
-(function() {
+(function () {
   let pahoClient = null;
   let onTelemetryCallback = null;
 
   function initMqtt(onTelemetry) {
-    if (typeof Paho === "undefined" || pahoClient) return;
-    onTelemetryCallback = onTelemetry;
+    if (onTelemetry) onTelemetryCallback = onTelemetry;
+    if (pahoClient) return;
+    if (typeof Paho === "undefined") {
+      setTimeout(() => initMqtt(onTelemetryCallback), 500);
+      return;
+    }
     try {
       pahoClient = new Paho.MQTT.Client(
         "broker.hivemq.com",

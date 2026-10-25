@@ -39,7 +39,9 @@
   }
 
   function formatLcd16(str) {
-    return (str || "").padEnd(16, " ").substring(0, 16);
+    const chars = Array.from(str || "");
+    while (chars.length < 18) chars.push(" ");
+    return chars.slice(0, 19).join("");
   }
 
   function renderWokwiTwin(opts) {

@@ -1,6 +1,6 @@
 /**
- * Módulo de Gráficos SCADA & Status Enológico em Tempo Real — Vinheria Agnello
- * Renderiza curvas temporais interativas de Temperatura, Higrometria e Penumbra com diagnóstico por ponto.
+ * Módulo Nativo de Gráficos SCADA SVG em Tempo Real — Vinheria Agnello
+ * Zero dependência de CDN externo (0ms de latência): renderiza curvas de Temperatura, Umidade e Luminosidade.
  */
 (function () {
   let hTime = [], hT = [], hH = [], hL = [];
@@ -9,22 +9,22 @@
   function reseedSeries(t, h, l) {
     const now = Date.now();
     hTime = []; hT = []; hH = []; hL = [];
-    for (let i = 14; i >= 1; i--) {
-      const wave = Math.sin(i * 0.65);
-      hTime.push(new Date(now - i * 2000).toLocaleTimeString());
-      hT.push(+(t + wave * 0.35).toFixed(1));
-      hH.push(Math.max(15, Math.min(100, +(h + Math.cos(i * 0.55) * 0.8).toFixed(0))));
-      hL.push(Math.max(0, Math.min(100, +(l + wave * 0.5).toFixed(0))));
+    for (let i = 13; i >= 1; i--) {
+      const w = Math.sin(i * 0.7);
+      hTime.push(new Date(now - i * 2000).toLocaleTimeString().slice(0, 8));
+      hT.push(+(t + w * 0.4).toFixed(1));
+      hH.push(Math.max(15, Math.min(100, +(h + Math.cos(i * 0.6) * 0.9).toFixed(0))));
+      hL.push(Math.max(0, Math.min(100, +(l + w * 0.6).toFixed(0))));
     }
-    hTime.push(new Date(now).toLocaleTimeString());
+    hTime.push(new Date(now).toLocaleTimeString().slice(0, 8));
     hT.push(+t.toFixed(1)); hH.push(+h.toFixed(0)); hL.push(+l.toFixed(0));
   }
 
   function pushPoint(t, h, l) {
     if (hTime.length === 0) { reseedSeries(t, h, l); return; }
-    hTime.push(new Date().toLocaleTimeString());
+    hTime.push(new Date().toLocaleTimeString().slice(0, 8));
     hT.push(+t.toFixed(1)); hH.push(+h.toFixed(0)); hL.push(+l.toFixed(0));
-    if (hTime.length > 18) { hTime.shift(); hT.shift(); hH.shift(); hL.shift(); }
+    if (hTime.length > 14) { hTime.shift(); hT.shift(); hH.shift(); hL.shift(); }
   }
 
   function evalMetricBadge(val, minV, maxV, prevV, unit) {
@@ -54,61 +54,95 @@
 
     const hdrWine = document.getElementById("scada-active-wine-pill");
     if (hdrWine) {
-      const lotTxt = lot ? `${lot.winery} (${lot.wine})` : (p.wine || p.name);
+      const lotTxt = lot ? `${lot.winery} — ${lot.wine}` : (p.wine || p.name);
       hdrWine.innerHTML = `${p.badge || "🍷 VINHO"} · <strong>${lotTxt}</strong>`;
     }
+  }
+
+  function buildSvgChart(id, stroke, gradId, unit, vals, low, high, pad, wineName) {
+    const el = document.getElementById(id);
+    if (!el || vals.length === 0) return;
+    const W = 460, H = 195, L = 42, R = 16, T = 26, B = 24;
+    const plotW = W - L - R, plotH = H - T - B;
+    const allV = vals.concat([low, high]);
+    const yMin = Math.max(unit === "°C" ? -5 : 0, Math.min(...allV) - pad);
+    const yMax = Math.min(unit === "°C" ? 45 : 100, Math.max(...allV) + pad);
+    const span = Math.max(1, yMax - yMin);
+    const toX = (i) => L + (i / Math.max(1, vals.length - 1)) * plotW;
+    const toY = (v) => T + plotH - ((v - yMin) / span) * plotH;
+
+    const yLow = Math.max(T, Math.min(T + plotH, toY(low)));
+    const yHigh = Math.max(T, Math.min(T + plotH, toY(high)));
+    const rectY = Math.min(yLow, yHigh), rectH = Math.max(2, Math.abs(yLow - yHigh));
+
+    const pts = vals.map((v, i) => [toX(i), toY(v)]);
+    const linePts = pts.map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
+    const areaPts = `${L},${T + plotH} ${linePts} ${toX(vals.length - 1).toFixed(1)},${T + plotH}`;
+
+    const curV = vals[vals.length - 1];
+    const avgV = vals.reduce((a, b) => a + b, 0) / vals.length;
+    const minVal = Math.min(...vals), maxVal = Math.max(...vals);
+    const isOk = curV >= low && curV <= high;
+    const isDark = document.documentElement.getAttribute("data-bs-theme") !== "light";
+    const txtCol = isDark ? "#a1a1aa" : "#475569";
+    const gridCol = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
+
+    let gridSvg = "";
+    for (let g = 0; g <= 4; g++) {
+      const gv = yMin + (span * g) / 4;
+      const gy = toY(gv);
+      gridSvg += `<line x1="${L}" y1="${gy.toFixed(1)}" x2="${W - R}" y2="${gy.toFixed(1)}" stroke="${gridCol}" stroke-dasharray="3,3"/>`;
+      gridSvg += `<text x="${L - 5}" y="${(gy + 3).toFixed(1)}" fill="${txtCol}" font-size="9" font-family="monospace" text-anchor="end">${gv.toFixed(unit === "°C" ? 1 : 0)}${unit}</text>`;
+    }
+
+    const xIdx = [0, Math.floor(vals.length / 2), vals.length - 1];
+    const xSvg = xIdx.map(i => `<text x="${toX(i).toFixed(1)}" y="${H - 6}" fill="${txtCol}" font-size="9" font-family="monospace" text-anchor="${i === 0 ? "start" : (i === vals.length - 1 ? "end" : "middle")}">${hTime[i] || ""}</text>`).join("");
+
+    const dotsSvg = pts.map((pt, i) => {
+      const v = vals[i];
+      const ok = v >= low && v <= high;
+      const c = ok ? "#22c55e" : "#ef4444";
+      const r = i === vals.length - 1 ? 5.5 : (ok ? 3.2 : 4.5);
+      return `<circle cx="${pt[0].toFixed(1)}" cy="${pt[1].toFixed(1)}" r="${r}" fill="${c}" stroke="#ffffff" stroke-width="1.2"><title>${hTime[i]}: ${v.toFixed(1)}${unit} (${ok ? "Ideal" : "Desvio"})</title></circle>`;
+    }).join("");
+
+    const lastPt = pts[pts.length - 1];
+    el.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 12px 0;font-size:0.69rem;font-family:monospace;">
+        <span style="color:${isOk ? "#4ade80" : "#f87171"};font-weight:700;">● ${isOk ? "EQUILÍBRIO IDEAL" : "FORA DA FAIXA"} (${wineName})</span>
+        <span style="color:${txtCol};">Média: <b>${avgV.toFixed(1)}${unit}</b> · Faixa: ${minVal.toFixed(1)}–${maxVal.toFixed(1)}${unit}</span>
+      </div>
+      <svg viewBox="0 0 ${W} ${H}" width="100%" height="225" style="display:block;overflow:visible;">
+        <defs>
+          <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="${stroke}" stop-opacity="0.38"/>
+            <stop offset="100%" stop-color="${stroke}" stop-opacity="0.02"/>
+          </linearGradient>
+        </defs>
+        ${gridSvg}
+        <rect x="${L}" y="${rectY.toFixed(1)}" width="${plotW}" height="${rectH.toFixed(1)}" fill="rgba(34,197,94,0.14)"/>
+        <line x1="${L}" y1="${yHigh.toFixed(1)}" x2="${W - R}" y2="${yHigh.toFixed(1)}" stroke="#ef4444" stroke-width="1.2" stroke-dasharray="5,3"/>
+        <text x="${W - R - 3}" y="${(yHigh - 3).toFixed(1)}" fill="#f87171" font-size="8.5" font-family="monospace" text-anchor="end">Máx ${high}${unit}</text>
+        <line x1="${L}" y1="${yLow.toFixed(1)}" x2="${W - R}" y2="${yLow.toFixed(1)}" stroke="#38bdf8" stroke-width="1.2" stroke-dasharray="3,3"/>
+        <text x="${W - R - 3}" y="${(yLow + 10).toFixed(1)}" fill="#38bdf8" font-size="8.5" font-family="monospace" text-anchor="end">Mín ${low}${unit}</text>
+        <polygon points="${areaPts}" fill="url(#${gradId})"/>
+        <polyline fill="none" stroke="${stroke}" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" points="${linePts}"/>
+        ${dotsSvg}
+        <rect x="${Math.min(W - 62, Math.max(L, lastPt[0] - 28)).toFixed(1)}" y="${Math.max(4, lastPt[1] - 22).toFixed(1)}" width="52" height="15" rx="4" fill="${isOk ? "#166534" : "#991b1b"}" stroke="${isOk ? "#4ade80" : "#f87171"}" stroke-width="0.8"/>
+        <text x="${Math.min(W - 36, Math.max(L + 26, lastPt[0] - 2)).toFixed(1)}" y="${Math.max(14, lastPt[1] - 11).toFixed(1)}" fill="#ffffff" font-size="9" font-weight="bold" font-family="monospace" text-anchor="middle">${curV.toFixed(unit === "°C" ? 1 : 0)}${unit}</text>
+        ${xSvg}
+      </svg>`;
   }
 
   function renderAllCharts(t, h, l, pr, lot, shouldReseed = false) {
     if (shouldReseed || hTime.length === 0) reseedSeries(t, h, l);
     else pushPoint(t, h, l);
-
     const p = pr || { name: "Vinho Tinto", tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMin: 0, lMax: 25 };
     updateChartBadges(t, h, l, p, lot);
-
-    const isDark = document.documentElement.getAttribute("data-bs-theme") !== "light";
-    const pal = { bg: isDark ? "#121215" : "#ffffff", text: isDark ? "#e4e4e7" : "#111827", grid: isDark ? "rgba(255,255,255,0.07)" : "#e5e7eb" };
-
-    const makeFig = (id, title, stroke, fill, unit, vals, low, high, pad) => {
-      const el = document.getElementById(id);
-      if (!el || typeof Plotly === "undefined") return;
-      const allV = vals.concat([low, high]);
-      const yMin = Math.max(unit === "°C" ? -5 : 0, Math.min(...allV) - pad);
-      const yMax = Math.min(unit === "°C" ? 45 : 100, Math.max(...allV) + pad);
-      const mColors = vals.map(v => (v < low || v > high) ? "#ef4444" : "#22c55e");
-      const mSizes = vals.map((v, i) => i === vals.length - 1 ? 10 : ((v < low || v > high) ? 8 : 5));
-      const curV = vals[vals.length - 1];
-      const isOk = curV >= low && curV <= high;
-
-      const data = [{
-        x: hTime, y: vals, type: "scatter", mode: "lines+markers", fill: "tozeroy", fillcolor: fill,
-        line: { color: stroke, width: 2.8, shape: "spline", smoothing: 1.0 },
-        marker: { color: mColors, size: mSizes, line: { color: "#ffffff", width: 1.2 } },
-        hovertemplate: `<b>${title}: %{y:.1f}${unit}</b><br>Faixa Ideal: ${low}–${high}${unit}<br><span style="font-size:0.70rem;color:#a1a1aa">Horário: %{x}</span><extra></extra>`
-      }];
-
-      const layout = {
-        title: {
-          text: `<span style="font-size:10.5px;color:${isOk ? "#4ade80" : "#f87171"}">● ${isOk ? "DENTRO DA FAIXA IDEAL" : "DESVIO DETECTADO"} (${p.name || "Vinho"}) · Alvo: ${low}–${high}${unit}</span>`,
-          x: 0.03, y: 0.96, xanchor: "left"
-        },
-        paper_bgcolor: pal.bg, plot_bgcolor: pal.bg,
-        font: { color: pal.text, family: "Plus Jakarta Sans", size: 10 },
-        margin: { t: 28, r: 16, l: 38, b: 26 },
-        xaxis: { gridcolor: pal.grid, zeroline: false, nticks: 5, tickangle: 0, showline: false },
-        yaxis: { gridcolor: pal.grid, range: [yMin, yMax], zeroline: false, nticks: 5 },
-        shapes: [
-          { type: "rect", xref: "paper", x0: 0, x1: 1, y0: low, y1: high, fillcolor: "rgba(34,197,94,0.14)", line: { width: 0 } },
-          { type: "line", xref: "paper", x0: 0, x1: 1, y0: high, line: { color: "rgba(239,68,68,0.65)", width: 1.3, dash: "dash" } },
-          { type: "line", xref: "paper", x0: 0, x1: 1, y0: low, line: { color: "rgba(56,189,248,0.65)", width: 1.3, dash: "dot" } }
-        ]
-      };
-      try { Plotly.react(id, data, layout, { responsive: true, displayModeBar: false }); } catch (_) {}
-    };
-
-    makeFig("graph-temperature", "Temperatura", "#ef4444", "rgba(239,68,68,0.10)", "°C", hT, p.tMin, p.tMax, 3.0);
-    makeFig("graph-humidity", "Umidade", "#0284c7", "rgba(2,132,199,0.10)", "%", hH, p.hMin, p.hMax, 8.0);
-    makeFig("graph-luminosity", "Luminosidade", "#d4af62", "rgba(212,175,98,0.10)", "%", hL, p.lMin, p.lMax, 6.0);
+    const wName = p.name || "Vinho Tinto";
+    buildSvgChart("graph-temperature", "#ef4444", "grad-temp", "°C", hT, p.tMin, p.tMax, 2.5, wName);
+    buildSvgChart("graph-humidity", "#0284c7", "grad-hum", "%", hH, p.hMin, p.hMax, 7.0, wName);
+    buildSvgChart("graph-luminosity", "#d4af62", "grad-lum", "%", hL, p.lMin, p.lMax, 5.0, wName);
   }
 
   window.ScadaCharts = { renderAllCharts, reseedSeries, updateChartBadges };
