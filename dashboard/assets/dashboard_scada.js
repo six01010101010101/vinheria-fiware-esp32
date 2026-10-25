@@ -65,6 +65,7 @@
   }
 
   function syncPresetControls(p) {
+    try { localStorage.setItem("vinheria_preset", curPr); } catch (_) {}
     const sel = document.getElementById("dropdown-wine-preset"); if (sel && sel.value !== curPr) sel.value = curPr;
     document.querySelectorAll(".wine-pill-btn").forEach(b => b.classList.toggle("active", b.dataset.wine === curPr));
     ["temp-min", "temp-max", "hum-min", "hum-max", "lum-min", "lum-max"].forEach((k, i) => {

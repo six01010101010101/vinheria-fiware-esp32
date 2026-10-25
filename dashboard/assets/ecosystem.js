@@ -23,7 +23,7 @@ const ECOSYSTEM_SERVICES = [
     color: "danger",
     desc: "Diagnóstico completo da cava em tempo real com telemetria instantânea e score de saúde.",
     inside: "Snapshot térmico (°C), higrometria (%), penumbra (%), estado dos LEDs e integridade da rolha.",
-    url: "/api/v1/status",
+    url: "api/v1/status/index.html",
     icon: "⚡"
   },
   {
@@ -34,7 +34,7 @@ const ECOSYSTEM_SERVICES = [
     color: "warning",
     desc: "Persistência em nuvem Google sem servidor para telemetria contínua e sincronia de presets.",
     inside: "Coleções /vinheria/telemetry (leituras a cada 2s) e /vinheria/active_config (estilo e terroir).",
-    url: "/api/v1/cloud/firebase",
+    url: "api/v1/cloud/firebase/index.html",
     icon: "🔥"
   },
   {
@@ -43,9 +43,9 @@ const ECOSYSTEM_SERVICES = [
     protocol: "HTTP :8050 / Render",
     badge: "Cavas de Guarda",
     color: "primary",
-    desc: "Catálogo de 10 grandes lotes mundiais com safras, solos, tipo de carvalho e apogeu.",
+    desc: "Catálogo de 12 grandes lotes mundiais com safras, solos, tipo de carvalho e apogeu.",
     inside: "Códigos de lote, notas do sommelier, tolerâncias térmicas e filtros por estilo e país.",
-    url: "/api/v1/lots",
+    url: "api/v1/lots/index.html",
     icon: "🍷"
   },
   {
@@ -56,7 +56,7 @@ const ECOSYSTEM_SERVICES = [
     color: "info",
     desc: "Especificação formal documentando todos os endpoints, esquemas Pydantic e parâmetros.",
     inside: "Schemas dos modelos IoT, rotas /api/v1/*, respostas HTTP 200/404/500 e tipagens estritas.",
-    url: "/api/v1/openapi.json",
+    url: "api/v1/openapi.json",
     icon: "📜"
   },
   {
@@ -74,7 +74,8 @@ const ECOSYSTEM_SERVICES = [
 
 function openEcosystemTab(url) {
   window.arcadeAudio?.playCoin();
-  window.open(url, "_blank", "noopener,noreferrer");
+  if (url.startsWith("http")) window.open(url, "_blank", "noopener,noreferrer");
+  else window.location.href = url;
 }
 
 function renderEcosystemPanel() {
@@ -94,7 +95,7 @@ function renderEcosystemPanel() {
         <div class="pt-2 border-top border-secondary border-opacity-25 mt-2">
           <div class="text-muted small mb-2" style="font-size:0.68rem;line-height:1.35;"><strong class="text-wine">O que há dentro:</strong> ${s.inside}</div>
           <div class="d-flex justify-content-end">
-            <a href="${s.url}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-wine text-nowrap" style="font-size:0.70rem;padding:3px 10px;" onclick="event.stopPropagation();window.arcadeAudio?.playCoin();">Abrir em Nova Aba ↗</a>
+            <a href="${s.url}" ${s.url.startsWith("http") ? 'target="_blank" rel="noopener noreferrer"' : ""} class="btn btn-sm btn-wine text-nowrap" style="font-size:0.70rem;padding:4px 12px;" onclick="event.stopPropagation();window.arcadeAudio?.playCoin();">Acessar Serviço →</a>
           </div>
         </div>
       </div>

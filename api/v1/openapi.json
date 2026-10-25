@@ -1,0 +1,14 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Vinheria Agnello — FIWARE & ESP32 Wokwi IoT API",
+    "version": "1.0.0",
+    "description": "Especificação OpenAPI 3.0 para monitoramento de vinhos, cavas de guarda, terroirs via satélite e hardware ESP32 Wokwi."
+  },
+  "paths": {
+    "/api/v1/status": { "get": { "summary": "Diagnóstico em tempo real da adega e ESP32 Wokwi" } },
+    "/api/v1/lots": { "get": { "summary": "Catálogo de 12 lotes e 8 estilos de vinho" } },
+    "/api/v1/cloud/firebase": { "get": { "summary": "Sincronização em nuvem Firebase RTDB e 12 estações meteorológicas" } },
+    "/api/v1/command": { "post": { "summary": "Envio de comando direto para LEDs e Buzzer do ESP32 (/TEF/vine001/cmd)" } }
+  }
+}

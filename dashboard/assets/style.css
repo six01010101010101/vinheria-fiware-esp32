@@ -164,12 +164,16 @@ h1, h2, h3, h4, .section-title { font-family: "Plus Jakarta Sans", sans-serif; f
 }
 
 .chart-panel-box { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 14px; overflow: hidden; }
+.control-field-box { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 14px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
+.threshold-subbox { background: var(--bg-subbox); border: 1px solid var(--border-subtle); border-radius: 11px; padding: 10px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
 .custom-icon { width: 18px; height: 18px; object-fit: contain; }
 .custom-icon-sm { width: 15px; height: 15px; object-fit: contain; }
-.form-control, .form-select { border-color: var(--border-input) !important; color: var(--text-primary) !important; background-color: var(--bg-surface) !important; border-radius: 9px !important; font-weight: 600; }
-.form-control:focus, .form-select:focus { border-color: var(--wine-vivid) !important; box-shadow: 0 0 0 3px var(--wine-glow) !important; }
-.input-group-text { background-color: var(--bg-subbox) !important; border-color: var(--border-input) !important; color: var(--text-secondary) !important; font-size: 0.75rem !important; font-weight: 600; }
-.ecosystem-card { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 12px; transition: all 0.2s ease !important; cursor: pointer; }
+.form-control, .form-select { height: 38px !important; border: 1.5px solid var(--border-input) !important; color: var(--text-primary) !important; background-color: var(--bg-card) !important; border-radius: 9px !important; font-weight: 600; font-size: 0.80rem !important; padding: 6px 11px !important; transition: all 0.18s ease; }
+.form-control::placeholder { color: var(--text-muted) !important; font-weight: 500; }
+.form-control:focus, .form-select:focus { border-color: var(--wine-vivid) !important; box-shadow: 0 0 0 3px var(--wine-glow) !important; outline: none !important; }
+.input-group > .form-control, .input-group > .input-group-text { height: 36px !important; }
+.input-group-text { background-color: var(--bg-surface) !important; border: 1.5px solid var(--border-input) !important; color: var(--text-secondary) !important; font-size: 0.73rem !important; font-weight: 700; padding: 0 9px !important; }
+.ecosystem-card { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 14px; transition: all 0.2s ease !important; cursor: pointer; }
 .ecosystem-card:hover { border-color: var(--wine-vivid) !important; transform: translateY(-2px); box-shadow: 0 6px 16px var(--wine-glow); }
 
 .sc-btn { height: 34px; border-radius: 9px !important; font-weight: 700 !important; font-size: 0.73rem !important; display: flex; align-items: center; justify-content: center; }

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API REST v1 (Status & Telemetria) · Vinheria Agnello</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍷</text></svg>">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../dashboard/assets/style.css?v=20261025_v15">
+</head>
+<body class="bg-body py-4">
+  <div class="container" style="max-width: 1040px;">
+    <div class="card clean-card shadow-sm mb-3">
+      <div class="card-body p-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center pb-3 mb-3 border-bottom border-secondary border-opacity-25 gap-2">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="status-pill status-pill-live"><span class="status-dot"></span>HTTP 200 OK · ONLINE</span>
+              <span class="sommelier-tag">GET /api/v1/status</span>
+            </div>
+            <h4 class="fw-bold mb-0 mt-2">🍷 Vinheria Agnello — Diagnóstico da API REST &amp; Telemetria</h4>
+            <small class="text-muted">Inspeção em tempo real dos sensores ESP32 Wokwi, FIWARE Orion/STH-Comet, Cavas e Terroirs.</small>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <a href="../../../dashboard.html" class="nav-ghost-link">← Voltar ao Dashboard</a>
+            <a href="../lots/index.html" class="nav-ghost-link">🍷 /api/v1/lots</a>
+            <a href="../cloud/firebase/index.html" class="nav-ghost-link">🔥 /api/v1/cloud</a>
+            <a href="../openapi.json" class="nav-ghost-link">📜 OpenAPI JSON</a>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-3 col-6"><div class="control-field-box text-center"><small class="text-muted d-block mb-1">Vinho / Preset Ativo</small><strong id="api-wine" class="text-wine fs-6">🍷 TINTO GRAND CRU</strong></div></div>
+          <div class="col-md-3 col-6"><div class="control-field-box text-center"><small class="text-muted d-block mb-1">Temperatura (DHT22)</small><strong id="api-temp" class="fs-5 font-monospace">15.8°C</strong></div></div>
+          <div class="col-md-3 col-6"><div class="control-field-box text-center"><small class="text-muted d-block mb-1">Umidade Relativa</small><strong id="api-hum" class="fs-5 font-monospace">68%</strong></div></div>
+          <div class="col-md-3 col-6"><div class="control-field-box text-center"><small class="text-muted d-block mb-1">Estado LED / Wokwi</small><strong id="api-state" class="text-success fs-6 font-monospace">🟢 IDEAL (100%)</strong></div></div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="section-title">PAYLOAD JSON EM TEMPO REAL (ATUALIZAÇÃO AUTOMÁTICA A CADA 2S)</span>
+          <button id="btn-copy-json" class="btn btn-sm btn-wine" type="button">📋 Copiar JSON</button>
+        </div>
+        <pre id="api-json-viewer" class="p-3 rounded-3 font-monospace small mb-0" style="background:#09080d;color:#f8fafc;border:1px solid #2a2438;max-height:460px;overflow:auto;"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../../dashboard/assets/wine_catalog.js?v=20261025_v15"></script>
+  <script src="../../../dashboard/assets/theme.js?v=20261025_v15"></script>
+  <script>
+    (function () {
+      function renderStatusPayload() {
+        const prKey = localStorage.getItem("vinheria_preset") || "tinto";
+        const pr = (window.PRESETS && window.PRESETS[prKey]) || { key: "tinto", name: "Vinho Tinto", badge: "🍷 TINTO GRAND CRU", defT: 15.8, defH: 68, defL: 9, tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMax: 25 };
+        const jitter = +((Math.random() - 0.5) * 0.2).toFixed(1);
+        const t = +(pr.defT + jitter).toFixed(1), h = pr.defH, l = pr.defL;
+        document.getElementById("api-wine").textContent = pr.badge;
+        document.getElementById("api-temp").textContent = t + "°C";
+        document.getElementById("api-hum").textContent = h + "%";
+        const payload = {
+          status: "online",
+          http_code: 200,
+          timestamp: new Date().toISOString(),
+          service: "Vinheria Agnello — FIWARE & ESP32 Wokwi IoT API v1",
+          active_preset: { key: pr.key, name: pr.name, target_temp_c: [pr.tMin, pr.tMax], target_hum_pct: [pr.hMin, pr.hMax], max_lum_pct: pr.lMax },
+          telemetry: { device_id: "vine001", entity_id: "urn:ngsi-ld:Vineyard:001", temperature_c: t, humidity_pct: h, luminosity_pct: l, preservation_score: 100, led_state: "IDEAL (95-100%)" },
+          wokwi_esp32: { broker: "broker.hivemq.com", port_tcp: 1883, port_wss: 8884, topic_attrs: "/TEF/vine001/attrs", topic_cmd: "/TEF/vine001/cmd", lcd_i2c: "0x27 (16x2)", leds: { green_d5: "ON", blue_d2: "OFF", red_d18: "OFF", buzzer_d4: "MUDO" } },
+          counts: { wine_styles: Object.keys(window.PRESETS || {}).length, cellar_lots: (window.CANONICAL_LOTS || []).length, satellite_terroirs: Object.keys(window.TERROIRS || {}).length - 1 }
+        };
+        document.getElementById("api-json-viewer").textContent = JSON.stringify(payload, null, 2);
+      }
+      document.getElementById("btn-copy-json")?.addEventListener("click", () => {
+        navigator.clipboard?.writeText(document.getElementById("api-json-viewer").textContent);
+        const b = document.getElementById("btn-copy-json"); b.textContent = "✅ Copiado!"; setTimeout(() => { b.textContent = "📋 Copiar JSON"; }, 1500);
+      });
+      renderStatusPayload();
+      setInterval(renderStatusPayload, 2000);
+    })();
+  </script>
+</body>
+</html>

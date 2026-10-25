@@ -82,7 +82,7 @@
       ].filter(Boolean).join(" ");
 
       return `
-      <div class="col-lg-3 col-md-6 col-12">
+      <div class="col-lg-4 col-xl-3 col-md-6 col-12">
         <div class="${cls}" data-vid="${v.id}" style="cursor:pointer;" title="Clique para selecionar o terroir ${v.name} (${v.country})">
           <div class="d-flex justify-content-between align-items-center pb-2 mb-2 border-bottom border-secondary border-opacity-25">
             <div class="d-flex align-items-center gap-2">
