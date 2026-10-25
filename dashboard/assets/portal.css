@@ -1,73 +1,72 @@
-/* Portal HTML5 Sommelier — Vinheria Agnello (Minimalista Executivo: Claro, Escuro & Sistema) */
-@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+/* Portal HTML5 Sommelier — Vinheria Agnello (Identidade Visual Clean & Moderna Inspirada em Sakura / Tailwind) */
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
 
 :root, [data-theme="light"] {
-  --portal-bg: #f1f5f9; --portal-card: #ffffff; --portal-border: #cbd5e1;
-  --portal-text: #0f172a; --portal-muted: #475569; --portal-wine: #8b1527;
-  --portal-gold: #8b1527; --portal-gold-glow: rgba(139, 21, 39, 0.12);
-  --portal-wine-glow: rgba(139, 21, 39, 0.16); --portal-input-bg: #ffffff;
-  --portal-surface: linear-gradient(145deg, #ffffff 0%, #fff5f6 55%, #f1f5f9 100%);
+  --portal-bg: #f9fafb; --portal-card: #ffffff; --portal-surface: #f3f4f6; --portal-blush: #fef2f2;
+  --portal-border: #e5e7eb; --portal-text: #111827; --portal-muted: #4b5563;
+  --portal-wine: #b91c1c; --portal-wine-hover: #991b1b; --portal-gold: #b91c1c;
+  --portal-gold-glow: rgba(185, 28, 28, 0.10); --portal-wine-glow: rgba(185, 28, 28, 0.14);
 }
 [data-theme="dark"] {
-  --portal-bg: #09090b; --portal-card: #121215; --portal-border: #27272a;
-  --portal-text: #f4f4f5; --portal-muted: #a1a1aa; --portal-wine: #8b1527;
-  --portal-gold: #c5a059; --portal-gold-glow: rgba(197, 160, 89, 0.18);
-  --portal-wine-glow: rgba(139, 21, 39, 0.30); --portal-input-bg: #121215;
-  --portal-surface: linear-gradient(145deg, #121215 0%, #191316 100%);
+  --portal-bg: #0f172a; --portal-card: #111827; --portal-surface: #1f2937; --portal-blush: rgba(127, 29, 29, 0.25);
+  --portal-border: #1f2937; --portal-text: #f9fafb; --portal-muted: #9ca3af;
+  --portal-wine: #b91c1c; --portal-wine-hover: #991b1b; --portal-gold: #f87171;
+  --portal-gold-glow: rgba(248, 113, 113, 0.15); --portal-wine-glow: rgba(185, 28, 28, 0.28);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  background: linear-gradient(180deg, #fff5f6 0%, #f1f5f9 45%, #e2e8f0 100%) fixed;
-  color: var(--portal-text); font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--portal-bg); color: var(--portal-text);
+  font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
   line-height: 1.5; -webkit-font-smoothing: antialiased;
 }
-[data-theme="dark"] body { background: #09090b; }
-.portal-container { max-width: 1200px; margin: 0 auto; padding: 20px 16px; }
+.portal-container { max-width: 1180px; margin: 0 auto; padding: 20px 16px; }
 .portal-header {
   display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
-  padding: 14px 18px; background: var(--portal-surface); border: 1px solid var(--portal-border);
-  border-radius: 12px; margin-bottom: 22px; box-shadow: 0 4px 14px rgba(139, 21, 39, 0.06);
+  padding: 16px 20px; background: var(--portal-card); border: 1px solid var(--portal-border);
+  border-radius: 16px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 .portal-brand h1 {
-  font-family: "Cinzel", Georgia, serif; font-size: 1.35rem; color: var(--portal-wine);
-  letter-spacing: 0.06em; display: flex; align-items: center; gap: 8px;
+  font-family: "Plus Jakarta Sans", sans-serif; font-size: 1.35rem; font-weight: 800; color: var(--portal-text);
+  letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px;
 }
-.portal-brand p { font-size: 0.72rem; color: var(--portal-gold); font-weight: 700; letter-spacing: 0.08em; }
+.portal-brand p { font-size: 0.70rem; color: var(--portal-gold); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 .portal-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .live-pill {
-  display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px;
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 9999px;
   font-size: 0.74rem; font-weight: 600; background: rgba(34, 197, 94, 0.12); color: #16a34a;
-  border: 1px solid rgba(34, 197, 94, 0.30);
+  border: 1px solid rgba(34, 197, 94, 0.28);
 }
+[data-theme="dark"] .live-pill { color: #4ade80; }
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; animation: pulseDot 1.4s infinite; }
 @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
 
 .hero-barrel-card {
-  background: var(--portal-surface); border: 1px solid var(--portal-border);
-  border-radius: 16px; padding: 24px 20px; text-align: center;
-  box-shadow: 0 8px 28px rgba(139, 21, 39, 0.08);
+  background: var(--portal-card); border: 1px solid var(--portal-border);
+  border-radius: 20px; padding: 28px 24px; text-align: center;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
 }
 .active-wine-badge {
-  display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 20px;
-  background: var(--portal-wine-glow); border: 1px solid var(--portal-wine); color: var(--portal-text); font-size: 0.82rem;
+  display: inline-flex; align-items: center; gap: 8px; padding: 6px 18px; border-radius: 9999px;
+  background: var(--portal-blush); border: 1px solid rgba(185, 28, 28, 0.3); color: var(--portal-gold); font-size: 0.82rem; font-weight: 600;
 }
-.hero-subtitle { color: var(--portal-muted); font-size: 0.84rem; margin-top: 6px; }
+.hero-subtitle { color: var(--portal-muted); font-size: 0.86rem; margin-top: 8px; }
 .sommelier-tag {
-  display: inline-block; font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;
-  border: 1px solid var(--portal-gold); background: var(--portal-gold-glow); color: var(--portal-gold);
+  display: inline-block; font-size: 0.65rem; font-weight: 700; padding: 3px 10px; border-radius: 9999px;
+  border: 1px solid rgba(185, 28, 28, 0.3); background: var(--portal-gold-glow); color: var(--portal-gold);
 }
 .btn-portal {
-  background: var(--portal-wine); color: #ffffff; border: 1px solid var(--portal-wine); padding: 7px 14px;
-  border-radius: 8px; font-size: 0.80rem; font-weight: 600; cursor: pointer;
+  background: var(--portal-wine); color: #ffffff; border: 1px solid var(--portal-wine); padding: 8px 18px;
+  border-radius: 9999px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
   text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(185, 28, 28, 0.2);
 }
-.btn-portal:hover { opacity: 0.92; transform: translateY(-1px); }
-.btn-outline { background: var(--portal-card); border: 1px solid var(--portal-border); color: var(--portal-text); }
-.btn-outline:hover { border-color: var(--portal-wine); color: var(--portal-wine); background: var(--portal-wine-glow); }
-.portal-footer { text-align: center; padding: 20px 0; font-size: 0.74rem; color: var(--portal-muted); border-top: 1px solid var(--portal-border); margin-top: 28px; }
+.btn-portal:hover { background: var(--portal-wine-hover); transform: translateY(-1px); }
+.btn-outline { background: var(--portal-card); border: 1px solid var(--portal-border); color: var(--portal-text); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); }
+.btn-outline:hover { border-color: var(--portal-wine); color: var(--portal-gold); background: var(--portal-blush); }
+.portal-footer { text-align: center; padding: 24px 0; font-size: 0.76rem; color: var(--portal-muted); border-top: 1px solid var(--portal-border); margin-top: 32px; }
 
 /* Miniaturas 3D do Barril e Tampa LCD */
-.proto-thumb-box { background: var(--portal-surface); border: 1px solid var(--portal-border); border-radius: 12px; padding: 14px; display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; }
+.proto-thumb-box { background: var(--portal-surface); border: 1px solid var(--portal-border); border-radius: 16px; padding: 16px; display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; }
 .barrel-lid-mini { position: relative; width: 105px; height: 105px; flex-shrink: 0; }
 .barrel-lid-mini-img { width: 100%; height: 105px; object-fit: contain; }
 .barrel-3d-mini-img { width: 90px; height: 105px; object-fit: contain; }

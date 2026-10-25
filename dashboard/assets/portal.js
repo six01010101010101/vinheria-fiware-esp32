@@ -65,8 +65,10 @@ function selectPortalWine(wineKey) {
   const titleEl = document.getElementById("portal-active-wine-title");
   if (titleEl) titleEl.textContent = `${p.wine} · ${p.casta || p.name}`;
   document.querySelectorAll(".portal-wine-btn").forEach(b => {
-    b.style.borderColor = b.dataset.wine === curPortalWine ? "#c5a059" : "";
-    b.style.boxShadow = b.dataset.wine === curPortalWine ? "0 0 12px rgba(197,160,89,0.4)" : "";
+    const isAct = b.dataset.wine === curPortalWine;
+    b.style.background = isAct ? "#b91c1c" : "";
+    b.style.color = isAct ? "#ffffff" : "";
+    b.style.borderColor = isAct ? "#991b1b" : "";
   });
   window.arcadeAudio?.ensureContext?.();
   window.arcadeAudio?.playWineStyle?.(curPortalWine);

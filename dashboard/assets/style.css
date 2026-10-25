@@ -1,24 +1,24 @@
-/* Vinheria Agnello — Minimalista Executivo & SaaS Sommelier Nobre (Temas Escuro, Claro & Auto) */
-@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap");
+/* Vinheria Agnello — Identidade Visual Clean & Moderna (Inspirada no Design Minimalista Sakura / Tailwind) */
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap");
 
 :root, [data-bs-theme="dark"] {
-  --bg-body: #09090b; --bg-card: #121215; --bg-surface: #18181b; --navbar-bg: rgba(9, 9, 11, 0.90);
-  --border-subtle: #27272a; --border-input: #3f3f46;
-  --text-primary: #f4f4f5; --text-secondary: #a1a1aa; --text-muted: #71717a;
-  --wine-primary: #8b1527; --wine-hover: #a82337; --wine-gold: #c5a059;
-  --wine-glow: rgba(139, 21, 39, 0.35); --wine-gold-glow: rgba(197, 160, 89, 0.28);
+  --bg-body: #0f172a; --bg-card: #111827; --bg-surface: #1f2937; --bg-blush: rgba(127, 29, 29, 0.25);
+  --navbar-bg: rgba(17, 24, 39, 0.96); --border-subtle: #1f2937; --border-input: #374151;
+  --text-primary: #f9fafb; --text-secondary: #d1d5db; --text-muted: #9ca3af;
+  --wine-primary: #b91c1c; --wine-hover: #991b1b; --wine-gold: #f87171;
+  --wine-glow: rgba(185, 28, 28, 0.25); --wine-gold-glow: rgba(248, 113, 113, 0.16);
   --color-temp: #f87171; --color-hum: #38bdf8; --color-lum: #fbbf24; --color-dew: #a78bfa;
-  --proto-bg: linear-gradient(145deg, #121215 0%, #191316 100%);
+  --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 4px 10px -4px rgba(0, 0, 0, 0.25);
 }
 
 [data-bs-theme="light"] {
-  --bg-body: #f1f5f9; --bg-card: #ffffff; --bg-surface: #e2e8f0; --navbar-bg: rgba(255, 250, 251, 0.94);
-  --border-subtle: #cbd5e1; --border-input: #94a3b8;
-  --text-primary: #0f172a; --text-secondary: #334155; --text-muted: #64748b;
-  --wine-primary: #8b1527; --wine-hover: #a82337; --wine-gold: #8b1527;
-  --wine-glow: rgba(139, 21, 39, 0.18); --wine-gold-glow: rgba(139, 21, 39, 0.15);
+  --bg-body: #f9fafb; --bg-card: #ffffff; --bg-surface: #f3f4f6; --bg-blush: #fef2f2;
+  --navbar-bg: rgba(255, 255, 255, 0.96); --border-subtle: #e5e7eb; --border-input: #d1d5db;
+  --text-primary: #111827; --text-secondary: #4b5563; --text-muted: #6b7280;
+  --wine-primary: #b91c1c; --wine-hover: #991b1b; --wine-gold: #b91c1c;
+  --wine-glow: rgba(185, 28, 28, 0.12); --wine-gold-glow: rgba(185, 28, 28, 0.10);
   --color-temp: #dc2626; --color-hum: #0284c7; --color-lum: #d97706; --color-dew: #7c3aed;
-  --proto-bg: linear-gradient(145deg, #ffffff 0%, #fff5f6 55%, #f1f5f9 100%);
+  --card-shadow: 0 4px 12px -2px rgba(17, 24, 39, 0.06), 0 2px 6px -2px rgba(17, 24, 39, 0.04);
 }
 
 body {
@@ -26,162 +26,153 @@ body {
   font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased; line-height: 1.5;
 }
-[data-bs-theme="light"] body {
-  background: linear-gradient(180deg, #fff5f6 0%, #f1f5f9 38%, #e2e8f0 100%) fixed !important;
-}
 
-h1, h2, h3, h4, .section-title { font-family: "Plus Jakarta Sans", sans-serif; font-weight: 700; }
-.navbar-brand-title { font-family: "Cinzel", serif !important; font-size: 1.24rem; color: var(--wine-primary) !important; font-weight: 800; letter-spacing: 0.08em; text-shadow: 0 0 12px var(--wine-glow); }
-.navbar-brand-sub { font-size: 0.65rem; letter-spacing: 0.12em; color: var(--wine-gold) !important; font-weight: 700; text-transform: uppercase; }
+h1, h2, h3, h4, .section-title { font-family: "Plus Jakarta Sans", sans-serif; font-weight: 800; letter-spacing: -0.01em; }
+.navbar-brand-title { font-family: "Plus Jakarta Sans", sans-serif !important; font-size: 1.22rem; color: var(--text-primary) !important; font-weight: 800; letter-spacing: -0.02em; }
+.navbar-brand-sub { font-size: 0.65rem; letter-spacing: 0.08em; color: var(--wine-gold) !important; font-weight: 700; text-transform: uppercase; }
 .text-wine { color: var(--wine-gold) !important; }
-.bg-wine-pill { background: var(--wine-primary) !important; color: #fff !important; border: 1px solid var(--wine-hover) !important; }
+.bg-wine-pill { background: var(--wine-primary) !important; color: #ffffff !important; border: 1px solid var(--wine-hover) !important; border-radius: 9999px !important; padding: 4px 12px !important; }
 
 .clean-navbar, .pro-navbar {
-  background: var(--navbar-bg) !important; backdrop-filter: blur(16px) saturate(180%);
-  border-bottom: 1.5px solid var(--border-subtle) !important;
+  background: var(--navbar-bg) !important; backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-subtle) !important; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
 }
-[data-bs-theme="light"] .pro-navbar { border-bottom-color: rgba(139, 21, 39, 0.22) !important; }
 
 .clean-card {
   background: var(--bg-card) !important; border: 1px solid var(--border-subtle) !important;
-  border-radius: 14px !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18) !important;
-  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+  border-radius: 16px !important; box-shadow: var(--card-shadow) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
-[data-bs-theme="light"] .clean-card {
-  background: linear-gradient(180deg, #ffffff 0%, #fffafb 70%, #f8fafc 100%) !important;
-  border: 1px solid rgba(139, 21, 39, 0.16) !important;
-  box-shadow: 0 6px 20px rgba(139, 21, 39, 0.06), 0 2px 6px rgba(15, 23, 42, 0.05) !important;
-}
-.clean-card:hover { border-color: rgba(139, 21, 39, 0.45) !important; }
 
 .section-title {
-  font-size: 0.80rem; font-weight: 800; text-transform: uppercase; color: var(--wine-gold) !important;
-  letter-spacing: 0.07em; border-left: 3px solid var(--wine-primary); padding-left: 10px;
+  font-size: 0.82rem; font-weight: 800; text-transform: uppercase; color: var(--text-primary) !important;
+  letter-spacing: 0.04em; border-left: 4px solid var(--wine-primary); padding-left: 10px;
 }
 
-/* Moldura e Tela Verde CRT Estilo Laboratório Sommelier */
+/* Moldura e Tela Verde CRT Hardware ESP32 */
 .green-crt-frame {
-  position: relative; overflow: hidden;
-  background: radial-gradient(circle at center, #05200f 0%, #020c06 100%);
-  border: 2px solid #14532d; outline: 1px solid rgba(34, 197, 94, 0.25); border-radius: 12px;
-  padding: 12px 14px; box-shadow: inset 0 0 24px rgba(34, 197, 94, 0.25), 0 0 14px rgba(34, 197, 94, 0.12);
+  position: relative; overflow: hidden; background: radial-gradient(circle at center, #05200f 0%, #020c06 100%);
+  border: 1.5px solid #14532d; border-radius: 14px; padding: 12px 14px; box-shadow: inset 0 0 20px rgba(34, 197, 94, 0.22);
 }
-.crt-tag { font-family: "JetBrains Mono", monospace; font-size: 0.68rem; font-weight: 700; color: #4ade80; text-transform: uppercase; letter-spacing: 0.05em; }
-.wokwi-lcd-bezel { background: #0b0f0c; border: 2px solid #14532d; border-radius: 8px; padding: 5px 8px; box-shadow: inset 0 2px 6px rgba(0,0,0,0.8), 0 0 10px rgba(34,197,94,0.15); }
-.wokwi-lcd-screen { background: radial-gradient(ellipse at center, #052a10 0%, #021407 100%); border: 1px solid #166534; border-radius: 4px; padding: 6px 10px; box-shadow: inset 0 0 12px rgba(34, 197, 94, 0.35); font-family: "JetBrains Mono", "Courier New", monospace; }
-.wokwi-lcd-line { color: #22c55e; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.08em; line-height: 1.45; text-shadow: 0 0 6px #22c55e, 0 0 1px #86efac; white-space: pre; overflow: hidden; }
+.crt-tag { font-family: "JetBrains Mono", monospace; font-size: 0.68rem; font-weight: 700; color: #4ade80; text-transform: uppercase; }
+.wokwi-lcd-bezel { background: #0b0f0c; border: 2px solid #14532d; border-radius: 8px; padding: 5px 8px; }
+.wokwi-lcd-screen { background: radial-gradient(ellipse at center, #052a10 0%, #021407 100%); border: 1px solid #166534; border-radius: 4px; padding: 6px 10px; font-family: "JetBrains Mono", monospace; }
+.wokwi-lcd-line { color: #22c55e; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.08em; line-height: 1.45; text-shadow: 0 0 6px #22c55e; white-space: pre; overflow: hidden; }
 .crt-telemetry-hud { font-size: 0.72rem; line-height: 1.4; }
-.green-crt-frame .text-wine { color: #e2b86b !important; }
+.green-crt-frame .text-wine { color: #fca5a5 !important; }
 
 .text-temp { color: var(--color-temp) !important; font-weight: 700; }
 .text-hum { color: var(--color-hum) !important; font-weight: 700; }
 .text-lum { color: var(--color-lum) !important; font-weight: 700; }
 .text-dew { color: var(--color-dew) !important; font-weight: 700; }
-.text-country { color: var(--wine-gold) !important; font-weight: 700; font-family: "Cinzel", serif; }
+.text-country { color: var(--text-muted) !important; font-weight: 600; }
 
-/* Cards de Cavas & Terroirs com Seleção Individual SaaS e Animação */
+/* Cards de Cavas & Terroirs Estilo Clean (Card.jsx / Home.jsx) */
 .vineyard-card {
-  background: var(--bg-card); border: 1.5px solid var(--border-subtle); border-radius: 12px;
-  padding: 12px 14px; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer; position: relative; overflow: hidden;
+  background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 14px;
+  padding: 14px; transition: all 0.2s ease; cursor: pointer; position: relative; overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
-[data-bs-theme="light"] .vineyard-card {
-  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 65%, #fff5f6 100%);
-  border-color: #cbd5e1;
-}
-.vineyard-card:hover { border-color: var(--wine-primary); transform: translateY(-3px); box-shadow: 0 8px 24px var(--wine-glow); opacity: 1 !important; }
-.lot-dimmed { opacity: 0.82; }
-.lot-style-match { border-color: rgba(139, 21, 39, 0.40); opacity: 0.95; }
+[data-bs-theme="light"] .vineyard-card { background: #ffffff; border-color: #e5e7eb; box-shadow: 0 2px 8px rgba(17, 24, 39, 0.05); }
+.vineyard-card:hover { transform: translateY(-4px); border-color: var(--wine-primary); box-shadow: 0 12px 24px -6px var(--wine-glow); opacity: 1 !important; }
+.lot-dimmed { opacity: 0.88; }
+.lot-style-match { border-color: rgba(185, 28, 28, 0.35); opacity: 0.96; }
 .active-vineyard {
-  opacity: 1 !important; border: 2px solid var(--wine-gold) !important;
-  background: linear-gradient(135deg, rgba(139, 21, 39, 0.24), rgba(197, 160, 89, 0.14)) !important;
-  box-shadow: 0 0 0 3px var(--wine-glow), 0 10px 26px rgba(0, 0, 0, 0.28) !important;
-  transform: translateY(-2px) scale(1.01);
+  opacity: 1 !important; border: 2px solid var(--wine-primary) !important;
+  background: var(--bg-blush) !important;
+  box-shadow: 0 0 0 3px var(--wine-glow), 0 10px 22px -4px rgba(0, 0, 0, 0.2) !important;
+  transform: translateY(-2px);
 }
 [data-bs-theme="light"] .active-vineyard {
-  border: 2px solid #8b1527 !important;
-  background: linear-gradient(135deg, #fff0f2 0%, #ffe4e8 55%, #f1f5f9 100%) !important;
-  box-shadow: 0 0 0 3px rgba(139, 21, 39, 0.20), 0 8px 22px rgba(139, 21, 39, 0.14) !important;
+  background: #fff5f5 !important; border: 2px solid #b91c1c !important;
+  box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.15), 0 10px 20px -5px rgba(185, 28, 28, 0.14) !important;
 }
-@keyframes selectPop { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(139, 21, 39, 0.8); } 60% { transform: scale(1.03); box-shadow: 0 0 0 8px rgba(139, 21, 39, 0); } 100% { transform: scale(1.01); } }
-.lot-click-pop { animation: selectPop 0.42s cubic-bezier(0.16, 1, 0.3, 1); }
-.flag-circle { font-size: 1.3rem; line-height: 1; }
-.sommelier-tag { font-size: 0.63rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--wine-gold); background: var(--wine-gold-glow); color: var(--wine-gold); }
-.sommelier-tag-active { background: #22c55e !important; color: #052e16 !important; border-color: #86efac !important; box-shadow: 0 0 10px rgba(34, 197, 94, 0.55); font-weight: 800; }
+@keyframes selectPop { 0% { transform: scale(0.97); } 60% { transform: scale(1.02); } 100% { transform: scale(1.0); } }
+.lot-click-pop { animation: selectPop 0.32s ease-out; }
+.flag-circle { font-size: 1.35rem; line-height: 1; }
+.sommelier-tag {
+  font-size: 0.64rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 9999px; border: 1px solid rgba(185, 28, 28, 0.3);
+  background: var(--wine-gold-glow); color: var(--wine-gold);
+}
+.sommelier-tag-active { background: #b91c1c !important; color: #ffffff !important; border-color: #991b1b !important; font-weight: 700; }
 
-/* Adaptação de Caixas Internas no Tema Claro (Branco + Acinzentado + Branco-Vinho) */
-[data-bs-theme="light"] .vineyard-card .bg-black, [data-bs-theme="light"] .proto-thumb-box .bg-black, [data-bs-theme="light"] #active-wine-banner-range, [data-bs-theme="light"] #scada-active-wine-pill { background-color: #f1f5f9 !important; color: #334155 !important; border-color: #cbd5e1 !important; }
+/* Caixas de Métricas Internas Clean (bg-red-50 no Claro / bg-gray-800 no Escuro) */
+.vineyard-card .bg-black, .proto-thumb-box .bg-black, #active-wine-banner-range, #scada-active-wine-pill {
+  background-color: rgba(31, 41, 55, 0.75) !important; color: var(--text-secondary) !important; border-color: var(--border-input) !important; border-radius: 10px !important;
+}
+[data-bs-theme="light"] .vineyard-card .bg-black { background-color: #fef2f2 !important; color: #1f2937 !important; border-color: #fee2e2 !important; }
+[data-bs-theme="light"] .proto-thumb-box .bg-black, [data-bs-theme="light"] #active-wine-banner-range, [data-bs-theme="light"] #scada-active-wine-pill {
+  background-color: #f3f4f6 !important; color: #374151 !important; border-color: #e5e7eb !important;
+}
 
-/* Painel LED de 3 Estados (Equilíbrio Ideal | Estado Padrão | Estado Crítico) */
+/* Painel LED de 3 Estados (🟢 IDEAL | 🔵 PADRÃO | 🔴 CRÍTICO) */
 .grid-3-states { display: grid; grid-template-columns: repeat(3, 1fr); }
 .led-state-pill {
-  text-align: center; font-size: 0.64rem; font-weight: 700; font-family: "JetBrains Mono", monospace;
-  padding: 5px 4px; border-radius: 7px; border: 1px solid var(--border-subtle);
-  background: var(--bg-surface); color: var(--text-muted); transition: all 0.25s ease;
+  text-align: center; font-size: 0.65rem; font-weight: 700; font-family: "Plus Jakarta Sans", sans-serif;
+  padding: 6px 4px; border-radius: 10px; border: 1px solid var(--border-subtle);
+  background: var(--bg-body); color: var(--text-muted); transition: all 0.2s ease;
 }
-.led-state-pill.active-ideal { background: rgba(34, 197, 94, 0.22); color: #16a34a; border-color: #22c55e; box-shadow: 0 0 14px rgba(34, 197, 94, 0.35); transform: scale(1.02); }
+.led-state-pill.active-ideal { background: rgba(34, 197, 94, 0.16); color: #16a34a; border-color: #22c55e; font-weight: 800; }
 [data-bs-theme="dark"] .led-state-pill.active-ideal { color: #4ade80; }
-.led-state-pill.active-padrao { background: rgba(56, 189, 248, 0.22); color: #0284c7; border-color: #0284c7; box-shadow: 0 0 14px rgba(56, 189, 248, 0.35); transform: scale(1.02); }
+.led-state-pill.active-padrao { background: rgba(56, 189, 248, 0.16); color: #0284c7; border-color: #0284c7; font-weight: 800; }
 [data-bs-theme="dark"] .led-state-pill.active-padrao { color: #38bdf8; }
-.led-state-pill.active-critico { background: rgba(239, 68, 68, 0.25); color: #dc2626; border-color: #ef4444; box-shadow: 0 0 16px rgba(239, 68, 68, 0.55); animation: pulseRed 0.55s infinite ease-in-out; }
-[data-bs-theme="dark"] .led-state-pill.active-critico { color: #fca5a5; }
+.led-state-pill.active-critico { background: rgba(239, 68, 68, 0.22); color: #dc2626; border-color: #ef4444; font-weight: 800; animation: pulseRed 0.6s infinite ease-in-out; }
+[data-bs-theme="dark"] .led-state-pill.active-critico { color: #f87171; }
 
-/* LEDs Físicos com Efeito Neon */
-.led-indicator { display: inline-block; width: 14px; height: 14px; border-radius: 50%; vertical-align: middle; margin-right: 4px; transition: all 0.2s ease; }
-.led-green-on { background: #22c55e; box-shadow: 0 0 14px #22c55e, 0 0 4px #86efac; border: 2px solid #86efac; }
-.led-green-off, .led-blue-off, .led-red-off { background: #1c1c20; border: 2px solid #34343a; opacity: 0.45; }
-[data-bs-theme="light"] .led-green-off, [data-bs-theme="light"] .led-blue-off, [data-bs-theme="light"] .led-red-off { background: #cbd5e1; border-color: #94a3b8; opacity: 0.65; }
-.led-red-on { background: #ef4444; box-shadow: 0 0 14px #ef4444, 0 0 4px #fca5a5; border: 2px solid #fca5a5; }
-.led-blue-on { background: #0284c7; box-shadow: 0 0 14px #0284c7; border: 2px solid #7dd3fc; }
-@keyframes pulseBlue { 0%, 100% { background: #0284c7; box-shadow: 0 0 14px #0284c7; } 50% { background: #7dd3fc; box-shadow: 0 0 4px #0284c7; } }
-@keyframes pulseRed { 0%, 100% { background: #ef4444; box-shadow: 0 0 18px #ef4444; } 50% { background: #7f1d1d; box-shadow: 0 0 4px #ef4444; } }
+/* LEDs Físicos */
+.led-indicator { display: inline-block; width: 13px; height: 13px; border-radius: 50%; vertical-align: middle; margin-right: 4px; transition: all 0.2s ease; }
+.led-green-on { background: #22c55e; box-shadow: 0 0 12px #22c55e; border: 2px solid #86efac; }
+.led-green-off, .led-blue-off, .led-red-off { background: #374151; border: 2px solid #4b5563; opacity: 0.45; }
+[data-bs-theme="light"] .led-green-off, [data-bs-theme="light"] .led-blue-off, [data-bs-theme="light"] .led-red-off { background: #d1d5db; border-color: #9ca3af; opacity: 0.65; }
+.led-red-on { background: #ef4444; box-shadow: 0 0 12px #ef4444; border: 2px solid #fca5a5; }
+.led-blue-on { background: #0284c7; box-shadow: 0 0 12px #0284c7; border: 2px solid #7dd3fc; }
+@keyframes pulseBlue { 0%, 100% { background: #0284c7; box-shadow: 0 0 12px #0284c7; } 50% { background: #7dd3fc; box-shadow: 0 0 3px #0284c7; } }
+@keyframes pulseRed { 0%, 100% { background: #ef4444; box-shadow: 0 0 16px #ef4444; } 50% { background: #991b1b; box-shadow: 0 0 4px #ef4444; } }
 .led-blue-blinking { border: 2px solid #bae6fd; animation: pulseBlue 0.65s infinite ease-in-out; }
-.led-red-blinking { border: 2px solid #fca5a5; animation: pulseRed 0.35s infinite ease-in-out; }
+.led-red-blinking { border: 2px solid #fca5a5; animation: pulseRed 0.38s infinite ease-in-out; }
 
 /* Barril e Tampa LCD 3D */
-.proto-thumb-box { background: var(--proto-bg); border: 1px solid var(--border-subtle); border-radius: 14px; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.14); }
+.proto-thumb-box { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 14px; }
+[data-bs-theme="light"] .proto-thumb-box { background: #f9fafb; border-color: #e5e7eb; }
 .barrel-lid-mini { position: relative; width: 110px; height: 110px; flex-shrink: 0; }
 .barrel-lid-mini-img { width: 100%; height: 110px; object-fit: contain; }
 .barrel-3d-mini-img { width: 95px; height: 110px; object-fit: contain; }
 .barrel-lcd-mini-slot { position: absolute; left: 19%; top: 38%; width: 62%; height: 25%; background: radial-gradient(ellipse at center, #052610 0%, #021208 100%); border: 1px solid #15803d; border-radius: 4px; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; }
 .barrel-lcd-mini-text { color: #22c55e; font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 0.46rem; line-height: 1.25; white-space: nowrap; }
 
-/* Botões e Pílulas de Vinho (Tinto, Branco, Rosé, Brut) */
+/* Botões e Pílulas Clean (Estilo Cardapio.jsx) */
 .btn-wine { background: var(--wine-primary) !important; color: #fff !important; border: 1px solid var(--wine-hover) !important; font-weight: 600; border-radius: 8px; }
-.theme-btn-group { display: inline-flex; background: var(--bg-surface); padding: 2px; border-radius: 8px; border: 1px solid var(--border-subtle); }
-.theme-btn { border: none !important; background: transparent !important; font-size: 0.72rem !important; font-weight: 600 !important; padding: 3px 9px !important; border-radius: 6px !important; color: var(--text-muted) !important; }
-.theme-btn.active { background-color: var(--wine-primary) !important; color: #fff !important; }
-.status-pill { display: inline-flex; align-items: center; font-size: 0.74rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; }
-.status-pill-live { background: rgba(34, 197, 94, 0.15); color: #16a34a; border: 1px solid rgba(34, 197, 94, 0.35); }
+.theme-btn-group { display: inline-flex; background: var(--bg-surface); padding: 3px; border-radius: 10px; border: 1px solid var(--border-subtle); }
+.theme-btn { border: none !important; background: transparent !important; font-size: 0.74rem !important; font-weight: 600 !important; padding: 4px 11px !important; border-radius: 7px !important; color: var(--text-secondary) !important; transition: all 0.15s ease; }
+.theme-btn.active { background-color: var(--wine-primary) !important; color: #fff !important; box-shadow: 0 2px 6px var(--wine-glow); }
+.status-pill { display: inline-flex; align-items: center; font-size: 0.74rem; font-weight: 700; padding: 4px 12px; border-radius: 9999px; }
+.status-pill-live { background: rgba(34, 197, 94, 0.12); color: #16a34a; border: 1px solid rgba(34, 197, 94, 0.3); }
 [data-bs-theme="dark"] .status-pill-live { color: #4ade80; }
-.status-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background-color: #22c55e; box-shadow: 0 0 8px #22c55e; animation: pulseDot 1.4s infinite; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background-color: #22c55e; animation: pulseDot 1.4s infinite; }
 @keyframes pulseDot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-.chart-panel-box { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; overflow: hidden; }
-[data-bs-theme="light"] .chart-panel-box { background: linear-gradient(180deg, #ffffff 0%, #fff7f8 50%, #f1f5f9 100%); border-color: #cbd5e1; }
+.chart-panel-box { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 14px; overflow: hidden; }
+[data-bs-theme="light"] .chart-panel-box { background: #ffffff; border-color: #e5e7eb; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03); }
 .custom-icon { width: 20px; height: 20px; object-fit: contain; }
 .custom-icon-sm { width: 16px; height: 16px; object-fit: contain; }
-.form-control, .form-select { border-color: var(--border-input) !important; color: var(--text-primary) !important; background-color: var(--bg-card) !important; border-radius: 8px !important; font-weight: 600; }
+.form-control, .form-select { border-color: var(--border-input) !important; color: var(--text-primary) !important; background-color: var(--bg-card) !important; border-radius: 10px !important; font-weight: 600; }
+.form-control:focus, .form-select:focus { border-color: var(--wine-primary) !important; box-shadow: 0 0 0 3px var(--wine-glow) !important; }
 .input-group-text { background-color: var(--bg-surface) !important; border-color: var(--border-input) !important; color: var(--text-secondary) !important; font-size: 0.76rem !important; font-weight: 600; }
-.nav-ghost-link { color: var(--text-secondary); text-decoration: none; font-size: 0.78rem; font-weight: 600; }
-.nav-ghost-link:hover { color: var(--wine-primary); }
+.nav-ghost-link { color: var(--text-secondary); text-decoration: none; font-size: 0.80rem; font-weight: 600; padding: 6px 10px; border-radius: 8px; transition: all 0.15s ease; }
+.nav-ghost-link:hover { color: var(--wine-primary); background: var(--wine-gold-glow); }
 
-.wine-pill-btn { font-size: 0.72rem !important; padding: 4px 10px !important; border-radius: 7px !important; border: 1px solid var(--border-subtle) !important; background: var(--bg-card) !important; color: var(--text-secondary) !important; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
-.wine-pill-btn:hover { border-color: var(--wine-primary) !important; color: var(--text-primary) !important; transform: translateY(-1px); }
-.wine-pill-btn[data-wine="tinto"].active { background: #8b1527 !important; color: #fff !important; border-color: #f87171 !important; box-shadow: 0 0 14px rgba(139, 21, 39, 0.45) !important; }
-.wine-pill-btn[data-wine="branco"].active { background: #854d0e !important; color: #fef08a !important; border-color: #facc15 !important; box-shadow: 0 0 14px rgba(250, 204, 21, 0.45) !important; }
-.wine-pill-btn[data-wine="rose"].active { background: #9d174d !important; color: #fbcfe8 !important; border-color: #f472b6 !important; box-shadow: 0 0 14px rgba(244, 114, 182, 0.45) !important; }
-.wine-pill-btn[data-wine="espumante"].active { background: #075985 !important; color: #e0f2fe !important; border-color: #38bdf8 !important; box-shadow: 0 0 14px rgba(56, 189, 248, 0.45) !important; }
-.wine-pill-btn[data-wine="pinot"].active { background: #9f1239 !important; color: #ffe4e6 !important; border-color: #fb7185 !important; box-shadow: 0 0 14px rgba(244, 63, 94, 0.45) !important; }
-.wine-pill-btn[data-wine="porto"].active { background: #581c87 !important; color: #f3e8ff !important; border-color: #c084fc !important; box-shadow: 0 0 14px rgba(168, 85, 247, 0.45) !important; }
-.wine-pill-btn[data-wine="sobremesa"].active { background: #92400e !important; color: #fef3c7 !important; border-color: #fbbf24 !important; box-shadow: 0 0 14px rgba(245, 158, 11, 0.45) !important; }
-.wine-pill-btn[data-wine="laranja"].active { background: #9a3412 !important; color: #ffedd5 !important; border-color: #fb923c !important; box-shadow: 0 0 14px rgba(234, 88, 12, 0.45) !important; }
-.ecosystem-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; transition: all 0.22s ease !important; cursor: pointer; }
-[data-bs-theme="light"] .ecosystem-card { background: linear-gradient(135deg, #ffffff 0%, #fff5f6 60%, #f1f5f9 100%); }
-.ecosystem-card:hover { border-color: var(--wine-primary) !important; transform: translateY(-2px); }
+.wine-pill-btn { font-size: 0.73rem !important; padding: 5px 12px !important; border-radius: 9999px !important; border: 1px solid var(--border-subtle) !important; background: var(--bg-card) !important; color: var(--text-secondary) !important; font-weight: 600; cursor: pointer; transition: all 0.18s ease; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); }
+.wine-pill-btn:hover { background: var(--bg-blush) !important; border-color: var(--wine-primary) !important; color: var(--wine-gold) !important; transform: translateY(-1px); }
+.wine-pill-btn.active { background: #b91c1c !important; color: #ffffff !important; border-color: #991b1b !important; box-shadow: 0 4px 10px rgba(185, 28, 28, 0.3) !important; font-weight: 700; }
+.ecosystem-card { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 14px; transition: all 0.2s ease !important; cursor: pointer; }
+[data-bs-theme="light"] .ecosystem-card { background: #f9fafb; border-color: #e5e7eb; }
+.ecosystem-card:hover { border-color: var(--wine-primary) !important; transform: translateY(-3px); box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06); }
 
-.sc-btn[data-sc="normal"].active { background: rgba(34, 197, 94, 0.25) !important; border-color: #22c55e !important; color: #16a34a !important; font-weight: 700 !important; }
-.sc-btn[data-sc="padrao"].active { background: rgba(56, 189, 248, 0.25) !important; border-color: #0284c7 !important; color: #0284c7 !important; font-weight: 700 !important; }
-.sc-btn[data-sc="multi"].active { background: rgba(239, 68, 68, 0.28) !important; border-color: #ef4444 !important; color: #dc2626 !important; font-weight: 700 !important; box-shadow: 0 0 12px rgba(239, 68, 68, 0.45) !important; }
+.sc-btn { border-radius: 10px !important; font-weight: 600 !important; font-size: 0.74rem !important; }
+.sc-btn[data-sc="normal"].active { background: rgba(34, 197, 94, 0.18) !important; border-color: #22c55e !important; color: #16a34a !important; font-weight: 700 !important; }
+.sc-btn[data-sc="padrao"].active { background: rgba(56, 189, 248, 0.18) !important; border-color: #0284c7 !important; color: #0284c7 !important; font-weight: 700 !important; }
+.sc-btn[data-sc="multi"].active { background: rgba(239, 68, 68, 0.22) !important; border-color: #ef4444 !important; color: #dc2626 !important; font-weight: 700 !important; }
 [data-bs-theme="dark"] .sc-btn[data-sc="normal"].active { color: #4ade80 !important; }
 [data-bs-theme="dark"] .sc-btn[data-sc="padrao"].active { color: #38bdf8 !important; }
-[data-bs-theme="dark"] .sc-btn[data-sc="multi"].active { color: #fca5a5 !important; }
+[data-bs-theme="dark"] .sc-btn[data-sc="multi"].active { color: #f87171 !important; }
