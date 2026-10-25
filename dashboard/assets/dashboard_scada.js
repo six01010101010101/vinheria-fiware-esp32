@@ -2,24 +2,21 @@
 (function () {
   const PRESETS = window.PRESETS || {}, TERROIRS = window.TERROIRS || {};
   let curPr = "tinto", curArea = "fr_margaux";
-  let sim = { t: 15.2, h: 71.0, l: 9.0, score: 100, mode: "normal" };
+  let sim = { t: 15.8, h: 68.0, l: 9.0, score: 99, mode: "normal" };
   window.curPr = curPr; window.curArea = curArea;
 
   function getActiveLot() {
     const lots = window.CANONICAL_LOTS || [];
     return lots.find(x => x.code === window.curLotCode) || lots.find(x => x.style === curPr) || lots[0] || null;
   }
+
   function getScenarioValues(sc, presetKey) {
-    const p = PRESETS[presetKey] || PRESETS.tinto || { defT: 15.2, defH: 71, defL: 9, tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMin: 0, lMax: 25 };
-    switch (sc) {
-      case "padrao": return [+(p.tMax - 0.3).toFixed(1), +(p.hMin + 1).toFixed(0), Math.max(2, +(p.lMax - 2).toFixed(0))];
-      case "temp": return [+(p.tMax + 4.8).toFixed(1), p.defH, p.defL];
-      case "hum": return [p.defT, Math.max(25, +(p.hMin - 18).toFixed(0)), p.defL];
-      case "lum": return [p.defT, p.defH, Math.min(98, +(p.lMax + 35).toFixed(0))];
-      case "multi": return [+(p.tMax + 7.2).toFixed(1), Math.max(22, +(p.hMin - 22).toFixed(0)), Math.min(99, +(p.lMax + 45).toFixed(0))];
-      default: return [p.defT, p.defH, p.defL];
-    }
+    const p = PRESETS[presetKey] || PRESETS.tinto || { defT: 15.8, defH: 68, defL: 9, tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMin: 0, lMax: 25 };
+    if (sc === "padrao") return [+(p.tMax + 2.2).toFixed(1), Math.max(30, +(p.hMin - 3).toFixed(0)), p.defL];
+    if (sc === "critico" || sc === "multi") return [+(p.tMax + 5.6).toFixed(1), Math.max(22, +(p.hMin - 18).toFixed(0)), Math.min(98, +(p.lMax + 32).toFixed(0))];
+    return [p.defT, p.defH, p.defL];
   }
+
   function updateWineProfileBanner(pr, lot, res) {
     const badgeEl = document.getElementById("active-wine-banner-badge");
     const castaEl = document.getElementById("active-wine-banner-casta");
@@ -30,7 +27,7 @@
     if (rangeEl) rangeEl.textContent = `Alvo: ${pr.tMin}–${pr.tMax}°C | ${pr.hMin}–${pr.hMax}% UR | ≤${pr.lMax}% Luz`;
     if (stateEl && res) {
       const isId = res.stateKey === "ideal", isCr = res.stateKey === "critico";
-      stateEl.textContent = isId ? `🟢 EQUILÍBRIO IDEAL (${res.score}%)` : (isCr ? `🔴 ESTADO CRÍTICO (${res.score}%)` : `🔵 ESTADO PADRÃO / ALERTA (${res.score}%)`);
+      stateEl.textContent = isId ? `🟢 IDEAL 95–100% (${res.score}%)` : (isCr ? `🔴 CRÍTICO <75% (${res.score}% · APITO)` : `🔵 PADRÃO ~75% (${res.score}%)`);
       stateEl.className = `badge font-monospace ${isId ? "bg-success bg-opacity-25 text-success border border-success" : (isCr ? "bg-danger bg-opacity-25 text-danger border border-danger" : "bg-info bg-opacity-25 text-info border border-info")}`;
     }
   }
@@ -44,27 +41,22 @@
     if (res && res.score !== undefined) sim.score = res.score;
     updateWineProfileBanner(pr, lot, res);
 
-    const isOk = res?.st?.ok;
-    let cmd = "normal";
-    if (!isOk || sim.mode === "multi") {
-      cmd = (res?.stateKey === "critico" || sim.mode === "multi") ? "multi" :
-        res?.st?.tErr ? "temp" : res?.st?.hErr ? "hum" : "lum";
-    }
+    const stKey = res?.stateKey || "ideal";
+    const cmd = stKey === "critico" ? "multi" : (stKey === "padrao" ? "padrao" : "normal");
     const bge = document.getElementById("mqtt-cmd-badge");
-    if (bge) bge.innerHTML = `<span class="status-dot"></span>MQTT /cmd: ${cmd.toUpperCase()} (${res?.prTag || "TINTO"})`;
-    const activeBtnKey = sim.mode === "padrao" ? "padrao" : cmd;
-    document.querySelectorAll(".sc-btn").forEach(b => b.classList.toggle("active", b.dataset.sc === activeBtnKey));
+    if (bge) bge.innerHTML = `<span class="status-dot"></span>MQTT /cmd: ${stKey.toUpperCase()} (${res?.prTag || "TINTO"})`;
+    document.querySelectorAll(".sc-btn").forEach(b => b.classList.toggle("active", b.dataset.sc === cmd));
 
     if (userTriggered) {
       window.arcadeAudio?.ensureContext?.();
-      if (soundType === "wine") window.ArcadeAudio?.playWineStyle?.(curPr);
+      if (stKey === "critico") window.ArcadeAudio?.playCritical?.();
+      else if (soundType === "wine") window.ArcadeAudio?.playWineStyle?.(curPr);
       else if (soundType === "cava") window.ArcadeAudio?.playCavaSelect?.();
       else if (soundType === "terroir") window.ArcadeAudio?.playTerroirSelect?.();
       else if (soundType && soundType.startsWith("sc:")) window.ArcadeAudio?.playScenario?.(soundType.slice(3));
-      else if (res?.stateKey === "ideal") window.ArcadeAudio?.playPowerup?.();
-      else if (res?.stateKey === "critico") window.ArcadeAudio?.playCritical?.();
-      else window.ArcadeAudio?.playAlert?.();
-      const tag = res?.prTag || "TINTO", sc = res?.score || 100, v = isOk ? "OK" : (cmd === "multi" ? "CRT" : "ALR");
+      else if (stKey === "ideal") window.ArcadeAudio?.playPowerup?.();
+      else window.ArcadeAudio?.playScenario?.("padrao");
+      const tag = res?.prTag || "TINTO", sc = res?.score || 99, v = stKey === "critico" ? "CRT" : (stKey === "padrao" ? "PAD" : "OK");
       window.ScadaMQTT?.publishState?.({ t, h, l, cmd, score: sc, verdict: v, tag });
       fetch("/api/v1/command", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ command: cmd, preset: tag, health: sc, verdict: v, temperature: t, humidity: h, luminosity: l }) }).catch(() => {});
       fetch("/api/v1/telemetry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ temperature: t, humidity: h, luminosity: l, device_id: "vine001", alert_mode: cmd }) }).catch(() => {});
@@ -100,7 +92,11 @@
     const s = (q || "").trim().toLowerCase();
     if (!s) return;
     const lotMatch = (window.CANONICAL_LOTS || []).find(l => (l.winery + " " + l.wine + " " + l.code + " " + l.country).toLowerCase().includes(s));
-    if (s.includes("branc") || s.includes("chard") || s.includes("sauv")) onWinePresetChange("branco");
+    if (s.includes("pinot") || s.includes("borg") || s.includes("roman")) onWinePresetChange("pinot");
+    else if (s.includes("port") || s.includes("fortif") || s.includes("taylor")) onWinePresetChange("porto");
+    else if (s.includes("colheit") || s.includes("sobrem") || s.includes("sautern") || s.includes("doce")) onWinePresetChange("sobremesa");
+    else if (s.includes("laranj") || s.includes("anfor") || s.includes("ânfor") || s.includes("gravner")) onWinePresetChange("laranja");
+    else if (s.includes("branc") || s.includes("chard") || s.includes("sauv")) onWinePresetChange("branco");
     else if (s.includes("ros") || s.includes("prov")) onWinePresetChange("rose");
     else if (s.includes("brut") || s.includes("espum") || s.includes("champ")) onWinePresetChange("espumante");
     else if (s.includes("tint") || s.includes("caber") || s.includes("merl") || s.includes("malb")) onWinePresetChange("tinto");
@@ -163,9 +159,8 @@
   }
 
   function fetchLiveTicker() {
-    sim.t = +(sim.t + (Math.random() - 0.5) * 0.08).toFixed(1);
-    sim.h = Math.max(20, Math.min(99, +(sim.h + (Math.random() - 0.5) * 0.3).toFixed(0)));
-    (window.CANONICAL_LOTS || []).forEach(l => { l.liveT = +(l.liveT + (Math.random() - 0.5) * 0.05).toFixed(1); });
+    sim.t = +(sim.t + (Math.random() - 0.5) * 0.06).toFixed(1);
+    sim.h = Math.max(20, Math.min(99, +(sim.h + (Math.random() - 0.5) * 0.25).toFixed(0)));
     updateHardwarePlaque(sim.t, sim.h, sim.l, false);
     window.ScadaCharts?.renderAllCharts?.(sim.t, sim.h, sim.l, PRESETS[curPr], getActiveLot(), false);
     renderCellarLots(); renderRealVineyards();
@@ -184,11 +179,12 @@
     document.getElementById("input-wine-search")?.addEventListener("input", e => onWineSearchInput(e.target.value));
     document.getElementById("dropdown-wine-preset")?.addEventListener("change", e => onWinePresetChange(e.target.value));
     document.getElementById("dropdown-area-terroir")?.addEventListener("change", e => onAreaTerroirChange(e.target.value));
-    ["temp-min", "temp-max", "hum-min", "hum-max", "lum-min", "lum-max"].forEach(k => {
-      document.getElementById(`trigger-${k}`)?.addEventListener("input", onThresholdInputChange);
-    });
+    ["temp-min", "temp-max", "hum-min", "hum-max", "lum-min", "lum-max"].forEach(k => document.getElementById(`trigger-${k}`)?.addEventListener("input", onThresholdInputChange));
     document.querySelectorAll(".wine-pill-btn").forEach(b => b.addEventListener("click", () => onWinePresetChange(b.dataset.wine)));
     document.querySelectorAll(".sc-btn").forEach(b => b.addEventListener("click", () => applyScenario(b.dataset.sc)));
+    document.getElementById("led-state-ideal")?.addEventListener("click", () => applyScenario("normal"));
+    document.getElementById("led-state-padrao")?.addEventListener("click", () => applyScenario("padrao"));
+    document.getElementById("led-state-critico")?.addEventListener("click", () => applyScenario("multi"));
     window.addEventListener("themeChanged", () => window.ScadaCharts?.renderAllCharts?.(sim.t, sim.h, sim.l, PRESETS[curPr], getActiveLot(), false));
     setInterval(fetchLiveTicker, 1800);
   }

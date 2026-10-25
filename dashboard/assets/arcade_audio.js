@@ -47,31 +47,22 @@ class ArcadeAudioEngine {
     } catch (_) {}
   }
 
-  // 1. Sons Exclusivos por Estilo de Vinho (Tinto, Branco, Rosé, Espumante Brut)
+  // 1. Sons Exclusivos por Estilo de Vinho (8 Estilos)
   playWineStyle(style) {
     this.ensureContext();
     const s = (style || "tinto").toLowerCase();
-    if (s === "tinto") {
-      // Acorde encorpado de violoncelo/veludo em Lá Maior (A3 -> C#4 -> E4 -> A4 -> C#5)
-      [220.0, 277.18, 329.63, 440.0, 554.37].forEach((f, i) => {
-        this.playTone(f, 0.16, "triangle", f * 1.01, i * 0.055, 1.15);
-      });
-    } else if (s === "branco") {
-      // Taça de cristal cintilante em Mi Maior (E5 -> G#5 -> B5 -> E6 -> G#6)
-      [659.25, 830.61, 987.77, 1318.51, 1661.22].forEach((f, i) => {
-        this.playTone(f, 0.13, "sine", null, i * 0.048, 1.05);
-      });
-    } else if (s === "rose") {
-      // Harpa floral delicada em Fá com Sétima Maior (F4 -> A4 -> C5 -> E5 -> A5)
-      [349.23, 440.0, 523.25, 659.25, 880.0].forEach((f, i) => {
-        this.playTone(f, 0.12, "sine", f * 1.02, i * 0.05, 1.0);
-      });
-    } else {
-      // Cascata efervescente de perlage para Espumante Brut (C5 -> E5 -> G5 -> B5 -> D6 -> G6)
-      [523.25, 659.25, 783.99, 987.77, 1174.66, 1567.98, 2093.0].forEach((f, i) => {
-        this.playTone(f, 0.07, i % 2 === 0 ? "sine" : "square", f * 1.08, i * 0.038, 0.85);
-      });
-    }
+    const chords = {
+      tinto: [[220.0, 277.18, 329.63, 440.0, 554.37], "triangle", 0.14],
+      branco: [[659.25, 830.61, 987.77, 1318.51, 1661.22], "sine", 0.12],
+      rose: [[349.23, 440.0, 523.25, 659.25, 880.0], "sine", 0.12],
+      espumante: [[523.25, 659.25, 783.99, 987.77, 1174.66, 1567.98, 2093.0], "sine", 0.07],
+      pinot: [[293.66, 369.99, 440.0, 554.37, 739.99], "triangle", 0.13],
+      porto: [[164.81, 207.65, 246.94, 329.63, 415.30], "sawtooth", 0.14],
+      sobremesa: [[587.33, 739.99, 880.0, 1108.73, 1479.98], "sine", 0.13],
+      laranja: [[392.0, 493.88, 587.33, 739.99, 987.77], "triangle", 0.12]
+    };
+    const [freqs, wave, dur] = chords[s] || chords.tinto;
+    freqs.forEach((f, i) => this.playTone(f, dur, wave, f * 1.02, i * 0.048, 1.0));
   }
 
   // 2. Som de Seleção de Cava de Guarda / Barrica de Carvalho

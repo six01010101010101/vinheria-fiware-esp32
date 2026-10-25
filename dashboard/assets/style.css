@@ -171,18 +171,17 @@ h1, h2, h3, h4, .section-title { font-family: "Plus Jakarta Sans", sans-serif; f
 .wine-pill-btn[data-wine="branco"].active { background: #854d0e !important; color: #fef08a !important; border-color: #facc15 !important; box-shadow: 0 0 14px rgba(250, 204, 21, 0.45) !important; }
 .wine-pill-btn[data-wine="rose"].active { background: #9d174d !important; color: #fbcfe8 !important; border-color: #f472b6 !important; box-shadow: 0 0 14px rgba(244, 114, 182, 0.45) !important; }
 .wine-pill-btn[data-wine="espumante"].active { background: #075985 !important; color: #e0f2fe !important; border-color: #38bdf8 !important; box-shadow: 0 0 14px rgba(56, 189, 248, 0.45) !important; }
+.wine-pill-btn[data-wine="pinot"].active { background: #9f1239 !important; color: #ffe4e6 !important; border-color: #fb7185 !important; box-shadow: 0 0 14px rgba(244, 63, 94, 0.45) !important; }
+.wine-pill-btn[data-wine="porto"].active { background: #581c87 !important; color: #f3e8ff !important; border-color: #c084fc !important; box-shadow: 0 0 14px rgba(168, 85, 247, 0.45) !important; }
+.wine-pill-btn[data-wine="sobremesa"].active { background: #92400e !important; color: #fef3c7 !important; border-color: #fbbf24 !important; box-shadow: 0 0 14px rgba(245, 158, 11, 0.45) !important; }
+.wine-pill-btn[data-wine="laranja"].active { background: #9a3412 !important; color: #ffedd5 !important; border-color: #fb923c !important; box-shadow: 0 0 14px rgba(234, 88, 12, 0.45) !important; }
 .ecosystem-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; transition: all 0.22s ease !important; cursor: pointer; }
 [data-bs-theme="light"] .ecosystem-card { background: linear-gradient(135deg, #ffffff 0%, #fff5f6 60%, #f1f5f9 100%); }
 .ecosystem-card:hover { border-color: var(--wine-primary) !important; transform: translateY(-2px); }
 
-.sc-btn[data-sc="normal"].active { background: rgba(34, 197, 94, 0.25) !important; border-color: #22c55e !important; color: #16a34a !important; }
-.sc-btn[data-sc="padrao"].active { background: rgba(56, 189, 248, 0.25) !important; border-color: #0284c7 !important; color: #0284c7 !important; }
-.sc-btn[data-sc="temp"].active { background: rgba(239, 68, 68, 0.25) !important; border-color: #ef4444 !important; color: #dc2626 !important; }
-.sc-btn[data-sc="hum"].active { background: rgba(56, 189, 248, 0.25) !important; border-color: #0284c7 !important; color: #0284c7 !important; }
-.sc-btn[data-sc="lum"].active { background: rgba(251, 191, 36, 0.25) !important; border-color: #d97706 !important; color: #b45309 !important; }
-.sc-btn[data-sc="multi"].active { background: rgba(168, 85, 247, 0.25) !important; border-color: #9333ea !important; color: #7e22ce !important; }
+.sc-btn[data-sc="normal"].active { background: rgba(34, 197, 94, 0.25) !important; border-color: #22c55e !important; color: #16a34a !important; font-weight: 700 !important; }
+.sc-btn[data-sc="padrao"].active { background: rgba(56, 189, 248, 0.25) !important; border-color: #0284c7 !important; color: #0284c7 !important; font-weight: 700 !important; }
+.sc-btn[data-sc="multi"].active { background: rgba(239, 68, 68, 0.28) !important; border-color: #ef4444 !important; color: #dc2626 !important; font-weight: 700 !important; box-shadow: 0 0 12px rgba(239, 68, 68, 0.45) !important; }
 [data-bs-theme="dark"] .sc-btn[data-sc="normal"].active { color: #4ade80 !important; }
-[data-bs-theme="dark"] .sc-btn[data-sc="padrao"].active, [data-bs-theme="dark"] .sc-btn[data-sc="hum"].active { color: #bae6fd !important; }
-[data-bs-theme="dark"] .sc-btn[data-sc="temp"].active { color: #fca5a5 !important; }
-[data-bs-theme="dark"] .sc-btn[data-sc="lum"].active { color: #fef08a !important; }
-[data-bs-theme="dark"] .sc-btn[data-sc="multi"].active { color: #e9d5ff !important; }
+[data-bs-theme="dark"] .sc-btn[data-sc="padrao"].active { color: #38bdf8 !important; }
+[data-bs-theme="dark"] .sc-btn[data-sc="multi"].active { color: #fca5a5 !important; }

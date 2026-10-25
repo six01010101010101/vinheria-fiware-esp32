@@ -1,6 +1,6 @@
 /**
- * Módulo de Telemetria por Satélite & Estações Meteorológicas — Vinheria Agnello
- * Avalia cada Terroir em tempo real para o Estilo de Vinho selecionado (Tinto, Branco, Rosé, Brut).
+ * Módulo de Telemetria por Satélite & Estações Meteorológicas (12 Terroirs) — Vinheria Agnello
+ * Avalia cada Terroir em 3 estados: 🟢 IDEAL (95–100%) | 🔵 PADRÃO (75–94%) | 🔴 CRÍTICO (<75% · Apito).
  */
 (function () {
   let lastClickedTerroir = null;
@@ -14,20 +14,22 @@
   function evalTerroirForWine(v, pr) {
     const p = pr || { name: "Vinho Tinto", tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMax: 25 };
     let pen = 0;
-    if (v.t < p.tMin) pen += (p.tMin - v.t) * 6.5;
-    else if (v.t > p.tMax) pen += (v.t - p.tMax) * 6.5;
-    if (v.h < p.hMin) pen += (p.hMin - v.h) * 1.4;
-    else if (v.h > p.hMax) pen += (v.h - p.hMax) * 1.4;
-    if (v.l > p.lMax) pen += (v.l - p.lMax) * 1.1;
-    const score = Math.max(20, Math.min(100, Math.round(100 - pen)));
-    const wShort = (p.name || "Tinto").replace("Champanhe / ", "");
-    if (score >= 92 && pen === 0) {
-      return { score, txt: `🟢 Equilíbrio Ideal (${wShort})`, cls: "text-success", bar: "bg-success" };
+    if (v.t < p.tMin) pen += (p.tMin - v.t) * 7.5;
+    else if (v.t > p.tMax) pen += (v.t - p.tMax) * 7.5;
+    if (v.h < p.hMin) pen += (p.hMin - v.h) * 1.6;
+    else if (v.h > p.hMax) pen += (v.h - p.hMax) * 1.6;
+    if (v.l > p.lMax) pen += (v.l - p.lMax) * 1.3;
+    const tMid = (p.tMin + p.tMax) / 2, hMid = (p.hMin + p.hMax) / 2;
+    const edge = (Math.abs(v.t - tMid) / Math.max(1, (p.tMax - p.tMin) / 2)) * 2.5 + (Math.abs(v.h - hMid) / Math.max(1, (p.hMax - p.hMin) / 2)) * 1.8;
+    const score = pen === 0 ? Math.max(95, Math.min(100, Math.round(100 - edge))) : Math.max(15, Math.min(94, Math.round(100 - pen)));
+    const wShort = (p.name || "Tinto").replace("Espumante ", "");
+    if (score >= 95) {
+      return { score, txt: `🟢 IDEAL (${wShort})`, cls: "text-success", bar: "bg-success" };
     }
-    if (score >= 76) {
-      return { score, txt: `🔵 Estado Padrão (${wShort})`, cls: "text-info", bar: "bg-info" };
+    if (score >= 75) {
+      return { score, txt: `🔵 PADRÃO (${wShort})`, cls: "text-info", bar: "bg-info" };
     }
-    return { score, txt: `🔴 Crítico p/ ${wShort}`, cls: "text-danger", bar: "bg-danger" };
+    return { score, txt: `🔴 CRÍTICO p/ ${wShort}`, cls: "text-danger", bar: "bg-danger" };
   }
 
   async function fetchSatelliteData() {
@@ -55,7 +57,7 @@
     if (badge) {
       const pr = (window.PRESETS && window.PRESETS[window.curPr || "tinto"]) || { badge: "🍷 TINTO" };
       badge.className = "badge font-monospace bg-success bg-opacity-25 text-success border border-success border-opacity-50";
-      badge.innerHTML = `<span class="status-dot"></span>TERROIRS SINCRONIZADOS · ${pr.badge || "🍷 VINHO"} (${new Date().toLocaleTimeString().slice(0, 8)})`;
+      badge.innerHTML = `<span class="status-dot"></span>12 ESTAÇÕES WMO · ${pr.badge || "🍷 VINHO"} (${new Date().toLocaleTimeString().slice(0, 8)})`;
     }
     return updated;
   }
