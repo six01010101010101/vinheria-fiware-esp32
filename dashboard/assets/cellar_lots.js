@@ -99,8 +99,6 @@
         const code = card.dataset.lcode, st = card.dataset.lstyle, tr = card.dataset.terroir;
         window.curLotCode = code;
         lastClickedLotCode = code;
-        window.arcadeAudio?.ensureContext?.();
-        window.arcadeAudio?.playWarp?.();
         if (typeof handler === "function") handler(st, tr, code);
       });
     });

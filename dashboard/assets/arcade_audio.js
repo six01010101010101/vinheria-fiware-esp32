@@ -1,14 +1,13 @@
 /**
- * Motor Sonoro Arcade & Fliperama em 8-bits — Vinheria Agnello & Wokwi
- * Sintetizador Web Audio API NATIVO (Zero Dependências Externas, Zero Latência).
- * Efeitos de Moeda do Mario, Cano/Warp, 1-UP/Power-Up, Blip e Alarmes Enológicos.
+ * Motor Sonoro Polifônico & Sintetizador Enológico — Vinheria Agnello & Wokwi
+ * Web Audio API Nativo (Zero Dependências): Sons diversos por Vinho, Cava, Terroir, Atuador e Tema.
  */
 
 class ArcadeAudioEngine {
   constructor() {
     this.ctx = null;
     this.enabled = true;
-    this.volume = 0.09;
+    this.volume = 0.095;
   }
 
   ensureContext() {
@@ -22,7 +21,7 @@ class ArcadeAudioEngine {
     return this.ctx;
   }
 
-  playTone(freq, duration, type = "square", endFreq = null, delay = 0) {
+  playTone(freq, duration, type = "square", endFreq = null, delay = 0, volScale = 1) {
     if (!this.enabled) return;
     try {
       const ctx = this.ensureContext();
@@ -32,65 +31,136 @@ class ArcadeAudioEngine {
       const gain = ctx.createGain();
 
       osc.type = type;
-      osc.frequency.setValueAtTime(freq, t0);
+      osc.frequency.setValueAtTime(Math.max(20, freq), t0);
       if (endFreq) {
-        osc.frequency.exponentialRampToValueAtTime(Math.max(10, endFreq), t0 + duration);
+        osc.frequency.exponentialRampToValueAtTime(Math.max(20, endFreq), t0 + duration);
       }
 
-      gain.gain.setValueAtTime(this.volume, t0);
+      const peak = Math.min(0.25, this.volume * volScale);
+      gain.gain.setValueAtTime(peak, t0);
       gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
 
       osc.connect(gain);
       gain.connect(ctx.destination);
-
       osc.start(t0);
       osc.stop(t0 + duration);
     } catch (_) {}
   }
 
-  // 1. Som Clássico da Moeda do Super Mario (B5 -> E6)
+  // 1. Sons Exclusivos por Estilo de Vinho (Tinto, Branco, Rosé, Espumante Brut)
+  playWineStyle(style) {
+    this.ensureContext();
+    const s = (style || "tinto").toLowerCase();
+    if (s === "tinto") {
+      // Acorde encorpado de violoncelo/veludo em Lá Maior (A3 -> C#4 -> E4 -> A4 -> C#5)
+      [220.0, 277.18, 329.63, 440.0, 554.37].forEach((f, i) => {
+        this.playTone(f, 0.16, "triangle", f * 1.01, i * 0.055, 1.15);
+      });
+    } else if (s === "branco") {
+      // Taça de cristal cintilante em Mi Maior (E5 -> G#5 -> B5 -> E6 -> G#6)
+      [659.25, 830.61, 987.77, 1318.51, 1661.22].forEach((f, i) => {
+        this.playTone(f, 0.13, "sine", null, i * 0.048, 1.05);
+      });
+    } else if (s === "rose") {
+      // Harpa floral delicada em Fá com Sétima Maior (F4 -> A4 -> C5 -> E5 -> A5)
+      [349.23, 440.0, 523.25, 659.25, 880.0].forEach((f, i) => {
+        this.playTone(f, 0.12, "sine", f * 1.02, i * 0.05, 1.0);
+      });
+    } else {
+      // Cascata efervescente de perlage para Espumante Brut (C5 -> E5 -> G5 -> B5 -> D6 -> G6)
+      [523.25, 659.25, 783.99, 987.77, 1174.66, 1567.98, 2093.0].forEach((f, i) => {
+        this.playTone(f, 0.07, i % 2 === 0 ? "sine" : "square", f * 1.08, i * 0.038, 0.85);
+      });
+    }
+  }
+
+  // 2. Som de Seleção de Cava de Guarda / Barrica de Carvalho
+  playCavaSelect() {
+    this.ensureContext();
+    this.playTone(196.0, 0.08, "triangle", 293.66, 0, 1.2);
+    this.playTone(392.0, 0.10, "triangle", 587.33, 0.06, 1.1);
+    this.playTone(783.99, 0.18, "sine", null, 0.12, 0.95);
+  }
+
+  // 3. Som de Radar Satélite Open-Meteo ao Selecionar Terroir Global
+  playTerroirSelect() {
+    this.ensureContext();
+    this.playTone(880.0, 0.06, "sine", 1318.51, 0, 0.95);
+    this.playTone(1318.51, 0.07, "sine", 1760.0, 0.055, 0.9);
+    this.playTone(1760.0, 0.16, "triangle", 1975.53, 0.11, 0.85);
+  }
+
+  // 4. Sons Específicos para cada Cenário / Atuador Wokwi
+  playScenario(sc) {
+    this.ensureContext();
+    switch (sc) {
+      case "normal": this.playPowerup(); break;
+      case "padrao":
+        [523.25, 659.25, 783.99].forEach((f, i) => this.playTone(f, 0.09, "triangle", null, i * 0.06));
+        break;
+      case "temp":
+        // Sirene térmica bitonal de alta temperatura
+        [740, 523.25, 784, 493.88].forEach((f, i) => this.playTone(f, 0.11, "sawtooth", f * 0.92, i * 0.085));
+        break;
+      case "hum":
+        // Pulso sonar hidrográfico de umidade
+        [330, 493.88, 293.66, 440].forEach((f, i) => this.playTone(f, 0.12, "triangle", f * 0.8, i * 0.09));
+        break;
+      case "lum":
+        // Cintilação óptica de alerta LDR / Penumbra
+        [1480, 1174.66, 1567.98, 1046.5].forEach((f, i) => this.playTone(f, 0.08, "square", f * 0.9, i * 0.065, 0.8));
+        break;
+      case "multi": default:
+        this.playCritical(); break;
+    }
+  }
+
+  // 5. Transição Acústica de Tema (Claro, Escuro, Sistema)
+  playThemeSwitch(mode) {
+    this.ensureContext();
+    if (mode === "light") {
+      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => this.playTone(f, 0.09, "sine", null, i * 0.045));
+    } else if (mode === "dark") {
+      [659.25, 523.25, 392.0, 261.63].forEach((f, i) => this.playTone(f, 0.10, "triangle", null, i * 0.045));
+    } else {
+      [440.0, 659.25, 880.0].forEach((f, i) => this.playTone(f, 0.09, "sine", null, i * 0.05));
+    }
+  }
+
   playCoin() {
     this.playTone(987.77, 0.08, "square");
-    this.playTone(1318.51, 0.32, "square", null, 0.075);
+    this.playTone(1318.51, 0.28, "square", null, 0.075);
   }
 
-  // 2. Som de Tubo / Warp ao Trocar de Aba ou Preset
   playWarp() {
-    this.playTone(440, 0.09, "triangle", 220);
-    this.playTone(220, 0.12, "triangle", 660, 0.08);
+    this.playCavaSelect();
   }
 
-  // 3. Som de Power-up / 1-UP Enológico ao Selecionar Vinho Nobre
   playPowerup() {
-    const notes = [659.25, 783.99, 1318.51, 1046.50, 1174.66, 1567.98];
-    notes.forEach((freq, idx) => {
-      this.playTone(freq, 0.08, "square", null, idx * 0.055);
+    [659.25, 783.99, 1318.51, 1046.50, 1174.66, 1567.98].forEach((f, i) => {
+      this.playTone(f, 0.08, "square", null, i * 0.052, 0.9);
     });
   }
 
-  // 4. Blip Sutil ao Focar em Caixa de Texto ou Input Numérico
   playBlip() {
-    this.playTone(880, 0.04, "square");
+    this.playTone(932.33, 0.04, "sine", 1174.66, 0, 0.75);
   }
 
-  // 5. Alerta de Anomalia Térmica / Higro Estilo Fliperama
   playAlert() {
     this.ensureContext();
-    this.playTone(480, 0.14, "sawtooth", 160);
-    this.playTone(360, 0.22, "sawtooth", 120, 0.12);
+    this.playTone(520, 0.13, "sawtooth", 220);
+    this.playTone(390, 0.20, "sawtooth", 150, 0.11);
   }
 
-  // 6. Sirene de Perigo Crítico / Múltipla Anomalia (Bowser Castle Alert)
   playCritical() {
     this.ensureContext();
-    const siren = [880, 1175, 1480, 1760, 1480, 1175];
-    siren.forEach((freq, idx) => {
-      this.playTone(freq, 0.09, "sawtooth", freq * 0.85, idx * 0.08);
+    [880, 1175, 1480, 1760, 1318, 987].forEach((f, i) => {
+      this.playTone(f, 0.09, "sawtooth", f * 0.82, i * 0.075, 1.05);
     });
   }
 
   playClick() {
-    this.playTone(987.77, 0.05, "square");
+    this.playTone(1046.5, 0.045, "triangle");
   }
 
   toggle() {
@@ -107,31 +177,15 @@ window.playBeep = (freq = 720, duration = 0.08, type = "sine") => {
   window.arcadeAudio?.playTone?.(freq, duration, type);
 };
 
-// Auto-ligação nos botões, abas, selects e caixas de texto
 document.addEventListener("DOMContentLoaded", () => {
   const audio = window.arcadeAudio;
-
   document.addEventListener("click", (e) => {
     audio.ensureContext();
-    const card = e.target.closest(".vineyard-card");
-    if (card) return;
-    const sc = e.target.closest(".sc-btn");
-    if (sc) return;
-    const target = e.target.closest("button, .btn, .btn-portal, a.btn, a.btn-portal, .theme-btn");
-    if (target && !target.id?.includes("audio-toggle")) audio.playCoin();
+    if (e.target.closest(".vineyard-card, .sc-btn, .wine-pill-btn, .portal-wine-btn, .theme-btn, #theme-toggle-btn")) return;
+    const btn = e.target.closest("button, .btn, .btn-portal, a.btn, a.btn-portal, .ecosystem-card");
+    if (btn && !btn.id?.includes("audio-toggle")) audio.playCoin();
   });
-
-  document.addEventListener("change", (e) => {
-    if (e.target.matches("select, .form-select, input[type='radio'], input[type='checkbox']")) {
-      audio.ensureContext();
-      audio.playWarp();
-    }
-  });
-
   document.addEventListener("focusin", (e) => {
-    if (e.target.matches("input[type='text'], input[type='number'], input[type='search'], textarea")) {
-      audio.ensureContext();
-      audio.playBlip();
-    }
+    if (e.target.matches("input, select, textarea")) { audio.ensureContext(); audio.playBlip(); }
   });
 });

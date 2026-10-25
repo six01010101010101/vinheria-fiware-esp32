@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Gerenciador de Temas Client-side (Claro, Escuro e Sistema)
+   Gerenciador de Temas Client-side (Claro, Escuro e Sistema / Auto)
    Vinheria Agnello — FIWARE & ESP32 Wokwi
    ========================================================================== */
 
@@ -24,58 +24,58 @@
     });
   }
 
-  function applyTheme(preference) {
+  function applyTheme(preference, userClicked) {
     var isSystem = preference === "system";
     var effectiveTheme = isSystem ? getSystemTheme() : preference;
     document.documentElement.setAttribute("data-bs-theme", effectiveTheme);
+    document.documentElement.setAttribute("data-theme", effectiveTheme);
     document.documentElement.setAttribute("data-theme-mode", preference);
     var meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
-      meta.setAttribute("content", effectiveTheme === "dark" ? "#09090b" : "#ffffff");
+      meta.setAttribute("content", effectiveTheme === "dark" ? "#09090b" : "#f5f4f6");
     }
     localStorage.setItem("vinheria_theme", preference);
+    localStorage.setItem("portal_theme", effectiveTheme);
     updateButtons(preference);
+    if (userClicked && window.arcadeAudio && window.arcadeAudio.playThemeSwitch) {
+      window.arcadeAudio.playThemeSwitch(preference);
+    }
     try {
       window.dispatchEvent(new CustomEvent("themeChanged", { detail: { preference: preference, effectiveTheme: effectiveTheme } }));
     } catch (_) {}
   }
 
   window.setDashboardTheme = function (theme) {
-    applyTheme(theme);
+    applyTheme(theme, true);
   };
 
-  // Event delegation instantâneo nos botões de tema
   document.addEventListener("click", function (e) {
     var btn = e.target.closest("button");
     if (!btn || !btn.id) return;
-    if (btn.id === "theme-btn-light") applyTheme("light");
-    else if (btn.id === "theme-btn-dark") applyTheme("dark");
-    else if (btn.id === "theme-btn-system") applyTheme("system");
+    if (btn.id === "theme-btn-light") applyTheme("light", true);
+    else if (btn.id === "theme-btn-dark") applyTheme("dark", true);
+    else if (btn.id === "theme-btn-system") applyTheme("system", true);
   });
 
-  // Ouve mudanças do sistema operacional se configurado para "system"
   if (window.matchMedia) {
     window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () {
-      var current = localStorage.getItem("vinheria_theme") || "system";
+      var current = localStorage.getItem("vinheria_theme") || "dark";
       if (current === "system") {
-        applyTheme("system");
+        applyTheme("system", false);
       }
     });
   }
 
-  // Inicializa tema salvo
-  var saved = localStorage.getItem("vinheria_theme") || "system";
-  applyTheme(saved);
+  var saved = localStorage.getItem("vinheria_theme") || "dark";
+  applyTheme(saved, false);
 
-  // Sincroniza botões no carregamento do DOM e revalida
   document.addEventListener("DOMContentLoaded", function () {
-    var pref = localStorage.getItem("vinheria_theme") || "system";
-    applyTheme(pref);
+    var pref = localStorage.getItem("vinheria_theme") || "dark";
+    applyTheme(pref, false);
   });
 
   setInterval(function () {
-    var pref = localStorage.getItem("vinheria_theme") || "system";
+    var pref = localStorage.getItem("vinheria_theme") || "dark";
     updateButtons(pref);
   }, 1000);
 })();
-

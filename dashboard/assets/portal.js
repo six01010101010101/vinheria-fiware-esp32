@@ -35,8 +35,9 @@ function toggleTheme() {
   const nxt = cur === "dark" ? "light" : "dark";
   document.documentElement.setAttribute("data-theme", nxt);
   localStorage.setItem("portal_theme", nxt);
+  localStorage.setItem("vinheria_theme", nxt);
   updateThemeMeta(nxt);
-  window.arcadeAudio?.playWarp();
+  window.arcadeAudio?.playThemeSwitch?.(nxt);
 }
 
 function toggleAudio() {
@@ -68,7 +69,7 @@ function selectPortalWine(wineKey) {
     b.style.boxShadow = b.dataset.wine === curPortalWine ? "0 0 12px rgba(197,160,89,0.4)" : "";
   });
   window.arcadeAudio?.ensureContext?.();
-  window.arcadeAudio?.playPowerup?.();
+  window.arcadeAudio?.playWineStyle?.(curPortalWine);
   fetchLiveStatus();
 }
 

@@ -114,8 +114,6 @@
       c.querySelectorAll(".vineyard-card").forEach(card => card.addEventListener("click", () => {
         const vid = card.dataset.vid;
         lastClickedTerroir = vid;
-        window.arcadeAudio?.ensureContext?.();
-        window.playBeep?.(720, 0.08, "sine");
         handler(vid);
       }));
     }
