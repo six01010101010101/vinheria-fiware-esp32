@@ -7,7 +7,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="dashboard/assets/style.css">
+  <link rel="stylesheet" href="dashboard/assets/style.css?v=20261025_v7">
 </head>
 <body class="bg-body">
   <nav class="navbar navbar-expand-lg border-bottom sticky-top shadow-sm px-3 px-md-4 pro-navbar">
@@ -26,36 +26,38 @@
   <main class="container-fluid px-3 px-md-4">
     <!-- 1. Triggers, 4 Estilos de Vinho & Áreas Globais em Tempo Real -->
     <div class="card clean-card mb-3 shadow-sm"><div class="card-body p-3">
-      <div class="section-title mb-3 pb-2 border-bottom">
-        <span>CARTA DE PRESETS ENOLÓGICOS & CONTROLE DO SOMMELIER</span>
-        <small class="text-muted fw-normal d-block mt-1" style="font-size:0.78rem;">Calibração de faixas térmicas, higrometria e penumbra para 4 estilos de vinho e 8 terroirs mundiais.</small>
+      <div class="section-title mb-2 pb-2 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div>
+          <span>CARTA DE PRESETS ENOLÓGICOS & CONTROLE DO SOMMELIER</span>
+          <small class="text-muted fw-normal d-block mt-1" style="font-size:0.76rem;">Clique em qualquer estilo de vinho, cava ou terroir para sincronizar LCD, LEDs e Gráficos em tempo real.</small>
+        </div>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          <span id="active-wine-banner-badge" class="badge bg-wine-pill font-monospace">🍷 TINTO GRAND CRU</span>
+          <span id="active-wine-banner-range" class="badge bg-black bg-opacity-50 text-secondary border border-secondary border-opacity-25 font-monospace">Alvo: 14–18°C | 60–75% UR | ≤25% Luz</span>
+          <span id="active-wine-banner-state" class="badge bg-success bg-opacity-25 text-success border border-success font-monospace">🟢 EQUILÍBRIO IDEAL (100%)</span>
+        </div>
       </div>
+      <div id="active-wine-banner-casta" class="small text-wine fw-semibold mb-2" style="font-size:0.76rem;">Château Margaux — Premier Grand Cru Classé (2015) · Cabernet Sauvignon · Merlot</div>
       <div class="row g-3 align-items-start">
         <div class="col-lg-3 col-md-6 col-12 mb-2 mb-lg-0">
           <label class="small mb-1 d-flex align-items-center"><img src="dashboard/assets/icons/wine.png" class="custom-icon me-2"><span class="fw-semibold text-wine">Estilo de Vinho & Casta</span></label>
           <select id="dropdown-wine-preset" class="form-select form-select-sm trigger-input-field">
-            <option value="tinto">🍷 Vinho Tinto (Cabernet / Merlot / Tannat)</option>
-            <option value="branco">🥂 Vinho Branco (Chardonnay / Sauvignon)</option>
-            <option value="rose">🌸 Vinho Rosé (Provence / Pinot Noir Rosé)</option>
-            <option value="espumante">🍾 Champanhe & Espumante Brut</option>
+            <option value="tinto">🍷 Vinho Tinto (Cabernet / Merlot / Malbec)</option><option value="branco">🥂 Vinho Branco (Chardonnay / Sauvignon)</option>
+            <option value="rose">🌸 Vinho Rosé (Provence / Pinot Noir Rosé)</option><option value="espumante">🍾 Champanhe & Espumante Brut</option>
           </select>
-          <div class="d-flex flex-wrap gap-1 mt-1" id="wine-style-pills"><button type="button" class="btn wine-pill-btn active" data-wine="tinto">🍷 Tinto</button><button type="button" class="btn wine-pill-btn" data-wine="branco">🥂 Branco</button><button type="button" class="btn wine-pill-btn" data-wine="rose">🌸 Rosé</button><button type="button" class="btn wine-pill-btn" data-wine="espumante">🍾 Brut</button></div>
-          <div id="preset-description-text" class="small text-muted mt-1" style="font-size:0.74rem;">Maturação de tintos (14-18°C / 60-75%): taninos estáveis e oxidação lenta.</div>
+          <div class="d-flex flex-wrap gap-1 mt-2" id="wine-style-pills"><button type="button" class="btn wine-pill-btn active" data-wine="tinto">🍷 Tinto</button><button type="button" class="btn wine-pill-btn" data-wine="branco">🥂 Branco</button><button type="button" class="btn wine-pill-btn" data-wine="rose">🌸 Rosé</button><button type="button" class="btn wine-pill-btn" data-wine="espumante">🍾 Brut</button></div>
+          <div id="preset-description-text" class="small text-muted mt-1" style="font-size:0.73rem;">Maturação de tintos encorpados (14–18°C | 60–75% UR): evolução nobre.</div>
         </div>
         <div class="col-lg-3 col-md-6 col-12 mb-2 mb-lg-0">
           <label class="small mb-1 d-flex align-items-center"><span class="me-2">🌍</span><span class="fw-semibold text-wine">Área & Terroir Global</span></label>
           <select id="dropdown-area-terroir" class="form-select form-select-sm trigger-input-field">
+            <option value="fr_margaux">🇫🇷 França — Médoc, Bordeaux</option><option value="it_antinori">🇮🇹 Itália — Toscana (Chianti Classico)</option>
+            <option value="br_miolo">🇧🇷 Brasil — Vale dos Vinhedos (RS)</option><option value="ar_catena">🇦🇷 Argentina — Mendoza (Andes)</option>
+            <option value="pt_crasto">🇵🇹 Portugal — Vale do Douro</option><option value="ru_abrau">🇷🇺 Rússia — Abrau-Durso (Mar Negro)</option>
+            <option value="us_opus">🇺🇸 EUA — Napa Valley (Oakville)</option><option value="cl_concha">🇨🇱 Chile — Vale do Maipo</option>
             <option value="wokwi_esp32">📟 Simulador ESP32 Wokwi (:1883)</option>
-            <option value="it_antinori">🇮🇹 Itália — Toscana (Chianti Classico)</option>
-            <option value="fr_margaux">🇫🇷 França — Médoc, Bordeaux</option>
-            <option value="br_miolo">🇧🇷 Brasil — Vale dos Vinhedos (RS)</option>
-            <option value="us_opus">🇺🇸 EUA — Napa Valley (Oakville)</option>
-            <option value="ru_abrau">🇷🇺 Rússia — Abrau-Durso (Mar Negro)</option>
-            <option value="ar_catena">🇦🇷 Argentina — Mendoza (Andes)</option>
-            <option value="cl_concha">🇨🇱 Chile — Vale do Maipo</option>
-            <option value="pt_crasto">🇵🇹 Portugal — Vale do Douro</option>
           </select>
-          <div id="terroir-description-text" class="small text-muted mt-1" style="font-size:0.74rem;">Telemetria climática autêntica por satélite e coordenadas GPS.</div>
+          <div id="terroir-description-text" class="small text-muted mt-1" style="font-size:0.73rem;">Telemetria climática autêntica por satélite e coordenadas GPS.</div>
         </div>
         <div class="col-lg-2 col-md-4 col-12">
           <label class="small mb-1 d-flex align-items-center"><img src="dashboard/assets/icons/temperature.png" class="custom-icon me-2"><span class="fw-semibold">Temperatura (°C)</span></label>
@@ -74,8 +76,8 @@
 
     <!-- 2. Painel de Atuadores Físicos & LCD Cutout 66x26mm -->
     <div class="card clean-card mb-3 shadow-sm"><div class="card-body p-3">
-      <div class="section-title mb-3 pb-2 border-bottom"><span>HARDWARE FÍSICO ESP32 · DISPLAY LCD 16x2 & ATUADORES DE ALARME</span></div>
-      <div class="row align-items-center g-3">
+      <div class="section-title mb-3 pb-2 border-bottom"><span>HARDWARE FÍSICO ESP32 · DISPLAY LCD 16x2 & PAINEL DE LUZES LED</span></div>
+      <div class="row align-items-stretch g-3">
         <div class="col-lg-3 col-md-12">
           <div class="proto-thumb-box h-100 d-flex flex-column justify-content-between p-3">
             <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom border-secondary border-opacity-25 w-100">
@@ -85,7 +87,7 @@
             <div class="d-flex align-items-center justify-content-center gap-3 my-auto">
               <div class="barrel-lid-mini">
                 <img src="dashboard/assets/icons/tampa_barril_lcd.png" class="barrel-lid-mini-img" alt="Tampa com LCD">
-                <div class="barrel-lcd-mini-slot"><div id="barrel-mini-t1" class="barrel-lcd-mini-text">T:15.5°C U:68%</div><div id="barrel-mini-t2" class="barrel-lcd-mini-text">TINTO 1UP:100%</div></div>
+                <div class="barrel-lcd-mini-slot"><div id="barrel-mini-t1" class="barrel-lcd-mini-text">T:15.2°C U:71%</div><div id="barrel-mini-t2" class="barrel-lcd-mini-text">TINTO 1UP:100%</div></div>
               </div>
               <img src="dashboard/assets/icons/corpo_barril_3d.png" class="barrel-3d-mini-img" alt="Barril de Carvalho 225L">
             </div>
@@ -99,16 +101,16 @@
         </div>
         <div class="col-lg-5 col-md-12">
           <div class="green-crt-frame h-100 d-flex flex-column justify-content-between">
-            <div class="d-flex justify-content-between align-items-center mb-1"><span class="crt-tag"><span class="status-dot"></span>ESP32 LCD 16x2 (0x27)</span><span id="crt-status-tag" class="crt-tag text-success">STATUS: ATIVO</span></div>
+            <div class="d-flex justify-content-between align-items-center mb-1"><span class="crt-tag"><span class="status-dot"></span>ESP32 LCD 16x2 (0x27)</span><span id="crt-status-tag" class="crt-tag text-success">STATUS: EQUILÍBRIO IDEAL</span></div>
             <div class="wokwi-lcd-bezel my-1"><div class="wokwi-lcd-screen">
-              <div id="wokwi-lcd-l1" class="wokwi-lcd-line">🪙 15.5°C   💧 68% *</div>
-              <div id="wokwi-lcd-l2" class="wokwi-lcd-line">⭐ 12%  TINTO 1UP:100%</div>
+              <div id="wokwi-lcd-l1" class="wokwi-lcd-line">🪙 15.2°C   💧 71% *</div>
+              <div id="wokwi-lcd-l2" class="wokwi-lcd-line">⭐ 9%   TINTO 1UP:100%</div>
             </div></div>
             <div class="crt-telemetry-hud p-2 rounded bg-black bg-opacity-40 border border-success border-opacity-25 small font-monospace">
-              <div class="d-flex justify-content-between mb-1"><span class="text-secondary">TERROIR:</span><span id="crt-terroir-val" class="text-truncate text-wine fw-bold ms-2">📟 ESP32 Wokwi</span></div>
-              <div class="d-flex justify-content-between mb-1"><span class="text-secondary">VINHO:</span><span id="crt-wine-val" class="text-truncate text-light fw-bold ms-2">🍷 Vinho Tinto Grand Cru</span></div>
-              <div class="d-flex justify-content-between mb-1"><span class="text-secondary">ESTADO:</span><span id="crt-status-val" class="text-success fw-bold">🟢 CAVA PRESERVADA</span></div>
-              <div class="d-flex justify-content-between align-items-center"><span class="text-secondary">APOGEU:</span><span id="crt-apogee-val" class="text-success fw-bold">100% [PRESERVADO]</span></div>
+              <div class="d-flex justify-content-between mb-1"><span class="text-secondary">TERROIR:</span><span id="crt-terroir-val" class="text-truncate text-wine fw-bold ms-2">🇫🇷 Château Margaux (França)</span></div>
+              <div class="d-flex justify-content-between mb-1"><span class="text-secondary">VINHO:</span><span id="crt-wine-val" class="text-truncate text-light fw-bold ms-2">🍷 Château Margaux — Premier Grand Cru</span></div>
+              <div class="d-flex justify-content-between mb-1"><span class="text-secondary">ESTADO:</span><span id="crt-status-val" class="text-success fw-bold">🟢 EQUILÍBRIO IDEAL</span></div>
+              <div class="d-flex justify-content-between align-items-center"><span class="text-secondary">APOGEU:</span><span id="crt-apogee-val" class="text-success fw-bold">100% [EQUILÍBRIO IDEAL]</span></div>
             </div>
             <pre id="green-crt-text" style="display:none;"></pre>
           </div>
@@ -116,80 +118,80 @@
         <div class="col-lg-4 col-md-12">
           <div class="proto-thumb-box h-100 d-flex flex-column justify-content-between p-3">
             <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom border-secondary border-opacity-25 w-100">
-              <span class="sommelier-tag" style="font-size:0.64rem;">🕹️ ATUADORES &amp; COMANDOS WOKWI</span>
+              <span class="sommelier-tag" style="font-size:0.64rem;">🕹️ PAINEL LED &amp; COMANDOS WOKWI</span>
               <span id="mqtt-cmd-badge" class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 font-monospace" style="font-size:0.60rem;"><span class="status-dot"></span>MQTT /cmd: NORMAL</span>
             </div>
-            <div class="d-flex flex-wrap gap-1 my-2">
-              <button class="btn btn-sm btn-outline-success sc-btn active" data-sc="normal" title="Simular Cava Equilibrada (1-UP)">🟢 Normal</button>
-              <button class="btn btn-sm btn-outline-danger sc-btn" data-sc="temp" title="Simular Anomalia Térmica (Alerta Vermelho)">🌡️ Térmico</button>
-              <button class="btn btn-sm btn-outline-info sc-btn" data-sc="hum" title="Simular Anomalia de Higrometria">💧 Umidade</button>
-              <button class="btn btn-sm btn-outline-warning sc-btn" data-sc="lum" title="Simular Excesso de Luz no LDR">☀️ Penumbra</button>
-              <button class="btn btn-sm btn-outline-secondary sc-btn" data-sc="multi" title="Simular Cenário Crítico Múltiplo">⚡ Crítico</button>
+            <div class="d-grid grid-3-states gap-1 mb-2">
+              <div id="led-state-ideal" class="led-state-pill active-ideal">🟢 Equilíbrio Ideal</div>
+              <div id="led-state-padrao" class="led-state-pill">🔵 Estado Padrão</div>
+              <div id="led-state-critico" class="led-state-pill">🔴 Estado Crítico</div>
+            </div>
+            <div class="d-flex flex-wrap gap-1 my-1">
+              <button class="btn btn-sm btn-outline-success sc-btn active" data-sc="normal" title="Equilíbrio Ideal (1-UP)">🟢 Ideal</button>
+              <button class="btn btn-sm btn-outline-info sc-btn" data-sc="padrao" title="Estado Padrão / Afinamento">🔵 Padrão</button>
+              <button class="btn btn-sm btn-outline-danger sc-btn" data-sc="temp" title="Anomalia Térmica">🌡️ Térmico</button>
+              <button class="btn btn-sm btn-outline-primary sc-btn" data-sc="hum" title="Anomalia de Umidade">💧 Umidade</button>
+              <button class="btn btn-sm btn-outline-warning sc-btn" data-sc="lum" title="Excesso de Luz LDR">☀️ Penumbra</button>
+              <button class="btn btn-sm btn-outline-secondary sc-btn" data-sc="multi" title="Estado Crítico Múltiplo">⚡ Crítico</button>
             </div>
             <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25 mt-auto">
-              <div class="d-flex align-items-center gap-1"><span id="led-green" class="led-indicator led-green-on"></span><small id="led-green-lbl" class="text-secondary font-monospace" style="font-size:0.68rem;">D5: ON</small></div>
-              <div class="d-flex align-items-center gap-1"><span id="led-red" class="led-indicator led-red-off"></span><small id="led-red-lbl" class="text-secondary font-monospace" style="font-size:0.68rem;">D18: OFF</small></div>
-              <div class="d-flex align-items-center gap-1"><span id="led-blue" class="led-indicator led-blue-off"></span><small id="led-blue-lbl" class="text-secondary font-monospace" style="font-size:0.68rem;">D2: OFF</small></div>
-              <div class="d-flex align-items-center gap-1"><span id="buzzer-status-icon" style="font-size:0.75rem;">🔇</span><small id="buzzer-status-text" class="text-secondary font-monospace" style="font-size:0.68rem;">D4 Buzzer</small></div>
+              <div class="d-flex align-items-center gap-1"><span id="led-green" class="led-indicator led-green-on"></span><small id="led-green-lbl" class="text-secondary font-monospace" style="font-size:0.67rem;">D5: IDEAL</small></div>
+              <div class="d-flex align-items-center gap-1"><span id="led-blue" class="led-indicator led-blue-off"></span><small id="led-blue-lbl" class="text-secondary font-monospace" style="font-size:0.67rem;">D2: OFF</small></div>
+              <div class="d-flex align-items-center gap-1"><span id="led-red" class="led-indicator led-red-off"></span><small id="led-red-lbl" class="text-secondary font-monospace" style="font-size:0.67rem;">D18: OFF</small></div>
+              <div class="d-flex align-items-center gap-1"><span id="buzzer-status-icon" style="font-size:0.75rem;">🔇</span><small id="buzzer-status-text" class="text-secondary font-monospace" style="font-size:0.67rem;">D4 Mudo</small></div>
             </div>
           </div>
         </div>
       </div>
     </div></div>
 
-    <!-- 3. Cavas de Guarda e Terroirs Reais -->
+    <!-- 3. Cavas de Guarda e Lotes Catalogados -->
     <div class="card clean-card mb-3 shadow-sm"><div class="card-body p-3">
-      <div class="section-title mb-3 pb-2 border-bottom d-flex justify-content-between align-items-center"><span>CAVAS DE GUARDA & LOTES CATALOGADOS</span><span id="cellar-lots-live-badge" class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 font-monospace" style="font-size:0.70rem;"><span class="status-dot"></span>CAVA DIGITALIZADA (8/8 PRESERVADOS)</span></div>
-      <div id="cellar-lots-grid" class="row g-2"><div class="col-12 text-center py-3 text-muted small"><span class="spinner-border spinner-border-sm me-2 text-wine" role="status"></span>Sincronizando cavas de guarda e apogeu dos lotes...</div></div>
+      <div class="section-title mb-3 pb-2 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2"><span>CAVAS DE GUARDA &amp; LOTES CATALOGADOS (CLIQUE PARA SELECIONAR)</span><span id="cellar-lots-live-badge" class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 font-monospace" style="font-size:0.70rem;"><span class="status-dot"></span>CAVA DIGITALIZADA (7/8 PRESERVADOS)</span></div>
+      <div id="cellar-lots-grid" class="row g-2"></div>
     </div></div>
 
     <!-- 4. Vinícolas Reais do Mundo -->
     <div class="card clean-card mb-3 shadow-sm"><div class="card-body p-3">
-      <div class="section-title mb-3 pb-2 border-bottom d-flex justify-content-between align-items-center"><span>TERROIRS & ESTAÇÕES METEOROLÓGICAS (OPEN-METEO SATÉLITE)</span><span id="satellite-live-badge" class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 font-monospace" style="font-size:0.70rem;"><span class="status-dot"></span>SATÉLITE WMO AO VIVO</span></div>
-      <div id="real-vineyards-grid" class="row g-2"><div class="col-12 text-center py-3 text-muted small"><span class="spinner-border spinner-border-sm me-2 text-wine" role="status"></span>Sincronizando telemetria de satélite Open-Meteo dos terroirs...</div></div>
+      <div class="section-title mb-3 pb-2 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2"><span>TERROIRS &amp; ESTAÇÕES METEOROLÓGICAS (OPEN-METEO SATÉLITE)</span><span id="satellite-live-badge" class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 font-monospace" style="font-size:0.70rem;"><span class="status-dot"></span>SATÉLITE WMO AO VIVO</span></div>
+      <div id="real-vineyards-grid" class="row g-2"></div>
     </div></div>
 
     <!-- 5. Curvas Plotly SCADA -->
     <div class="card clean-card mb-3 shadow-sm"><div class="card-body p-3">
-      <div class="section-title mb-3 pb-2 border-bottom"><span>CURVAS TEMPORAIS SCADA EM TEMPO REAL</span></div>
+      <div class="section-title mb-3 pb-2 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <span>CURVAS TEMPORAIS SCADA EM TEMPO REAL (STATUS DE TEMPERATURA, UMIDADE E LUMINOSIDADE)</span>
+        <span id="scada-active-wine-pill" class="badge bg-black bg-opacity-50 text-wine border border-secondary border-opacity-25 font-monospace" style="font-size:0.72rem;">🍷 TINTO · <strong>Château Margaux</strong></span>
+      </div>
       <div class="row g-3">
-        <div class="col-lg-4 col-md-12"><div class="chart-panel-box h-100"><div class="px-3 py-2 border-bottom small fw-bold text-danger d-flex justify-content-between align-items-center"><span class="d-flex align-items-center"><img src="dashboard/assets/icons/temperature.png" class="custom-icon-sm me-2">TEMPERATURA DA CAVA (°C)</span><span id="chart-val-temp" class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-50 font-monospace">15.6°C</span></div><div id="graph-temperature" style="height:250px;"></div></div></div>
-        <div class="col-lg-4 col-md-12"><div class="chart-panel-box h-100"><div class="px-3 py-2 border-bottom small fw-bold text-info d-flex justify-content-between align-items-center"><span class="d-flex align-items-center"><img src="dashboard/assets/icons/humidity.png" class="custom-icon-sm me-2">HIGROMETRIA DA ROLHA (%)</span><span id="chart-val-hum" class="badge bg-info bg-opacity-25 text-info border border-info border-opacity-50 font-monospace">68%</span></div><div id="graph-humidity" style="height:250px;"></div></div></div>
-        <div class="col-lg-4 col-md-12"><div class="chart-panel-box h-100"><div class="px-3 py-2 border-bottom small fw-bold text-warning d-flex justify-content-between align-items-center"><span class="d-flex align-items-center"><img src="dashboard/assets/icons/luminosity.png" class="custom-icon-sm me-2">PENUMBRA DA ADEGA (%)</span><span id="chart-val-lum" class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-50 font-monospace">12%</span></div><div id="graph-luminosity" style="height:250px;"></div></div></div>
+        <div class="col-lg-4 col-md-12"><div class="chart-panel-box h-100"><div class="px-3 py-2 border-bottom small fw-bold text-danger d-flex flex-wrap justify-content-between align-items-center gap-1"><span class="d-flex align-items-center"><img src="dashboard/assets/icons/temperature.png" class="custom-icon-sm me-2">TEMPERATURA (°C)</span><span id="chart-val-temp" class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 font-monospace">15.2°C · 🟢 IDEAL</span></div><div id="graph-temperature" style="height:255px;"></div></div></div>
+        <div class="col-lg-4 col-md-12"><div class="chart-panel-box h-100"><div class="px-3 py-2 border-bottom small fw-bold text-info d-flex flex-wrap justify-content-between align-items-center gap-1"><span class="d-flex align-items-center"><img src="dashboard/assets/icons/humidity.png" class="custom-icon-sm me-2">UMIDADE (%)</span><span id="chart-val-hum" class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 font-monospace">71% · 🟢 IDEAL</span></div><div id="graph-humidity" style="height:255px;"></div></div></div>
+        <div class="col-lg-4 col-md-12"><div class="chart-panel-box h-100"><div class="px-3 py-2 border-bottom small fw-bold text-warning d-flex flex-wrap justify-content-between align-items-center gap-1"><span class="d-flex align-items-center"><img src="dashboard/assets/icons/luminosity.png" class="custom-icon-sm me-2">LUMINOSIDADE (%)</span><span id="chart-val-lum" class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 font-monospace">9% · 🟢 IDEAL</span></div><div id="graph-luminosity" style="height:255px;"></div></div></div>
       </div>
     </div></div>
 
     <!-- 6. Ecossistema Conectado IoT & Nuvem -->
     <div class="card clean-card mb-3 shadow-sm"><div class="card-body p-3">
-      <div class="section-title mb-3 pb-2 border-bottom d-flex justify-content-between align-items-center"><span>ECOSSISTEMA CONECTADO & DISPOSITIVOS FIWARE IOT</span><small class="text-muted fw-normal" style="font-size:0.72rem;">Clique no serviço para transição em nova aba</small></div>
-      <div id="ecosystem-grid" class="row g-2"><div class="col-12 text-center py-2 text-muted small"><span class="spinner-border spinner-border-sm me-2 text-wine" role="status"></span>Carregando barramento de serviços FIWARE IoT...</div></div>
+      <div class="section-title mb-3 pb-2 border-bottom d-flex justify-content-between align-items-center"><span>ECOSSISTEMA CONECTADO &amp; DISPOSITIVOS FIWARE IOT</span><small class="text-muted fw-normal" style="font-size:0.72rem;">Clique no serviço para transição em nova aba</small></div>
+      <div id="ecosystem-grid" class="row g-2"></div>
     </div></div>
   </main>
 
   <footer class="text-center text-muted small py-3 border-top mt-4" style="font-size:0.74rem;">
     <div class="mb-2">Check Point 5 — Vinheria Agnello • FIWARE STH-Comet (:8666) &amp; IoT Agent (:4041) • ESP32 Wokwi MQTT (:1883) • Firebase &amp; Supabase • Render.com</div>
-    <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 pt-2 border-top border-secondary border-opacity-10">
-      <span class="text-wine fw-bold me-1" style="font-size:0.70rem;">📚 FONTES &amp; AUTORIDADES GLOBAIS:</span>
-      <a href="https://www.oiv.int" target="_blank" rel="noopener noreferrer" class="badge text-decoration-none bg-black bg-opacity-50 text-secondary border border-secondary border-opacity-25 hover-gold" title="Organização Internacional da Vinha e do Vinho">🍇 OIV</a>
-      <a href="https://www.winespectator.com" target="_blank" rel="noopener noreferrer" class="badge text-decoration-none bg-black bg-opacity-50 text-secondary border border-secondary border-opacity-25 hover-gold" title="Wine Spectator - Avaliação de Safras e Guarda">🍷 Wine Spectator</a>
-      <a href="https://winefolly.com" target="_blank" rel="noopener noreferrer" class="badge text-decoration-none bg-black bg-opacity-50 text-secondary border border-secondary border-opacity-25 hover-gold" title="Wine Folly - Guia Educacional Enológico">📖 Wine Folly</a>
-      <a href="https://www.decanter.com" target="_blank" rel="noopener noreferrer" class="badge text-decoration-none bg-black bg-opacity-50 text-secondary border border-secondary border-opacity-25 hover-gold" title="Decanter - Painel de Sommeliers">🏆 Decanter</a>
-      <a href="https://www.vivino.com" target="_blank" rel="noopener noreferrer" class="badge text-decoration-none bg-black bg-opacity-50 text-secondary border border-secondary border-opacity-25 hover-gold" title="Vivino - Acervo Global de Rótulos">🍾 Vivino</a>
-      <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer" class="badge text-decoration-none bg-black bg-opacity-50 text-secondary border border-secondary border-opacity-25 hover-gold" title="Open-Meteo - Modelos Meteorológicos Globais">🛰️ Open-Meteo</a>
-      <a href="https://www.fiware.org" target="_blank" rel="noopener noreferrer" class="badge text-decoration-none bg-black bg-opacity-50 text-secondary border border-secondary border-opacity-25 hover-gold" title="FIWARE Foundation - Smart Agrifood & IoT">🌐 FIWARE Agrifood</a>
-    </div>
   </footer>
 
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
-  <script src="dashboard/assets/arcade_audio.js?v=20261024_v6"></script>
-  <script src="dashboard/assets/wine_catalog.js?v=20261024_v6"></script>
-  <script src="dashboard/assets/cellar_lots.js?v=20261024_v6"></script>
-  <script src="dashboard/assets/ecosystem.js?v=20261024_v6"></script>
-  <script src="dashboard/assets/theme.js?v=20261024_v6"></script>
-  <script src="dashboard/assets/satellite_terroirs.js?v=20261024_v6"></script>
-  <script src="dashboard/assets/wokwi_lcd.js?v=20261024_v6"></script>
-  <script src="dashboard/assets/scada_mqtt.js?v=20261024_v6"></script>
-  <script src="dashboard/assets/dashboard_scada.js?v=20261024_v6"></script>
+  <script src="dashboard/assets/arcade_audio.js?v=20261025_v7"></script>
+  <script src="dashboard/assets/wine_catalog.js?v=20261025_v7"></script>
+  <script src="dashboard/assets/cellar_lots.js?v=20261025_v7"></script>
+  <script src="dashboard/assets/ecosystem.js?v=20261025_v7"></script>
+  <script src="dashboard/assets/theme.js?v=20261025_v7"></script>
+  <script src="dashboard/assets/satellite_terroirs.js?v=20261025_v7"></script>
+  <script src="dashboard/assets/wokwi_lcd.js?v=20261025_v7"></script>
+  <script src="dashboard/assets/scada_mqtt.js?v=20261025_v7"></script>
+  <script src="dashboard/assets/scada_charts.js?v=20261025_v7"></script>
+  <script src="dashboard/assets/dashboard_scada.js?v=20261025_v7"></script>
 </body>
 </html>

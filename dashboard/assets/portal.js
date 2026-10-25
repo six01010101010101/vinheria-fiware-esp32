@@ -1,16 +1,18 @@
 /**
  * Portal HTML5 Sommelier — Vinheria Agnello (Landing Page Minimalista)
- * Telemetria Contínua da Barrica, Display CRT Verde e Abertura do Dashboard em Nova Aba
+ * Telemetria Contínua da Barrica, Display CRT Verde, Seleção de Vinho e Abertura do Dashboard.
  */
 let backendApiActive = null;
+let curPortalWine = "tinto";
 
 window.AgnelloAPI = {
   getTelemetry: () => {
+    const p = (window.PRESETS && window.PRESETS[curPortalWine]) || { defT: 15.2, defH: 71, defL: 9 };
     const w = Math.sin(Date.now() / 2400) * 0.15;
     return {
-      temperature_c: +(15.5 + w).toFixed(1),
-      humidity_pct: Math.min(100, Math.max(20, +(68.0 + Math.cos(Date.now() / 3100) * 0.4).toFixed(0))),
-      luminosity_pct: +(12.0 + w * 0.5).toFixed(0),
+      temperature_c: +(p.defT + w).toFixed(1),
+      humidity_pct: Math.min(100, Math.max(20, +(p.defH + Math.cos(Date.now() / 3100) * 0.4).toFixed(0))),
+      luminosity_pct: +(p.defL + w * 0.5).toFixed(0),
       health_score: 100, timestamp: new Date().toLocaleTimeString()
     };
   }
@@ -53,35 +55,36 @@ function getDashboardUrl() {
 function handleDashboardOpen(e) {
   if (e) e.preventDefault();
   window.arcadeAudio?.playCoin();
-  const target = getDashboardUrl();
-  window.open(target, "_blank", "noopener,noreferrer");
+  window.location.href = getDashboardUrl();
+}
+
+function selectPortalWine(wineKey) {
+  curPortalWine = (window.PRESETS && window.PRESETS[wineKey]) ? wineKey : "tinto";
+  const p = (window.PRESETS && window.PRESETS[curPortalWine]) || { wine: "Château Margaux 2015", casta: "Cabernet Sauvignon" };
+  const titleEl = document.getElementById("portal-active-wine-title");
+  if (titleEl) titleEl.textContent = `${p.wine} · ${p.casta || p.name}`;
+  document.querySelectorAll(".portal-wine-btn").forEach(b => {
+    b.style.borderColor = b.dataset.wine === curPortalWine ? "#c5a059" : "";
+    b.style.boxShadow = b.dataset.wine === curPortalWine ? "0 0 12px rgba(197,160,89,0.4)" : "";
+  });
+  window.arcadeAudio?.ensureContext?.();
+  window.arcadeAudio?.playPowerup?.();
+  fetchLiveStatus();
 }
 
 async function fetchLiveStatus() {
-  let tel = null, score = 100;
-  if (backendApiActive === null || backendApiActive) {
-    try {
-      const res = await fetch("/api/v1/status", { cache: "no-store" });
-      backendApiActive = res.ok;
-      if (backendApiActive) { const d = await res.json(); tel = d.telemetry; score = d.health_score || 100; }
-    } catch (_) { backendApiActive = false; }
-  }
-  if (!tel) { tel = window.AgnelloAPI.getTelemetry(); score = tel.health_score; }
-  const tNum = parseFloat(tel.temperature_c || 15.5), hNum = parseFloat(tel.humidity_pct || 68), lNum = parseFloat(tel.luminosity_pct || 12);
+  const p = (window.PRESETS && window.PRESETS[curPortalWine]) || { key: "tinto", name: "Vinho Tinto", wine: "Château Margaux 2015", tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMin: 0, lMax: 25 };
+  const tel = window.AgnelloAPI.getTelemetry();
+  const tNum = parseFloat(tel.temperature_c || p.defT || 15.2);
+  const hNum = parseFloat(tel.humidity_pct || p.defH || 71);
+  const lNum = parseFloat(tel.luminosity_pct || p.defL || 9);
   if (window.WokwiLCD) {
     window.WokwiLCD.renderWokwiTwin({
       t: tNum, h: hNum, l: lNum,
-      preset: { name: "Vinho Tinto", wine: "Château Margaux 2015", tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMin: 0, lMax: 25 },
-      terroir: { name: "Adega Central Agnello", flag: "🍷", country: "Brasil" },
-      isWokwi: true, mode: score >= 85 ? "normal" : "alerta"
+      preset: p,
+      terroir: { name: "Adega Central Agnello", flag: "🍷", country: "França / Brasil" },
+      isWokwi: true, mode: "normal"
     });
-  } else {
-    const ok = score >= 85;
-    const m1 = document.getElementById("barrel-mini-t1"), m2 = document.getElementById("barrel-mini-t2");
-    if (m1) m1.textContent = `T:${tNum.toFixed(1)}°C U:${hNum.toFixed(0)}%`;
-    if (m2) m2.textContent = `TINTO ${ok ? "1UP" : "ALR"}:${score}%`;
-    const crt = document.getElementById("green-crt-text");
-    if (crt) crt.textContent = `+--------------------------------+\n| VINHERIA AGNELLO - CAVA ATIVA  |\n| T: ${tNum.toFixed(1)}°C  U: ${hNum.toFixed(0)}%  L: ${lNum.toFixed(0)}%        |\n| STATUS: ${ok ? "CAVA PRESERVADA" : "ALERTA ENOLÓGICO"}        |\n| APOGEU: ${score}% [${ok ? "PRESERVADO" : "ANOMALIA"}]       |\n+--------------------------------+`;
   }
 }
 
@@ -91,6 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btn-open-dashboard")?.addEventListener("click", handleDashboardOpen);
   document.getElementById("theme-toggle-btn")?.addEventListener("click", toggleTheme);
   document.getElementById("audio-toggle-btn")?.addEventListener("click", toggleAudio);
+  document.querySelectorAll(".portal-wine-btn").forEach(b => b.addEventListener("click", () => selectPortalWine(b.dataset.wine)));
   fetchLiveStatus();
   setInterval(fetchLiveStatus, 1800);
 });

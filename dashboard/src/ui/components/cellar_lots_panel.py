@@ -80,10 +80,11 @@ def build_cellar_lots_grid(evaluations: List[LotStatusEvaluation], active_lot_co
         filtered = evaluations
 
     cols: List[dbc.Col] = []
+    highlighted_code = evaluations[0].lot.lot_code if active_lot_code == "all" else active_lot_code
     for ev in filtered:
         l = ev.lot
-        is_sel = l.lot_code == active_lot_code
-        card_cls = "vineyard-card vineyard-card-active h-100" if is_sel else "vineyard-card h-100"
+        is_sel = l.lot_code == highlighted_code
+        card_cls = "vineyard-card active-vineyard border-gold h-100" if is_sel else "vineyard-card h-100"
 
         badge_t = "danger" if ev.temp_status == "critico" else ("warning" if ev.temp_status == "alerta" else "success")
         badge_h = "danger" if ev.hum_status == "critico" else ("warning" if ev.hum_status == "alerta" else "info")

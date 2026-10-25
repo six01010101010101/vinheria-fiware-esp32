@@ -8,29 +8,34 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍷</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="dashboard/assets/portal.css">
+  <link rel="stylesheet" href="dashboard/assets/portal.css?v=20261025_v7">
 </head>
 <body>
   <div class="portal-container">
     <header class="portal-header">
       <div class="portal-brand"><h1>🍷 Vinheria Agnello</h1><p>CARTA DA ADEGA · RESERVA DO SOMMELIER</p></div>
       <div class="portal-actions">
-        <span class="live-pill"><span class="live-dot"></span> Wokwi & Cloud Ao Vivo</span>
+        <span class="live-pill"><span class="live-dot"></span> Wokwi &amp; Cloud Ao Vivo</span>
         <button id="audio-toggle-btn" class="btn-portal btn-outline" type="button" title="Sintetizador acústico arcade">🔊 Som: On</button>
         <button id="theme-toggle-btn" class="btn-portal btn-outline" type="button">☀️ Tema Claro</button>
-        <a id="btn-dash-link" class="btn-portal" href="dashboard.html" target="_blank" rel="noopener noreferrer" title="Abrir Dashboard Completo em Nova Aba">📊 Abrir Dashboard</a>
+        <a id="btn-dash-link" class="btn-portal" href="dashboard.html" title="Abrir Dashboard Completo">📊 Abrir Dashboard</a>
       </div>
     </header>
 
     <main>
-      <!-- Landing Page Minimalista: Barril 3D e Tela Verde Status CRT -->
       <section id="hero-simple-view" class="hero-barrel-card">
         <div class="active-wine-badge">
           <span>🍷 Vinho Ativo no Barril:</span>
-          <strong>Château Margaux 2015 · Premier Grand Cru Classé (Bordeaux)</strong>
+          <strong id="portal-active-wine-title">Château Margaux 2015 · Premier Grand Cru Classé (Bordeaux)</strong>
         </div>
-        <p class="hero-subtitle">Barrica de Carvalho Francês Allier 225L · Telemetria IoT ESP32 & Algoritmo de Preservação</p>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:20px;align-items:center;margin:22px 0;">
+        <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:12px 0;">
+          <button type="button" class="btn-portal btn-outline portal-wine-btn" data-wine="tinto" style="border-color:#c5a059;">🍷 Vinho Tinto</button>
+          <button type="button" class="btn-portal btn-outline portal-wine-btn" data-wine="branco">🥂 Vinho Branco</button>
+          <button type="button" class="btn-portal btn-outline portal-wine-btn" data-wine="rose">🌸 Vinho Rosé</button>
+          <button type="button" class="btn-portal btn-outline portal-wine-btn" data-wine="espumante">🍾 Espumante Brut</button>
+        </div>
+        <p class="hero-subtitle">Barrica de Carvalho Francês Allier 225L · Telemetria IoT ESP32 &amp; Algoritmo de Preservação em Tempo Real</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:20px;align-items:center;margin:20px 0;">
           <div class="proto-thumb-box" style="flex-direction:column;gap:10px;">
             <div style="display:flex;justify-content:space-between;width:100%;font-size:0.65rem;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:4px;">
               <span class="sommelier-tag" style="font-size:0.64rem;">📟 BARRICA IOT WOKWI</span>
@@ -40,7 +45,7 @@
               <div class="barrel-lid-mini">
                 <img src="dashboard/assets/icons/tampa_barril_lcd.png" class="barrel-lid-mini-img" alt="Tampa com LCD">
                 <div class="barrel-lcd-mini-slot">
-                  <div id="barrel-mini-t1" class="barrel-lcd-mini-text">T:15.5°C U:68%</div>
+                  <div id="barrel-mini-t1" class="barrel-lcd-mini-text">T:15.2°C U:71%</div>
                   <div id="barrel-mini-t2" class="barrel-lcd-mini-text">TINTO 1UP:100%</div>
                 </div>
               </div>
@@ -53,23 +58,23 @@
           <div class="green-crt-frame" style="padding:12px;background:#031408;border:1px solid #14532d;border-radius:10px;box-shadow:inset 0 0 18px rgba(34,197,94,0.15);">
             <div style="display:flex;justify-content:space-between;font-size:0.70rem;color:#4ade80;font-family:'Courier New',monospace;margin-bottom:6px;font-weight:bold;">
               <span>📟 ESP32 LCD 16x2 HD44780 (0x27)</span>
-              <span id="crt-status-pill">STATUS: ATIVO</span>
+              <span id="crt-status-pill">STATUS: EQUILÍBRIO IDEAL</span>
             </div>
             <div class="wokwi-lcd-bezel" style="margin:6px 0;"><div class="wokwi-lcd-screen">
-              <div id="wokwi-lcd-l1" class="wokwi-lcd-line">🪙 15.5°C   💧 68% *</div>
-              <div id="wokwi-lcd-l2" class="wokwi-lcd-line">⭐ 12%  TINTO 1UP:100%</div>
+              <div id="wokwi-lcd-l1" class="wokwi-lcd-line">🪙 15.2°C   💧 71% *</div>
+              <div id="wokwi-lcd-l2" class="wokwi-lcd-line">⭐ 9%   TINTO 1UP:100%</div>
             </div></div>
             <div class="crt-telemetry-hud" style="padding:6px 10px;background:rgba(0,0,0,0.4);border:1px solid rgba(34,197,94,0.25);border-radius:6px;font-family:monospace;font-size:0.70rem;">
-              <div style="display:flex;justify-content:space-between;margin-bottom:2px;"><span style="color:#a1a1aa;">TERROIR:</span><span id="crt-terroir-val" style="color:#c5a059;font-weight:bold;">🍷 Adega Central Agnello</span></div>
-              <div style="display:flex;justify-content:space-between;margin-bottom:2px;"><span style="color:#a1a1aa;">VINHO:</span><span id="crt-wine-val" style="color:#f4f4f5;font-weight:bold;">Château Margaux 2015</span></div>
-              <div style="display:flex;justify-content:space-between;margin-bottom:2px;"><span style="color:#a1a1aa;">ESTADO:</span><span id="crt-status-val" style="color:#22c55e;font-weight:bold;">🟢 CAVA PRESERVADA</span></div>
-              <div style="display:flex;justify-content:space-between;"><span style="color:#a1a1aa;">APOGEU:</span><span id="crt-apogee-val" style="color:#22c55e;font-weight:bold;">100% [PRESERVADO]</span></div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:2px;"><span style="color:#a1a1aa;">TERROIR:</span><span id="crt-terroir-val" style="color:#c5a059;font-weight:bold;">🇫🇷 Château Margaux (França)</span></div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:2px;"><span style="color:#a1a1aa;">VINHO:</span><span id="crt-wine-val" style="color:#f4f4f5;font-weight:bold;">🍷 Château Margaux 2015</span></div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:2px;"><span style="color:#a1a1aa;">ESTADO:</span><span id="crt-status-val" style="color:#22c55e;font-weight:bold;">🟢 EQUILÍBRIO IDEAL</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#a1a1aa;">APOGEU:</span><span id="crt-apogee-val" style="color:#22c55e;font-weight:bold;">100% [EQUILÍBRIO IDEAL]</span></div>
             </div>
             <pre id="green-crt-text" style="display:none;"></pre>
           </div>
         </div>
         <div style="margin-top:20px;">
-          <a id="btn-open-dashboard" class="btn-portal btn-hero" href="dashboard.html" target="_blank" rel="noopener noreferrer">📊 Acessar Dashboard Completo da Adega &rarr;</a>
+          <a id="btn-open-dashboard" class="btn-portal btn-hero" href="dashboard.html">📊 Acessar Dashboard Completo da Adega &rarr;</a>
         </div>
         <div id="lots-container" style="display:none;"></div>
       </section>
@@ -77,27 +82,12 @@
 
     <footer class="portal-footer" style="padding:16px 0;">
       <p style="margin-bottom:8px;">Check Point 5 — Vinheria Agnello • ESP32 Wokwi MQTT (:1883) • Firebase &amp; Supabase • Render.com</p>
-      <div style="display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;font-size:0.72rem;padding-top:8px;border-top:1px solid rgba(255,255,255,0.08);">
-        <span style="color:#c5a059;font-weight:bold;">📚 FONTES &amp; AUTORIDADES GLOBAIS:</span>
-        <a href="https://www.oiv.int" target="_blank" rel="noopener noreferrer" class="hover-gold" style="color:#a1a1aa;text-decoration:none;">🍇 OIV</a>
-        <span>•</span>
-        <a href="https://www.winespectator.com" target="_blank" rel="noopener noreferrer" class="hover-gold" style="color:#a1a1aa;text-decoration:none;">🍷 Wine Spectator</a>
-        <span>•</span>
-        <a href="https://winefolly.com" target="_blank" rel="noopener noreferrer" class="hover-gold" style="color:#a1a1aa;text-decoration:none;">📖 Wine Folly</a>
-        <span>•</span>
-        <a href="https://www.decanter.com" target="_blank" rel="noopener noreferrer" class="hover-gold" style="color:#a1a1aa;text-decoration:none;">🏆 Decanter</a>
-        <span>•</span>
-        <a href="https://www.vivino.com" target="_blank" rel="noopener noreferrer" class="hover-gold" style="color:#a1a1aa;text-decoration:none;">🍾 Vivino</a>
-        <span>•</span>
-        <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer" class="hover-gold" style="color:#a1a1aa;text-decoration:none;">🛰️ Open-Meteo</a>
-        <span>•</span>
-        <a href="https://www.fiware.org" target="_blank" rel="noopener noreferrer" class="hover-gold" style="color:#a1a1aa;text-decoration:none;">🌐 FIWARE Agrifood</a>
-      </div>
     </footer>
   </div>
 
-  <script src="dashboard/assets/arcade_audio.js?v=20261024_v6"></script>
-  <script src="dashboard/assets/wokwi_lcd.js?v=20261024_v6"></script>
-  <script src="dashboard/assets/portal.js?v=20261024_v6"></script>
+  <script src="dashboard/assets/arcade_audio.js?v=20261025_v7"></script>
+  <script src="dashboard/assets/wine_catalog.js?v=20261025_v7"></script>
+  <script src="dashboard/assets/wokwi_lcd.js?v=20261025_v7"></script>
+  <script src="dashboard/assets/portal.js?v=20261025_v7"></script>
 </body>
 </html>
