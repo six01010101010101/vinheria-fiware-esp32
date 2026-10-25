@@ -180,7 +180,7 @@ def register_api_routes(server: Flask) -> None:
         """Envia comando, preset enológico, diagnóstico e telemetria ao ESP32 Wokwi."""
         data = request.get_json(silent=True) or {}
         raw_cmd = str(data.get("command", "normal")).strip().lower()
-        cmd = raw_cmd if raw_cmd in ("normal", "temp", "hum", "lum", "multi") else "normal"
+        cmd = raw_cmd if raw_cmd in ("normal", "padrao", "temp", "hum", "lum", "multi") else "normal"
         pr = str(data.get("preset", data.get("wine", "TINTO"))).strip().upper()[:5]
         health = int(data.get("health", 100))
         verdict = str(data.get("verdict", "OK")).strip().upper()[:3]

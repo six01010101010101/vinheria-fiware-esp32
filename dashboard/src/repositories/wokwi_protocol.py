@@ -13,7 +13,7 @@ Site  -> ESP32 (/TEF/vine001/cmd):
 from typing import Dict, Optional
 from src.models.iot_models import SensorSnapshot
 
-VALID_MODES = ("normal", "temp", "hum", "lum", "multi")
+VALID_MODES = ("normal", "padrao", "temp", "hum", "lum", "multi")
 PHYSICAL_LIMITS = {"t": (-40.0, 80.0), "h": (0.0, 100.0), "l": (0.0, 100.0)}
 
 

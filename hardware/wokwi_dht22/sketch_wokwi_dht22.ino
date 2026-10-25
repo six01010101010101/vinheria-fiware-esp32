@@ -1,4 +1,4 @@
-// CP5 VINHERIA AGNELLO · ESP32 WOKWI SOMMELIER IOT ARCADE (:1883)
+// CP5 VINHERIA AGNELLO · ESP32 WOKWI SOMMELIER IOT ARCADE (:1883) — ULTRA-LOW LATENCY 3-STATE ENGINE
 #include <WiFi.h>
 #include <Wire.h>
 #include <math.h>
@@ -16,16 +16,12 @@ String curMode = "normal", curPreset = "TINTO", curVerdict = "OK";
 int curHealth = 100, soundStep = 0;
 bool ledState = false, remoteSync = false;
 unsigned long lastDhtMs = 0, lastLdrMs = 0, lastPubMs = 0, lastBlinkMs = 0, lastPingMs = 0, lastRetryMs = 0;
-float validTemp = 15.5f, validHum = 68.0f, validLum = 12.0f, hwTemp = 15.5f, hwHum = 68.0f, hwLum = 12.0f;
+float validTemp = 15.8f, validHum = 68.0f, validLum = 9.0f, hwTemp = 15.8f, hwHum = 68.0f, hwLum = 9.0f;
 
 void lcdExpanderWrite(uint8_t d) { Wire.beginTransmission(LCD_ADDR); Wire.write(d | 0x08); Wire.endTransmission(); }
 void lcdWrite4(uint8_t v) { lcdExpanderWrite(v); lcdExpanderWrite(v | 0x04); delayMicroseconds(2); lcdExpanderWrite(v & ~0x04); delayMicroseconds(40); }
 void lcdSend(uint8_t v, uint8_t m) { lcdWrite4((v & 0xF0) | m); lcdWrite4(((v << 4) & 0xF0) | m); }
-void lcdCreateChar(uint8_t loc, const uint8_t map[8]) {
-  lcdSend(0x40 | ((loc & 0x7) << 3), 0);
-  for (int i = 0; i < 8; i++) lcdSend(map[i], 1);
-  lcdSend(0x80, 0);
-}
+void lcdCreateChar(uint8_t loc, const uint8_t map[8]) { lcdSend(0x40 | ((loc & 0x7) << 3), 0); for (int i = 0; i < 8; i++) lcdSend(map[i], 1); lcdSend(0x80, 0); }
 void lcdInit() {
   Wire.begin(21, 22); Wire.setClock(400000); delay(40); lcdExpanderWrite(0x00); delay(15);
   lcdWrite4(0x30); delayMicroseconds(4500); lcdWrite4(0x30); delayMicroseconds(4500);
@@ -45,8 +41,9 @@ void updateLcd() {
   lcdSend(0xC0, 0); lcdSend(0x02, 1); lcdSend(' ', 1);
   String lStr = String((int)validLum) + "% ";
   for (int i = 0; i < lStr.length(); i++) lcdSend((uint8_t)lStr[i], 1);
-  String stat = (curMode == "normal") ? (curPreset + " 1UP:" + String(curHealth) + "%") : ("ALR:" + curMode.substring(0, 3) + " HP:" + String(curHealth) + "%");
-  if (stat.length() > 10) stat = stat.substring(0, 10);
+  String tag = (curMode == "normal") ? "1UP:" : ((curMode == "padrao") ? "PAD:" : "CRT:");
+  String stat = curPreset.substring(0, 5) + " " + tag + String(curHealth) + "%";
+  if (stat.length() > 11) stat = stat.substring(0, 11);
   for (int i = 0; i < stat.length(); i++) lcdSend((uint8_t)stat[i], 1);
   for (int i = 0; i < 16 - (2 + lStr.length() + stat.length()); i++) lcdSend(' ', 1);
 }
@@ -79,54 +76,64 @@ void mqttPub(const char* top, const String &pl) {
   espClient.print(top); espClient.print(pl);
 }
 void mqttSub(const char* top) {
-  uint16_t tl = strlen(top);
-  uint8_t pkt[6] = {0x82, (uint8_t)(5 + tl), 0x00, 0x01, (uint8_t)(tl >> 8), (uint8_t)(tl & 0xFF)};
+  uint16_t tl = strlen(top); uint8_t pkt[6] = {0x82, (uint8_t)(5 + tl), 0x00, 0x01, (uint8_t)(tl >> 8), (uint8_t)(tl & 0xFF)};
   espClient.write(pkt, 6); espClient.print(top); espClient.write((uint8_t)0x00);
 }
 void applyCommand(String msg) {
   int at = msg.indexOf('@'); if (at != -1) msg = msg.substring(at + 1);
-  int sep = msg.indexOf('|'); if (sep == -1) return;
-  String cmd = msg.substring(0, sep), args = msg.substring(sep + 1), prev = curMode;
-  if (cmd == "live") {
-    remoteSync = false; validTemp = hwTemp; validHum = hwHum; validLum = hwLum;
-  } else if (cmd == "sync") {
-    int p1 = args.indexOf('|'), p2 = args.lastIndexOf('|');
-    if (p1 != -1 && p2 > p1) {
-      validTemp = args.substring(0, p1).toFloat(); validHum = args.substring(p1 + 1, p2).toFloat();
-      validLum = args.substring(p2 + 1).toFloat(); remoteSync = true;
-    }
-  } else if (cmd == "diag") {
-    int p1 = args.indexOf('|');
-    if (p1 != -1) {
-      curMode = args.substring(0, p1); String rest = args.substring(p1 + 1); int p2 = rest.indexOf('|');
-      if (p2 != -1) {
-        curHealth = rest.substring(0, p2).toInt(); String rest2 = rest.substring(p2 + 1); int p3 = rest2.indexOf('|');
-        if (p3 != -1) { curVerdict = rest2.substring(0, p3); curPreset = rest2.substring(p3 + 1); }
+  String prev = curMode, prevPr = curPreset; int sep = msg.indexOf('|');
+  if (sep == -1) {
+    msg.trim();
+    if (msg == "normal" || msg == "padrao" || msg == "multi" || msg == "critico") curMode = (msg == "critico") ? "multi" : msg;
+    else { curPreset = msg; curPreset.toUpperCase(); }
+  } else {
+    String cmd = msg.substring(0, sep), args = msg.substring(sep + 1);
+    if (cmd == "live") { remoteSync = false; validTemp = hwTemp; validHum = hwHum; validLum = hwLum; }
+    else if (cmd == "state") {
+      int p1 = args.indexOf('|'), p2 = args.indexOf('|', p1 + 1), p3 = args.indexOf('|', p2 + 1);
+      int p4 = args.indexOf('|', p3 + 1), p5 = args.indexOf('|', p4 + 1), p6 = args.indexOf('|', p5 + 1);
+      if (p1 != -1 && p2 != -1 && p3 != -1 && p4 != -1 && p5 != -1 && p6 != -1) {
+        validTemp = args.substring(0, p1).toFloat(); validHum = args.substring(p1 + 1, p2).toFloat(); validLum = args.substring(p2 + 1, p3).toFloat();
+        curMode = args.substring(p3 + 1, p4); curHealth = args.substring(p4 + 1, p5).toInt();
+        curVerdict = args.substring(p5 + 1, p6); curPreset = args.substring(p6 + 1); remoteSync = true;
       }
-    }
-  } else if (cmd == "alert") {
-    int p1 = args.indexOf('|'); curMode = (p1 != -1) ? args.substring(0, p1) : args;
+    } else if (cmd == "sync") {
+      int p1 = args.indexOf('|'), p2 = args.lastIndexOf('|');
+      if (p1 != -1 && p2 > p1) { validTemp = args.substring(0, p1).toFloat(); validHum = args.substring(p1 + 1, p2).toFloat(); validLum = args.substring(p2 + 1).toFloat(); remoteSync = true; }
+    } else if (cmd == "diag") {
+      int p1 = args.indexOf('|');
+      if (p1 != -1) {
+        curMode = args.substring(0, p1); String rest = args.substring(p1 + 1); int p2 = rest.indexOf('|');
+        if (p2 != -1) { curHealth = rest.substring(0, p2).toInt(); String rest2 = rest.substring(p2 + 1); int p3 = rest2.indexOf('|'); if (p3 != -1) { curVerdict = rest2.substring(0, p3); curPreset = rest2.substring(p3 + 1); } }
+      }
+    } else if (cmd == "alert") { int p1 = args.indexOf('|'); curMode = (p1 != -1) ? args.substring(0, p1) : args; }
+    else if (cmd == "preset" || cmd == "wine") { curPreset = args; curPreset.toUpperCase(); }
   }
-  curMode.trim(); if (curMode.length() == 0) curMode = "normal";
+  curMode.trim(); if (curMode == "critico") curMode = "multi"; if (curMode.length() == 0) curMode = "normal";
+  bool chg = (prev != curMode) || (prevPr != curPreset);
   if (curMode == "normal") {
-    digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW);
-    digitalWrite(PIN_LED_BLUE, LOW); noTone(PIN_BUZZER); ledState = false;
-    if (prev != "normal") { tone(PIN_BUZZER, 988, 70); delay(75); tone(PIN_BUZZER, 1319, 220); }
-  } else { digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH); }
-  updateLcd(); Serial.println("[MARIO-ARCADE] Modo=" + curMode + " 1-UP=" + String(curHealth) + "%");
+    digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_BLUE, LOW); digitalWrite(PIN_LED_RED, LOW); noTone(PIN_BUZZER);
+    if (chg) tone(PIN_BUZZER, 1319, 60);
+  } else if (curMode == "padrao") {
+    digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_BLUE, HIGH); digitalWrite(PIN_LED_RED, LOW); noTone(PIN_BUZZER);
+    if (chg) tone(PIN_BUZZER, 784, 55);
+  } else {
+    digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_BLUE, LOW); digitalWrite(PIN_LED_RED, HIGH);
+    if (chg) tone(PIN_BUZZER, 1480, 120);
+  }
+  updateLcd();
 }
 void checkMqtt() {
   if (espClient.connected()) return;
-  unsigned long now = millis(); if (now - lastRetryMs < 2000) return; lastRetryMs = now;
+  unsigned long now = millis(); if (now - lastRetryMs < 1500) return; lastRetryMs = now;
   if (!espClient.connect(MQTT_BROKER, MQTT_PORT)) return;
   espClient.setNoDelay(true);
   String cid = "wokwi_v_" + String(random(10000, 99999)); uint16_t cLen = cid.length();
   uint8_t hdr[12] = {0x10, (uint8_t)(12 + cLen), 0x00, 0x04, 'M', 'Q', 'T', 'T', 0x04, 0x02, 0x00, 0x1E};
   espClient.write(hdr, 12); espClient.write((uint8_t)(cLen >> 8)); espClient.write((uint8_t)(cLen & 0xFF)); espClient.print(cid);
-  unsigned long t0 = millis(); while (espClient.available() < 4 && (millis() - t0) < 800) yield();
+  unsigned long t0 = millis(); while (espClient.available() < 4 && (millis() - t0) < 600) yield();
   for (int i = 0; i < 4 && espClient.available(); i++) espClient.read();
   mqttSub(TOPIC_CMD);
-  Serial.println("[MQTT] Conectado HiveMQ :1883 (/TEF/vine001)");
 }
 void mqttLoop() {
   if (!espClient.connected()) return;
@@ -148,20 +155,21 @@ void mqttLoop() {
 }
 void handleActuators() {
   if (curMode == "normal") {
-    digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW);
-    if (ledState) { digitalWrite(PIN_LED_BLUE, LOW); noTone(PIN_BUZZER); ledState = false; }
+    digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_BLUE, LOW); digitalWrite(PIN_LED_RED, LOW);
     return;
   }
-  digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH);
-  unsigned long now = millis(), iv = (curMode == "multi") ? 150 : 280;
+  unsigned long now = millis(), iv = (curMode == "padrao") ? 350 : 160;
   if (lastBlinkMs == 0 || (now - lastBlinkMs >= iv)) {
     lastBlinkMs = (now == 0) ? 1 : now; ledState = !ledState;
-    digitalWrite(PIN_LED_BLUE, ledState ? HIGH : LOW); soundStep = (soundStep + 1) % 4;
-    if (!ledState) { noTone(PIN_BUZZER); return; }
-    if (curMode == "temp") tone(PIN_BUZZER, (soundStep % 2 == 0) ? 2400 : 1900, 110);
-    else if (curMode == "hum") tone(PIN_BUZZER, (soundStep % 2 == 0) ? 620 : 780, 150);
-    else if (curMode == "lum") tone(PIN_BUZZER, (soundStep % 2 == 0) ? 1350 : 1650, 120);
-    else if (curMode == "multi") { int f[4] = {880, 1175, 1480, 1760}; tone(PIN_BUZZER, f[soundStep], 100); }
+    if (curMode == "padrao") {
+      digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, LOW);
+      digitalWrite(PIN_LED_BLUE, ledState ? HIGH : LOW); noTone(PIN_BUZZER);
+    } else {
+      digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_BLUE, LOW);
+      digitalWrite(PIN_LED_RED, ledState ? HIGH : LOW);
+      soundStep = (soundStep + 1) % 4;
+      if (ledState) { int f[4] = {880, 1175, 1480, 1760}; tone(PIN_BUZZER, f[soundStep], 110); } else noTone(PIN_BUZZER);
+    }
   }
 }
 void readAndPubSensors() {
@@ -176,22 +184,16 @@ void readAndPubSensors() {
   if (!remoteSync) { validTemp = hwTemp; validHum = hwHum; validLum = hwLum; }
   if (moved || (now - lastPubMs >= 1500)) {
     lastPubMs = now;
-    String rFlag = remoteSync ? "|r|1" : "|r|0";
-    mqttPub(TOPIC_ATTRS, "t|" + String(validTemp, 1) + "|h|" + String(validHum, 1) + "|l|" + String(validLum, 1) + rFlag);
+    mqttPub(TOPIC_ATTRS, "t|" + String(validTemp, 1) + "|h|" + String(validHum, 1) + "|l|" + String(validLum, 1) + (remoteSync ? "|r|1" : "|r|0"));
     updateLcd();
-    Serial.println("[MARIO-ARCADE] T:" + String(validTemp, 1) + "C | U:" + String(validHum, 0) + "% | L:" + String((int)validLum) + "% | 1-UP:" + String(curHealth) + "%");
   }
 }
 void setup() {
   Serial.begin(115200);
-  pinMode(PIN_LED_GREEN, OUTPUT); pinMode(PIN_LED_RED, OUTPUT); pinMode(PIN_LED_BLUE, OUTPUT);
-  pinMode(PIN_BUZZER, OUTPUT); pinMode(PIN_LDR, INPUT);
+  pinMode(PIN_LED_GREEN, OUTPUT); pinMode(PIN_LED_RED, OUTPUT); pinMode(PIN_LED_BLUE, OUTPUT); pinMode(PIN_BUZZER, OUTPUT); pinMode(PIN_LDR, INPUT);
   digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW); digitalWrite(PIN_LED_BLUE, LOW);
   lcdInit(); updateLcd();
-  int mario[] = {659, 659, 0, 659, 0, 523, 659, 0, 784, 0, 392};
-  for (int f : mario) { if (f) tone(PIN_BUZZER, f, 65); delay(85); }
   WiFi.mode(WIFI_STA); WiFi.setSleep(false); WiFi.begin(WIFI_SSID, WIFI_PASS, 6);
-  while (WiFi.status() != WL_CONNECTED) delay(50);
-  Serial.println("[MARIO-ARCADE] Wokwi Conectado! 1-UP Pronto!");
+  while (WiFi.status() != WL_CONNECTED) delay(30);
 }
-void loop() { checkMqtt(); mqttLoop(); handleActuators(); readAndPubSensors(); delay(2); }
+void loop() { checkMqtt(); mqttLoop(); handleActuators(); readAndPubSensors(); delay(1); }

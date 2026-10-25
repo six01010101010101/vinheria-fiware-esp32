@@ -82,12 +82,15 @@ async function fetchLiveStatus() {
   const hNum = parseFloat(tel.humidity_pct || p.defH || 71);
   const lNum = parseFloat(tel.luminosity_pct || p.defL || 9);
   if (window.WokwiLCD) {
-    window.WokwiLCD.renderWokwiTwin({
+    const res = window.WokwiLCD.renderWokwiTwin({
       t: tNum, h: hNum, l: lNum,
       preset: p,
       terroir: { name: "Adega Central Agnello", flag: "🍷", country: "França / Brasil" },
       isWokwi: true, mode: "normal"
     });
+    const stKey = res?.stateKey || "ideal";
+    const cmd = stKey === "critico" ? "multi" : (stKey === "padrao" ? "padrao" : "normal");
+    window.ScadaMQTT?.publishState?.({ t: tNum, h: hNum, l: lNum, cmd, stateKey: stKey, score: res?.score || 100, verdict: "OK", tag: res?.prTag || "TINTO" });
   }
 }
 

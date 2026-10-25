@@ -43,9 +43,13 @@
 
     const stKey = res?.stateKey || "ideal";
     const cmd = stKey === "critico" ? "multi" : (stKey === "padrao" ? "padrao" : "normal");
+    const tag = res?.prTag || "TINTO", sc = res?.score || 99, v = stKey === "critico" ? "CRT" : (stKey === "padrao" ? "PAD" : "OK");
     const bge = document.getElementById("mqtt-cmd-badge");
-    if (bge) bge.innerHTML = `<span class="status-dot"></span>MQTT /cmd: ${stKey.toUpperCase()} (${res?.prTag || "TINTO"})`;
+    if (bge) bge.innerHTML = `<span class="status-dot"></span>WOKWI /cmd: ${stKey.toUpperCase()} (${tag} · ${sc}%)`;
     document.querySelectorAll(".sc-btn").forEach(b => b.classList.toggle("active", b.dataset.sc === cmd));
+
+    // Envio imediato via WebSocket para o Wokwi ESP32 em qualquer mudança de estado
+    window.ScadaMQTT?.publishState?.({ t, h, l, cmd, stateKey: stKey, score: sc, verdict: v, tag });
 
     if (userTriggered) {
       window.arcadeAudio?.ensureContext?.();
@@ -56,10 +60,7 @@
       else if (soundType && soundType.startsWith("sc:")) window.ArcadeAudio?.playScenario?.(soundType.slice(3));
       else if (stKey === "ideal") window.ArcadeAudio?.playPowerup?.();
       else window.ArcadeAudio?.playScenario?.("padrao");
-      const tag = res?.prTag || "TINTO", sc = res?.score || 99, v = stKey === "critico" ? "CRT" : (stKey === "padrao" ? "PAD" : "OK");
-      window.ScadaMQTT?.publishState?.({ t, h, l, cmd, score: sc, verdict: v, tag });
       fetch("/api/v1/command", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ command: cmd, preset: tag, health: sc, verdict: v, temperature: t, humidity: h, luminosity: l }) }).catch(() => {});
-      fetch("/api/v1/telemetry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ temperature: t, humidity: h, luminosity: l, device_id: "vine001", alert_mode: cmd }) }).catch(() => {});
     }
   }
 
@@ -171,6 +172,7 @@
     updateHardwarePlaque(sim.t, sim.h, sim.l, false);
     window.ScadaCharts?.renderAllCharts?.(sim.t, sim.h, sim.l, PRESETS[curPr], getActiveLot(), true);
     window.ScadaMQTT?.init?.((d) => {
+      if (curArea !== "wokwi_esp32") return;
       if (d.t !== undefined) sim.t = d.t; if (d.h !== undefined) sim.h = d.h; if (d.l !== undefined) sim.l = d.l;
       updateHardwarePlaque(sim.t, sim.h, sim.l, false);
       window.ScadaCharts?.renderAllCharts?.(sim.t, sim.h, sim.l, PRESETS[curPr], getActiveLot(), false);
