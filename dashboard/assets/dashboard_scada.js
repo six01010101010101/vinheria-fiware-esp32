@@ -94,6 +94,17 @@
     renderRealVineyards(); renderCellarLots(); syncCloudConfig();
   }
 
+  function onWineSearchInput(q) {
+    const s = (q || "").trim().toLowerCase();
+    if (!s) return;
+    const lotMatch = (window.CANONICAL_LOTS || []).find(l => (l.winery + " " + l.wine + " " + l.code + " " + l.country).toLowerCase().includes(s));
+    if (s.includes("branc") || s.includes("chard") || s.includes("sauv")) onWinePresetChange("branco");
+    else if (s.includes("ros") || s.includes("prov")) onWinePresetChange("rose");
+    else if (s.includes("brut") || s.includes("espum") || s.includes("champ")) onWinePresetChange("espumante");
+    else if (s.includes("tint") || s.includes("caber") || s.includes("merl") || s.includes("malb")) onWinePresetChange("tinto");
+    else if (lotMatch) onLotSelect(lotMatch.style, lotMatch.terroirId, lotMatch.code);
+  }
+
   function onLotSelect(styleKey, terroirKey, lotCode) {
     if (lotCode) window.curLotCode = lotCode;
     const lot = getActiveLot();
@@ -132,14 +143,14 @@
     p.lMin = getVal("trigger-lum-min", p.lMin); p.lMax = getVal("trigger-lum-max", p.lMax);
     updateHardwarePlaque(sim.t, sim.h, sim.l, true);
     window.ScadaCharts?.renderAllCharts?.(sim.t, sim.h, sim.l, p, getActiveLot(), false);
-    renderCellarLots(); syncCloudConfig();
+    renderCellarLots(); renderRealVineyards(); syncCloudConfig();
   }
 
   function applyScenario(sc) {
     sim.mode = sc; const d = getScenarioValues(sc, curPr); sim.t = d[0]; sim.h = d[1]; sim.l = d[2];
     updateHardwarePlaque(sim.t, sim.h, sim.l, true);
     window.ScadaCharts?.renderAllCharts?.(sim.t, sim.h, sim.l, PRESETS[curPr], getActiveLot(), true);
-    renderCellarLots();
+    renderCellarLots(); renderRealVineyards();
   }
 
   function renderRealVineyards() { window.renderRealVineyards?.(curArea, onAreaTerroirChange); }
@@ -152,9 +163,10 @@
   function fetchLiveTicker() {
     sim.t = +(sim.t + (Math.random() - 0.5) * 0.08).toFixed(1);
     sim.h = Math.max(20, Math.min(99, +(sim.h + (Math.random() - 0.5) * 0.3).toFixed(0)));
+    (window.CANONICAL_LOTS || []).forEach(l => { l.liveT = +(l.liveT + (Math.random() - 0.5) * 0.05).toFixed(1); });
     updateHardwarePlaque(sim.t, sim.h, sim.l, false);
     window.ScadaCharts?.renderAllCharts?.(sim.t, sim.h, sim.l, PRESETS[curPr], getActiveLot(), false);
-    renderCellarLots();
+    renderCellarLots(); renderRealVineyards();
   }
 
   function bootScada() {
@@ -167,6 +179,7 @@
       window.ScadaCharts?.renderAllCharts?.(sim.t, sim.h, sim.l, PRESETS[curPr], getActiveLot(), false);
     });
     window.startSatelliteLiveLoop?.(() => curArea, onAreaTerroirChange);
+    document.getElementById("input-wine-search")?.addEventListener("input", e => onWineSearchInput(e.target.value));
     document.getElementById("dropdown-wine-preset")?.addEventListener("change", e => onWinePresetChange(e.target.value));
     document.getElementById("dropdown-area-terroir")?.addEventListener("change", e => onAreaTerroirChange(e.target.value));
     ["temp-min", "temp-max", "hum-min", "hum-max", "lum-min", "lum-max"].forEach(k => {
@@ -175,7 +188,7 @@
     document.querySelectorAll(".wine-pill-btn").forEach(b => b.addEventListener("click", () => onWinePresetChange(b.dataset.wine)));
     document.querySelectorAll(".sc-btn").forEach(b => b.addEventListener("click", () => applyScenario(b.dataset.sc)));
     window.addEventListener("themeChanged", () => window.ScadaCharts?.renderAllCharts?.(sim.t, sim.h, sim.l, PRESETS[curPr], getActiveLot(), false));
-    setInterval(fetchLiveTicker, 2000);
+    setInterval(fetchLiveTicker, 1800);
   }
 
   window.onLotSelect = onLotSelect; window.onWinePresetChange = onWinePresetChange; window.onAreaTerroirChange = onAreaTerroirChange;
