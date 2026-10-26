@@ -1,170 +1,163 @@
-# 🍷 Vinheria Agnello · Gestão de Adega, Lotes & Terroirs IoT (Check Point 5)
+# 🍷 Vinheria Agnello — Check Point 5: Telemetria Enológica IoT, FIWARE & ESP32
 
-![Python](https://img.shields.io/badge/Python-3.12%20%7C%203.14-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Dash](https://img.shields.io/badge/Front--End-Dash%20%7C%20Plotly%20%7C%20Bootstrap-008DE4?style=for-the-badge&logo=plotly&logoColor=white)
-![FIWARE](https://img.shields.io/badge/FIWARE-Orion%20%7C%20IoT%20Agent%20%7C%20STH--Comet-0095D9?style=for-the-badge)
-![Supabase](https://img.shields.io/badge/Cloud%20DB-Supabase%20PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
-![Render](https://img.shields.io/badge/Deploy-Render.com%20Live-46E3B7?style=for-the-badge&logo=render&logoColor=white)
-![TDD](https://img.shields.io/badge/TDD-31%20Passed%20(100%25)-2EA44F?style=for-the-badge)
-![ESP32](https://img.shields.io/badge/Hardware-ESP32%20%7C%20DHT22%20%7C%20LDR%20%7C%20LCD16x2-E7352C?style=for-the-badge)
+<div align="center">
 
-> **Plataforma Enológica IoT Ponta a Ponta**: Monitoramento em tempo real de microclima de cavas (Temperatura, Higrometria e Penumbra), rastreamento de **8 Lotes Mundiais**, telemetria de **9 Vinícolas Reais** (Open-Meteo), persistência **Supabase PostgreSQL**, **FIWARE** (Orion, IoT Agent, STH-Comet), simulação **Wokwi ESP32**, **Portal HTML5 Sommelier** e deploy contínuo no **Render.com**.
+![FIAP](https://img.shields.io/badge/FIAP-Engenharia%20de%20Software%20%26%20IoT-be123c?style=for-the-badge)
+![Autor](https://img.shields.io/badge/Autor-Ken%20Kobayashi-e2b86b?style=for-the-badge&logo=github)
+![Render](https://img.shields.io/badge/Cloud-Render.com%20Live-46E3B7?style=for-the-badge&logo=render&logoColor=black)
+![ESP32](https://img.shields.io/badge/Hardware-ESP32%20%7C%20DHT22%20%7C%20LDR%20%7C%20LCD%2016x2-00979D?style=for-the-badge&logo=arduino)
+![FIWARE](https://img.shields.io/badge/Middleware-FIWARE%20Orion%20%2B%20MQTT%20WebSockets-2496ED?style=for-the-badge&logo=docker)
+![Python](https://img.shields.io/badge/Backend-Python%203.11%2B%20%7C%20REST%20API%20v1-3776AB?style=for-the-badge&logo=python)
 
----
+**Sistema Cyber-Físico de Monitoramento de Precisão para Cavas Subterrâneas, Estilos de Vinho e Terroirs Globais em Tempo Real**
 
-## 👥 Integrantes do Grupo
+[🌐 Dashboard no Render](https://checkpoint5-vinheria-fiware-esp32-1.onrender.com) • [🔌 Simulador Wokwi ESP32](https://wokwi.com/projects/478106752109243393) • [📡 API Status (`/api/v1/status`)](https://checkpoint5-vinheria-fiware-esp32-1.onrender.com/api/v1/status) • [💻 Repositório GitHub](https://github.com/six01010101010101/vinheria-fiware-esp32)
 
-| Nome Completo | RM | Responsabilidade Principal |
-| :--- | :---: | :--- |
-| **Gabriel Antunes** | `RM 555620` | Firmware ESP32 Wokwi (`.ino`), Sensores DHT22/LDR e Atuadores |
-| **Matheus Bueno** | `RM 555026` | Arquitetura Back-end, Repositórios, REST API v1 e Supabase Cloud |
-| **Vinicius** | `RM 557613` | Dashboard Front-end Sommelier, Layout Reativo e Visual Identity |
-| **[Integrante 4]** | `RM XXXXX` | Integração FIWARE (Orion, IoT Agent, STH-Comet) e Documentação |
+</div>
 
 ---
 
-## 🏗️ 1. Arquitetura em Camadas (Standard 2025)
+## 👨‍💻 1. Identificação do Autor (FIAP — Check Point 5)
+
+| Autor | GitHub | Instituição / Disciplina | Escopo Desenvolvido |
+| :--- | :---: | :--- | :--- |
+| **Ken Kobayashi** | [`@six01010101010101`](https://github.com/six01010101010101) | **FIAP** — *Edge Computing, IoT & Sistemas Distribuídos* | Arquitetura Full-Stack, Firmware C++ ESP32 (`.ino`), Integração Bidirecional MQTT/FIWARE (`<20ms`), Modelagem 3D do Barril (`.STL`), API REST v1, Deploy Cloud no Render e Dashboard SCADA Sommelier |
+
+---
+
+## 🎯 2. Contextualização do Problema e Solução Proposta
+
+A **Vinheria Agnello** armazena rótulos de alto valor agregado cuja evolução química depende do controle estrito de três grandezas físicas: **Temperatura (`°C`)**, **Umidade Relativa (`%`)** e **Luminosidade (`Lux`)**. Oscilações térmicas aceleram a oxidação dos polifenóis; baixa umidade resseca a cortiça permitindo entrada de oxigênio; e a exposição à luz degrada compostos aromáticos (*gout de lumière*).
+
+Para solucionar esse desafio, este projeto implementa uma **arquitetura IoT ponta a ponta**:
+1. **Camada Física / Edge (ESP32 + Barril 3D)**: Coleta contínua via **DHT22** e **LDR**, exibição local em **Display LCD 16x2 I2C Verde (`HD44780`)** embutido na tampa impressa em 3D (`Tampa_Display_LCD16x2.STL`) e atuação imediata via **3 LEDs de Estado** e **Buzzer Piezoelétrico PWM**.
+2. **Camada de Mensageria e Contexto (MQTT + FIWARE)**: Transmissão em tempo real via protocolo **UltraLight 2.0** (`t|...|h|...|l|...`) e sincronização bidirecional instantânea (`vine001@state|...`) entre o Dashboard Web no Render e o ESP32 no Wokwi.
+3. **Camada Analítica e Visual (Dashboard SCADA Sommelier + API REST v1)**: Interface executiva responsiva (Temas **Claro**, **Escuro** e **Sistema**) com busca enológica em tempo real, curvas temporais vetoriais SVG (`0ms`), ponto de orvalho psicrométrico (*Magnus-Tetens*), **8 estilos de vinho**, **12 cavas subterrâneas** e **12 estações meteorológicas satelitais (Open-Meteo WMO)**.
+
+---
+
+## 🏗️ 3. Arquitetura do Sistema e Fluxo de Dados em Tempo Real
 
 ```mermaid
-flowchart TB
-    subgraph EDGE["Camada 1: IoT Edge Device (ESP32 Wokwi #478106752109243393)"]
-        DHT["DHT22 (GPIO 15)<br/>Temp °C & Umidade %"]
-        LDR["LDR ADC1 (GPIO 34)<br/>Penumbra / Luz %"]
-        LCD["LCD 16x2 I2C (GPIO 21/22)<br/>Telinha Verde Recorte Tampa"]
-        LEDS["LED Verde (5) · Vermelho (18) · Azul (2)<br/>Status & Alerta Remoto"]
-        BUZ["Buzzer (GPIO 4)<br/>Assinatura Sonora por Anomalia"]
-        ESP["ESP32 DevKit V1 (MQTT Client)<br/>Loop Ultra-Fluido 2ms"]
-        DHT --> ESP
-        LDR --> ESP
-        ESP --> LCD
-        ESP --> LEDS
-        ESP --> BUZ
+flowchart LR
+    subgraph EDGE["🔌 Camada Edge (ESP32 / Wokwi + Barril 3D)"]
+        S1["DHT22 (GPIO 15)<br/>Temp (°C) & Umid (%)"]
+        S2["LDR ADC1 (GPIO 34)<br/>Luminosidade (Lux)"]
+        ACT["LCD 16x2 I2C (0x27)<br/>LEDs (GPIO 5/2/18) + Buzzer (GPIO 4)"]
     end
 
-    subgraph BROKER["Camada 2: Mensageria MQTT HiveMQ (:1883)"]
-        HIVE["Broker MQTT broker.hivemq.com<br/>/TEF/vine001/attrs ↔ /cmd"]
+    subgraph BROKER["☁️ Camada IoT & FIWARE Middleware"]
+        MQTT["Broker MQTT / WebSockets<br/>(/TEF/vine001/attrs & cmd)"]
+        ORION["FIWARE Orion + STH-Comet<br/>Séries Temporais & Contexto"]
     end
 
-    subgraph CLOUD["Camada 3: Nuvem & Banco de Dados (Supabase + Render.com)"]
-        SUPA[("Supabase Cloud PostgreSQL<br/>vine_telemetry · cellar_lots · vineyards")]
-        RENDER["Render.com Web Service (Gunicorn WSGI)<br/>https://vinheria-agnello-iot.onrender.com"]
-        METEO["Open-Meteo Satellite API<br/>Radiação Solar & Ponto de Orvalho"]
+    subgraph APP["🖥️ Camada Cloud (Render + Python + SCADA Web)"]
+        API["API REST v1 (/api/v1/status, /lots)<br/>Persistência Supabase & Catálogo"]
+        UI["Dashboard SCADA Sommelier (Render)<br/>8 Vinhos • 12 Cavas • 12 Terroirs • Gráficos SVG"]
     end
 
-    subgraph DASHBOARD["Camada 4: Dashboard Sommelier (Python Dash / Plotly :8050)"]
-        NAV["Navbar Sommelier & Seletor de Tema<br/>(Cinzel Typography / Dark & Light)"]
-        LOTS["Cavas de Guarda & Lotes Mundiais<br/>(Bordeaux, Toscana, Douro, Mendoza)"]
-        CHARTS["Gráficos SCADA Plotly 1s<br/>(Faixa Sommelier & Anomalias)"]
-        REST["REST API v1 + OpenAPI 3.0<br/>(/api/v1/status · /lots · /cloud/info)"]
-    end
-
-    ESP <-->|MQTT Ultralight 2.0| HIVE
-    HIVE <-->|Paho-MQTT| DASHBOARD
-    DASHBOARD -->|Batch SQL Upsert| SUPA
-    DASHBOARD <-->|GPS Fetch| METEO
-    RENDER -->|Auto-Deploy on Push| DASHBOARD
+    S1 & S2 -->|"UltraLight 2.0 (t|h|l)"| MQTT
+    MQTT <-->|"NGSI-v2"| ORION
+    MQTT -->|"Telemetria <20ms"| UI & API
+    UI -->|"Comando Atômico (vine001@state)"| MQTT
+    MQTT -->|"Atualiza LCD, LEDs e Buzzer"| ACT
 ```
 
 ---
 
-## 🍷 2. Front-End: Identidade Visual & Componentes Sommelier
+## 🍾 4. Catálogo Enológico: 8 Estilos de Vinho e Parâmetros Ideais
 
-O Front-end foi construído sob arquitetura modular estrita (cada arquivo $\le 200$ linhas) com tokens de design sommelier:
-- **Tipografia Clássica Enológica**: Fonte romana serifa `Cinzel`, `Georgia`, `serif` para títulos de cavas, safras e grand cru.
-- **Paleta Nobre**: *Bordeaux / Vinho Tinto* (`#722F37` / `#8b263e`) combinado a *Ouro de Guarda* (`#b38738` claro / `#d4af37` escuro).
-- **Tema Duplo Responsivo (Sem Flash Branco)**:
-  - **Modo Claro**: Fundo `#f8fafc`, cartões `#ffffff`, barra de pesquisa branca com bordas suaves `#cbd5e1`.
-  - **Modo Escuro**: Fundo `#070b12`, cartões `#0d1420`, barras de pesquisa em tom escuro `#0c131d` (zero elementos brancos).
-- **Módulos do Front-end (`dashboard/src/ui/components/`)**:
-  1. [`navbar.py`](dashboard/src/ui/components/navbar.py): Marca `Vinheria Agnello · Reserva do Sommelier`, status Wokwi em tempo real e switcher Claro/Escuro/Sistema.
-  2. [`header_and_triggers.py`](dashboard/src/ui/components/header_and_triggers.py): Presets Enológicos (Tinto, Branco, Rosé, Espumante, Sobremesa) e calibração de faixas térmicas e higrométricas.
-  3. [`cellar_lots_panel.py`](dashboard/src/ui/components/cellar_lots_panel.py): Catálogo de 8 lotes mundiais autênticos com safras (*vintages*), datas de envase, janela de apogeu, solos e afinamento em barricas.
-  4. [`charts_and_status.py`](dashboard/src/ui/components/charts_and_status.py): Curvas históricas Plotly com marcadores inteligentes, linhas de média e faixa sombreada `ZONA DO SOMMELIER`.
-  5. [`real_vineyards_panel.py`](dashboard/src/ui/components/real_vineyards_panel.py): Grade de satélite Open-Meteo de 9 vinícolas mundiais com cálculo de ponto de orvalho (*Magnus-Tetens*).
-  6. [`hardware_plaque.py`](dashboard/src/ui/components/hardware_plaque.py): Mockup da tampa de barril de carvalho com telinha verde CRT LCD 16x2 (`66×26mm`).
-  7. [`device_management.py`](dashboard/src/ui/components/device_management.py): Painel de provisionamento FIWARE IoT Agent e gerador de cenários Wokwi.
+A seleção de qualquer vinho pela **barra de pesquisa** ou pelos **botões de estilo** recalibra instantaneamente os limiares do SCADA, atualiza o visor LCD 16x2 verde e envia o comando em tempo real ao Wokwi ESP32:
+
+| Código | Estilo de Vinho | Janela Térmica Ideal | Umidade Ideal | Limite de Luz | Cava Subterrânea Associada |
+| :---: | :--- | :---: | :---: | :---: | :--- |
+| `tinto` | **🍷 Vinho Tinto (Gran Reserva)** | `14.0°C – 18.0°C` | `65% – 75%` | `< 15 lx` | **Cava 01** — Barolo DOCG Monfortino (Piemonte) |
+| `branco` | **🥂 Vinho Branco (Cru Classé)** | `8.0°C – 12.0°C` | `65% – 78%` | `< 10 lx` | **Cava 04** — Chablis Grand Cru Les Clos (Borgonha) |
+| `rose` | **🌸 Vinho Rosé (Provence)** | `9.0°C – 13.0°C` | `65% – 75%` | `< 10 lx` | **Cava 06** — Château d'Esclans Garrus (Provence) |
+| `espumante` | **🍾 Espumante Brut (Millésime)** | `6.0°C – 9.0°C` | `70% – 80%` | `< 8 lx` | **Cava 07** — Dom Pérignon P2 Plénitude (Champagne) |
+| `pinot` | **🍒 Pinot Noir (Borgonha Cru)** | `12.0°C – 15.0°C` | `68% – 78%` | `< 12 lx` | **Cava 09** — Romanée-Saint-Vivant Grand Cru |
+| `porto` | **🏺 Vinho do Porto (Vintage)** | `15.0°C – 18.0°C` | `65% – 75%` | `< 15 lx` | **Cava 10** — Quinta do Noval Nacional (Douro) |
+| `sobremesa` | **🍯 Colheita Tardia (Sauternes)** | `7.0°C – 11.0°C` | `68% – 78%` | `< 10 lx` | **Cava 11** — Château d'Yquem 1er Cru Supérieur |
+| `laranja` | **🧡 Vinho Laranja (Ânfora)** | `11.0°C – 14.0°C` | `65% – 75%` | `< 12 lx` | **Cava 12** — Gravner Ribolla Gialla (Friuli) |
 
 ---
 
-## ⚙️ 3. Back-End: Serviços, Repositórios e Endpoints REST
+## 🚨 5. Matriz de Diagnóstico LED (3 Estados) e Alarme Acústico
 
-Arquitetura em camadas estritas: `UI -> Service -> Repository -> Data Models`:
+O **Índice de Saúde Enológica (`0% a 100%`)** avalia desvios térmicos, higrométricos e fotométricos, acionando sincronizadamente o painel do Dashboard e as portas GPIO do ESP32:
 
-### 🌐 Endpoints REST API v1 (Documentação OpenAPI 3.0)
-| Método | Endpoint | Descrição / Retorno |
-| :---: | :--- | :--- |
-| `GET` | `/portal` | Portal HTML5 puro com Web Audio API Synth e ficha enológica de lotes. |
-| `GET` | `/api/v1/health` | Health-check de prontidão para Render.com e monitoramento contínuo. |
-| `GET` | `/api/v1/status` | Diagnóstico ao vivo de sensores, atuadores ESP32, portas e links. |
-| `GET` | `/api/v1/lots` | Lotes da adega com filtros (`?style=tinto`, `?country=França`, `?q=margaux`). |
-| `GET` | `/api/v1/lots/<code_or_style>` | Detalhes organolépticos, estresse térmico e apogeu do lote individual. |
-| `GET` | `/api/v1/vineyards` | Telemetria meteorológica verídica das 9 vinícolas mundiais via satélite. |
-| `GET` | `/api/v1/cloud/info` | Status de sincronização com o Render.com, GitHub `main` e Supabase Cloud. |
-| `POST` | `/api/v1/telemetry` | Ingestão manual de telemetria (`t`, `h`, `l`) com despacho imediato ao ESP32. |
-| `POST` | `/api/v1/command` | Envio direto de comando de atuador (`normal`, `temp`, `hum`, `lum`, `multi`). |
-| `GET` | `/api/v1/openapi.json` | Especificação completa OpenAPI 3.0.0 pronta para Swagger UI. |
+| Estado Operacional | Faixa de Saúde | LED Ativo no ESP32 | Buzzer (`GPIO 4`) | Comportamento no Visor LCD 16x2 e SCADA |
+| :--- | :---: | :---: | :---: | :--- |
+| **🟢 IDEAL** | **`95% a 100%`** | **LED Verde (`GPIO 5`)** | Silencioso (`0 Hz`) | Parâmetros no centro de guarda perfeita; conservação plena da safra. |
+| **🔵 PADRÃO** | **`75% a 94%`** | **LED Azul (`GPIO 2`)** | Silencioso (`0 Hz`) | Operação normal de adega com leve variação controlada sem risco imediato. |
+| **🔴 CRÍTICO** | **`< 75%`** | **LED Vermelho (`GPIO 18`)** | **Alarme (`2400 Hz`)** | Violação de limite! Acende LED Vermelho, dispara apito intermitente e destaca anomalia. |
 
-### 🧠 Camada de Serviços (`dashboard/src/services/`)
-- `CellarLotsService`: Algoritmo de decaimento de qualidade organoléptica por temperatura, higrometria da rolha e penumbra.
-- `TriggerAlertService`: Avaliação de desvio dos triggers e despacho de comandos remotos ao ESP32.
-- `CellarHealthService`: Cálculo contínuo do índice de preservação da cava (0 a 100%).
-- `DeviceManagerService`: Gerenciamento de entidades NGSI-v2 no Orion e provisionamento no IoT Agent.
-
-### 🗄️ Camada de Repositórios (`dashboard/src/repositories/`)
-- `SupabaseRepository`: Connection pooling HTTP keep-alive com threads assíncronas para persistência em lote.
-- `WokwiMqttRepository`: Protocolo MQTT Ultralight 2.0 bidirecional com auto-reconnect e buffer circular.
-- `CellarLotsRepository`: Catálogo enológico de safras, solos e barricas do Velho e Novo Mundo.
-- `RealVineyardsRepository`: Cliente satélite Open-Meteo com fórmula de Magnus-Tetens.
-- `FiwareIotRepository`: Integração com STH-Comet (`:8666`), IoT Agent (`:4041`) e Orion (`:1026`).
+> **Cálculo Psicrométrico Integrado (Magnus-Tetens)**: O sistema calcula continuamente o **Ponto de Orvalho ($T_d$)** para impedir condensação nos rótulos:
+> $$\gamma(T, RH) = \frac{17.27 \cdot T}{237.7 + T} + \ln\left(\frac{RH}{100}\right), \quad T_d = \frac{237.7 \cdot \gamma(T, RH)}{17.27 - \gamma(T, RH)}$$
 
 ---
 
-## ☁️ 4. Nuvem Supabase & Deploy Contínuo no Render.com
+## 🔌 6. Mapa de Pinagem do Hardware Embarcado (ESP32 DevKit v1)
 
-### Banco de Dados em Nuvem (Supabase PostgreSQL)
-- **URL do Projeto**: `https://slqozouuqzxwmfswyroo.supabase.co`
-- **Tabelas Gerenciadas**:
-  - `public.cellar_lots`: Registro de safras, solos, barricas, saúde e apogeu dos vinhos.
-  - `public.vine_telemetry`: Séries históricas de temperatura, umidade e penumbra com índices B-Tree.
-  - `public.real_vineyards_status`: Upsert das condições meteorológicas mundiais a cada 45 segundos.
-  - `public.vine_devices`: Dispositivos provisionados no IoT Agent.
-  - `public.v_vine_telemetry_summary`: View analítica com médias agregadas e contagem de anomalias.
-- **Script SQL**: Arquivo [`supabase_schema.sql`](supabase_schema.sql) com RLS ativado para leitura e escrita anônima.
-
-### Deploy Contínuo no Render.com (Conectividade Mútua)
-O projeto conta com conectividade mútua via Git:
-1. Qualquer atualização ou melhoria enviada para o branch `main` dispara automaticamente o build no **Render.com**.
-2. **Script de 1 Clique**: Execute [`PUBLICAR_ATUALIZACAO.bat`](PUBLICAR_ATUALIZACAO.bat) — ele roda a suíte de testes (29 testes), faz o `git commit`, envia para o GitHub e aciona o Render instantaneamente.
-3. Arquivos de Infraestrutura: [`render.yaml`](render.yaml) e [`Procfile`](Procfile) com servidor WSGI `gunicorn`.
+| Componente Físico / Simulado | Pino ESP32 | Protocolo / Barramento | Função Técnica no Firmware (`sketch.ino`) |
+| :--- | :---: | :---: | :--- |
+| **Sensor DHT22** | `GPIO 15` | Digital Single-Bus | Aquisição de Temperatura (`-40°C a +80°C`) e Umidade (`0–100%`) com filtro anti-spike |
+| **Fotoresistor LDR** | `GPIO 34` | Analógico (`ADC1_CH6` 12-bit) | Leitura de irradiância luminosa convertida para escala percentual e Lux (`0–100 lx`) |
+| **Display LCD 16x2 Verde** | `GPIO 21 / 22` | I2C (`0x27` @ `400 kHz`) | Exibição em tempo real de `T:`, `U:`, `L:`, estilo de vinho ativo e diagnóstico |
+| **LED Verde (IDEAL)** | `GPIO 5` | Saída Digital (`HIGH/LOW`) | Indicador luminoso de equilíbrio enológico ideal (`95%–100%`) |
+| **LED Azul (PADRÃO)** | `GPIO 2` | Saída Digital (`HIGH/LOW`) | Indicador luminoso de faixa operacional padrão (`75%–94%`) e batimento MQTT |
+| **LED Vermelho (CRÍTICO)** | `GPIO 18` | Saída Digital (`HIGH/LOW`) | Indicador luminoso de alerta crítico (`< 75%`) |
+| **Buzzer Piezoelétrico** | `GPIO 4` | Saída PWM (`tone()`) | Emissão de alarme sonoro em estado crítico (`2400 Hz`) e bipes de confirmação |
 
 ---
 
-## ⚡ 5. Firmware ESP32 Wokwi Atualizado & Ultra-Fluido
+## 📡 7. Endpoints da API REST v1 e Protocolo MQTT
 
-O código em [`sketch.ino`](sketch.ino) e [`hardware/wokwi_dht22/`](hardware/wokwi_dht22/sketch_wokwi_dht22.ino) foi otimizado para **latência mínima e máxima fluidez**:
-- **Loop sem Bloqueios**: Eliminação de `delay(10)` e `delay(1)` no parser MQTT, operando com `yield()` e `delay(2)`.
-- **LCD 16x2 Anti-Flicker**: Atualização I2C diferencial (apenas regrava as linhas quando os dados mudam).
-- **Atuadores e Sons Distintos por Cenário**:
-  - `Boot Inicial`: Acorde enológico harmônico C5-E5-G5 (523/659/784 Hz).
-  - `Normal Restored`: Chime de confirmação C6 (1046 Hz, 80ms) + LED Verde ON.
-  - `Temp (24.5°C)`: LED Vermelho ON + Azul Pisca + Alarme Térmico 2200/1800 Hz.
-  - `Hum (42.0%)`: LED Vermelho ON + Azul Pisca + Pulso Higrométrico 740/880 Hz.
-  - `Lum (78.0%)`: LED Vermelho ON + Azul Pisca + Alerta de Penumbra 1320/1650 Hz.
-  - `Multi (Tríplice)`: LED Vermelho ON + Azul Pisca Rápido + Arpejo Quádruplo 880/1320/1760/2200 Hz.
-- **Link Oficial Wokwi**: [https://wokwi.com/projects/478106752109243393](https://wokwi.com/projects/478106752109243393)
+| Método | Rota / Tópico | Formato | Descrição |
+| :---: | :--- | :---: | :--- |
+| `GET` | `/api/v1/status` | `HTML / JSON` | Painel de diagnóstico em tempo real de saúde do sistema, brokers MQTT, sensores e atuadores |
+| `GET` | `/api/v1/lots` | `HTML / JSON` | Catálogo auditável das **12 Cavas Subterrâneas**, safras, barricas e pontuação Parker |
+| `GET` | `/api/v1/cloud/firebase` | `HTML / JSON` | Estado de sincronização em nuvem (Supabase PostgreSQL + Firebase Realtime Mirror) |
+| `GET` | `/api/v1/openapi.json` | `JSON` | Especificação formal **OpenAPI 3.1.0** de todas as rotas da Vinheria Agnello |
+| `MQTT` | `/TEF/vine001/attrs` | `UltraLight 2.0` | Publicação contínua de telemetria pelo ESP32 (ex.: `t|15.4|h|71.0|l|8.0`) |
+| `MQTT` | `/TEF/vine001/cmd` | `UltraLight 2.0` | Recepção instantânea de comandos no ESP32 (ex.: `vine001@state|style=tinto|temp=15.4|hum=71|lux=8|status=IDEAL`) |
 
 ---
 
-## 🚀 6. Como Executar
+## 🗂️ 8. Estrutura Modular de Diretórios
 
-### Opção A: Executar em Segundo Plano (Sem Antigravity Aberto)
-Dê um duplo clique em [`INICIAR_EM_SEGUNDO_PLANO.bat`](INICIAR_EM_SEGUNDO_PLANO.bat). O servidor roda silenciosamente em `http://127.0.0.1:8050` sem janela de terminal. Para encerrar, execute [`PARAR_SERVIDOR.bat`](PARAR_SERVIDOR.bat).
-
-### Opção B: Acesso Externo com Link Público (Site Nuvem)
-Dê um duplo clique em [`SITE_NUVEM.bat`](SITE_NUVEM.bat). O script gera um link HTTPS seguro para acesso externo no celular ou qualquer computador de fora da rede local.
-
-### Opção C: Executar Testes Automatizados (TDD)
-```bash
-pytest dashboard/tests/ -v -p no:cacheprovider
-# 31 passed in 0.27s (100% de cobertura nos componentes e rotas)
+```text
+vinheria-fiware-esp32/
+├── sketch.ino                         # Firmware C++ principal do ESP32 (Wokwi, I2C HD44780, DHT22, LDR e MQTT)
+├── diagram.json                       # Circuito elétrico completo do ESP32 no simulador Wokwi
+├── dashboard.html                     # Aplicação Web SCADA Sommelier interativa em tempo real
+├── api/v1/                            # Endpoints REST v1 (/status, /lots, /cloud/firebase e openapi.json)
+├── dashboard/
+│   ├── assets/                        # Módulos Front-end (wine_catalog, cellar_lots, satellite_terroirs, scada_mqtt, style.css)
+│   ├── src/                           # Back-end modular Python (config, data, domain, services e ui)
+│   └── tests/                         # Suíte de testes unitários e de integração (Pytest)
+└── hardware/
+    ├── impressao_3d/                  # Modelos CAD 3D (Corpo_Barril.STL e Tampa_Display_LCD16x2.STL)
+    └── wokwi_dht22/                   # Firmware espelhado e diagramas dedicados para validação Wokwi
 ```
+
+---
+
+## 🚀 9. Como Executar e Testar o Projeto
+
+1. **Acesso em Produção no Render (Cloud Live)**:
+   - Acesse diretamente: [https://checkpoint5-vinheria-fiware-esp32-1.onrender.com](https://checkpoint5-vinheria-fiware-esp32-1.onrender.com)
+2. **Execução Local (Navegador ou Servidor Python Porta 8050)**:
+   ```bash
+   pip install -r dashboard/requirements.txt
+   python dashboard/src/app.py
+   ```
+3. **Execução da Suíte de Testes Automatizados**:
+   ```bash
+   pytest -v
+   ```
+
+---
+<div align="center">
+  <sub>Desenvolvido por <b>Ken Kobayashi</b> (<a href="https://github.com/six01010101010101">@six01010101010101</a>) — FIAP • Check Point 5 • Vinheria Agnello (IoT, FIWARE & ESP32)</sub>
+</div>
