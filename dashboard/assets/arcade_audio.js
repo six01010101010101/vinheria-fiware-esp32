@@ -146,12 +146,12 @@ class ArcadeAudioEngine {
   playCritical(score = 50) {
     this.ensureContext();
     const isVery = score < 40, isMild = score >= 60;
-    const fBase = isMild ? 580 : (isVery ? 880 : 720), fStep = isMild ? 80 : (isVery ? 160 : 120);
-    const dur = isMild ? 0.12 : (isVery ? 0.06 : 0.085);
-    for (let i = 0; i < 4; i++) {
-      const f = fBase + (i * fStep);
-      this.playTone(f, dur, "sawtooth", f * 1.04, i * dur, 0.95);
-    }
+    const fMin = isMild ? 550 : (isVery ? 820 : 680);
+    const fMax = isMild ? 850 : (isVery ? 1350 : 1080);
+    const dur = isMild ? 1.0 : (isVery ? 0.6 : 0.8);
+    // Sirene Continua: sobe suavemente e desce sem pausas
+    this.playTone(fMin, dur * 0.5, "sawtooth", fMax, 0, 0.9);
+    this.playTone(fMax, dur * 0.5, "sawtooth", fMin, dur * 0.5, 0.9);
   }
 
   playClick() {

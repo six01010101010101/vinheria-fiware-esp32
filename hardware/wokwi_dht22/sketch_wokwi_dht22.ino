@@ -144,14 +144,19 @@ void handleActuators() {
   // No estagio critico: LED Verde apagado e LED Vermelho aceso fixo
   digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH);
 
-  // Frequencia modulada pela intensidade critica (Hertz)
-  int alertFreq = (curHealth >= 60) ? 600 : ((curHealth >= 40) ? 800 : 1000);
+  // Parametros da sirene continua modulados pela intensidade critica (Hertz)
+  int fMin = (curHealth >= 60) ? 550 : ((curHealth >= 40) ? 680 : 820);
+  int fMax = (curHealth >= 60) ? 850 : ((curHealth >= 40) ? 1080 : 1350);
+  unsigned long cycleMs = (curHealth >= 60) ? 1200 : ((curHealth >= 40) ? 900 : 650);
 
-  // Apito lento demorando 1 segundo a cada apito (ciclo continuo de 1000ms):
-  // 750ms apitando com LED amarelo aceso + 250ms com LED amarelo apagado
-  unsigned long cycleMs = millis() % 1000;
-  if (cycleMs < 750) playToneAlert(alertFreq);
-  else stopToneAlert();
+  // Varredura harmonica continua (Sirene Continua sem pausas de silencio)
+  unsigned long tInCycle = millis() % cycleMs;
+  float halfCycle = cycleMs / 2.0f;
+  float prog = (tInCycle < halfCycle) ? (tInCycle / halfCycle) : ((cycleMs - tInCycle) / halfCycle);
+  int sirenFreq = fMin + (int)(prog * (fMax - fMin));
+
+  tone(PIN_BUZZER, sirenFreq);
+  digitalWrite(PIN_LED_YELLOW, (tInCycle < halfCycle) ? HIGH : LOW);
 }
 
 void readAndPubSensors() {
