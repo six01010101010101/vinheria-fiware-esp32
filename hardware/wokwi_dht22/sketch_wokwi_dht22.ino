@@ -17,22 +17,21 @@ enum Pins { PIN_LED_YELLOW = 2, PIN_BUZZER = 4, PIN_LED_GREEN = 5, PIN_DHT = 15,
 WiFiClient espClient;
 String curMode = "normal", curPreset = "TINTO";
 int curHealth = 100, bthvIdx = 0;
-bool remoteSync = false;
+bool remoteSync = false, noteToneActive = false;
 unsigned long lastDhtMs = 0, lastLdrMs = 0, lastPubMs = 0, noteStartMs = 0, lastPingMs = 0, lastRetryMs = 0, lastSupaMs = 0;
 float validTemp = 15.8f, validHum = 68.0f, validLum = 9.0f, hwTemp = 15.8f, hwHum = 68.0f, hwLum = 9.0f;
 
 // Beethoven: Sonata ao Luar (Moonlight Sonata, Op. 27 No. 2 em Do sustenido menor)
 const uint16_t BTHV_MELODY[][2] = {
   {208,160},{277,160},{330,160},{208,160},{277,160},{330,160},{208,160},{277,160},{330,160},{208,160},{277,160},{330,160},
-  {415,500},{0,40},{415,320},{0,40},{415,180},{440,520},{0,40},{415,320},{0,40},{392,180},{415,680},{0,150},
-  {277,350},{330,350},{415,600},{0,250}
+  {247,170},{294,170},{370,170},{220,170},{277,170},{330,170},{208,170},{262,170},
+  {415,360},{415,180},{415,180},{440,420},{415,260},{392,220},{415,480},{330,300},{277,300},{208,480},
+  {330,240},{415,240},{494,360},{494,200},{554,420},{494,260},{466,220},{494,480},{415,300},{330,300},{247,480},
+  {370,260},{440,260},{587,420},{554,320},{494,260},{440,260},{415,460},{277,320},{330,320},{139,600},{0,250}
 };
 const int BTHV_TOTAL = sizeof(BTHV_MELODY) / sizeof(BTHV_MELODY[0]);
 
-void playToneAlert(int f, int d = 0) {
-  digitalWrite(PIN_LED_YELLOW, HIGH);
-  if (f > 0) { if (d > 0) tone(PIN_BUZZER, f, d); else tone(PIN_BUZZER, f); }
-}
+void playToneAlert(int f, int d = 0) { digitalWrite(PIN_LED_YELLOW, HIGH); if (f > 0) { if (d > 0) tone(PIN_BUZZER, f, d); else tone(PIN_BUZZER, f); } }
 void stopToneAlert() { digitalWrite(PIN_LED_YELLOW, LOW); noTone(PIN_BUZZER); }
 void lcdExpWrite(uint8_t d) { Wire.beginTransmission(LCD_ADDR); Wire.write(d | 0x08); Wire.endTransmission(); }
 void lcdWrite4(uint8_t v) { lcdExpWrite(v); lcdExpWrite(v | 0x04); delayMicroseconds(2); lcdExpWrite(v & ~0x04); delayMicroseconds(40); }
@@ -56,9 +55,13 @@ void selfTestLedsAndBuzzer() {
 
 void applyWineStatusTransition(String newMode, int newHealth) {
   if (newMode == curMode && newHealth == curHealth) return;
-  curMode = newMode; curHealth = newHealth; bthvIdx = 0; noteStartMs = 0;
-  if (curMode != "critico") { digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW); stopToneAlert(); }
-  else { digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH); }
+  bool modeChanged = (newMode != curMode);
+  curMode = newMode; curHealth = newHealth;
+  if (modeChanged) {
+    bthvIdx = 0; noteStartMs = 0; noteToneActive = false;
+    if (curMode != "critico") { digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW); stopToneAlert(); }
+    else { digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH); }
+  }
   updateLcd();
 }
 
@@ -138,20 +141,21 @@ void mqttLoop() {
 void handleActuators() {
   if (curMode != "critico") {
     digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, LOW);
-    stopToneAlert(); bthvIdx = 0; noteStartMs = 0; return;
+    stopToneAlert(); bthvIdx = 0; noteStartMs = 0; noteToneActive = false; return;
   }
   digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH);
   unsigned long now = millis();
-  uint16_t dur = BTHV_MELODY[bthvIdx][1], toneDur = (dur > 40) ? (dur * 78) / 100 : dur;
-  if (noteStartMs == 0 || (now - noteStartMs >= dur)) {
+  uint16_t curFreq = BTHV_MELODY[bthvIdx][0], curDur = BTHV_MELODY[bthvIdx][1];
+  uint16_t activeDur = (curDur > 60) ? (curDur * 78) / 100 : curDur;
+  if (noteStartMs == 0) {
     noteStartMs = (now == 0) ? 1 : now;
-    uint16_t freq = BTHV_MELODY[bthvIdx][0];
-    if (freq > 0) { tone(PIN_BUZZER, freq, toneDur); digitalWrite(PIN_LED_YELLOW, HIGH); }
-    else { noTone(PIN_BUZZER); digitalWrite(PIN_LED_YELLOW, LOW); }
-    bthvIdx = (bthvIdx + 1) % BTHV_TOTAL;
-  } else if (now - noteStartMs >= toneDur) {
-    noTone(PIN_BUZZER); digitalWrite(PIN_LED_YELLOW, LOW);
+    if (curFreq > 0) { tone(PIN_BUZZER, curFreq); digitalWrite(PIN_LED_YELLOW, HIGH); noteToneActive = true; }
+    else { noTone(PIN_BUZZER); digitalWrite(PIN_LED_YELLOW, LOW); noteToneActive = false; }
   }
+  if (noteToneActive && (now - noteStartMs >= activeDur)) {
+    noTone(PIN_BUZZER); digitalWrite(PIN_LED_YELLOW, LOW); noteToneActive = false;
+  }
+  if (now - noteStartMs >= curDur) { bthvIdx = (bthvIdx + 1) % BTHV_TOTAL; noteStartMs = 0; }
 }
 
 void readAndPubSensors() {
