@@ -25,41 +25,49 @@
   --radius-sm: 8px;
 }
 
-/* 1. FUNDO ATMOSFÉRICO MERLOT & OBSIDIANA */
-body {
-  background-color: var(--bg-obsidian) !important;
+/* 1. FUNDO ATMOSFÉRICO MERLOT & OBSIDIANA ACELERADO POR GPU (ZERO SCROLL LAG) */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  z-index: -1; pointer-events: none;
+  background-color: var(--bg-obsidian);
   background-image: 
     radial-gradient(ellipse 90% 60% at 50% -10%, rgba(139, 0, 41, 0.40), transparent),
     radial-gradient(ellipse 70% 50% at 95% 25%, rgba(225, 29, 72, 0.08), transparent),
-    radial-gradient(ellipse 60% 40% at 5% 75%, rgba(139, 0, 41, 0.15), transparent) !important;
-  background-attachment: fixed !important;
+    radial-gradient(ellipse 60% 40% at 5% 75%, rgba(139, 0, 41, 0.15), transparent);
+  transform: translateZ(0);
+}
+
+body {
+  background-color: var(--bg-obsidian) !important;
   color: var(--text-primary) !important;
   font-family: var(--font-sans) !important;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 /* 2. FLOATING GLASS DOCK NAVBAR */
 nav, main, footer { position: relative !important; z-index: 1 !important; }
 .navbar.pro-navbar {
   position: sticky !important; top: 0 !important; z-index: 1000 !important;
-  background: rgba(8, 7, 12, 0.85) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  background: rgba(8, 7, 12, 0.90) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
   border-bottom: 1px solid var(--chrome-edge-subtle) !important;
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.9) !important;
 }
 
-/* 3. CARDS PRINCIPAIS COM ACABAMENTO CHROME & FILETE RUBI */
+/* 3. CARDS PRINCIPAIS COM ACABAMENTO CHROME & FILETE RUBI (ALTA PERFORMANCE) */
 .clean-card {
   position: relative !important;
   background: var(--bg-surface) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
   border: 1px solid var(--chrome-edge-subtle) !important;
   border-top: 1px solid var(--chrome-edge-bright) !important;
   border-radius: var(--radius-lg) !important;
   box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.85) !important;
   overflow: hidden !important;
+  contain: paint layout !important;
 }
 
 .clean-card::before {
