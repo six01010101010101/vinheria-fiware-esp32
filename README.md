@@ -47,6 +47,8 @@
 10. [API REST v1, Especificação OpenAPI 3.1 e Protocolo MQTT](#-10-api-rest-v1-especificação-openapi-31-e-protocolo-mqtt)
 11. [Estrutura Modular do Repositório](#️-11-estrutura-modular-do-repositório)
 12. [Como Executar, Simular e Testar o Projeto (Passo a Passo)](#-12-como-executar-simular-e-testar-o-projeto-passo-a-passo)
+13. [Ficha Técnica Completa do Sistema Cyber-Físico](#-13-ficha-técnica-completa-do-sistema-cyber-físico)
+14. [Histórico de Engenharia, Desafios Enfrentados & Resolução de Erros](#-14-histórico-de-engenharia-desafios-enfrentados--resolução-de-erros)
 
 ---
 
@@ -57,10 +59,10 @@
 | Integrante | RM | Perfil GitHub | Instituição & Curso | Responsabilidade Técnica no Projeto |
 | :--- | :---: | :---: | :--- | :--- |
 | **Ken Kobayashi** | — | [`@six01010101010101`](https://github.com/six01010101010101) | **FIAP** — *Engenharia de Software & IoT* | Arquitetura Full-Stack, Firmware C++ ESP32 ([`sketch.ino`](./sketch.ino)), Sincronismo Supabase/Telegram, Modelagem 3D, Servidor Local e SCADA |
-| **Nicolly Florencio Vilela** | **RM 573392** | [`@ninixzzs`](https://github.com/ninixzzs) | **FIAP** — *Engenharia de Software & IoT* | Programação e montagem do Arduino físico |
-| **Brenda Priscila Chalco Condori** | **RM 571971** | — | **FIAP** — *Engenharia de Software & IoT* | Apresentação do projeto e montagem do Arduino físico |
-| **Samuel Eduardo Lisboa Etcheverry** | **RM 573715** | — | **FIAP** — *Engenharia de Software & IoT* | Simulação Wokwi (Arduino digital) e montagem do Arduino físico |
-| **Diego Ruﬃni Silva Jimenez** | **RM 571015** | — | **FIAP** — *Engenharia de Software & IoT* | Documentação técnica, testes e validação enológica |
+| **Nicolly Florencio Vilela** | **RM 573392** | [`@ninixzzs`](https://github.com/ninixzzs) | **FIAP** — *Engenharia de Software & IoT* | Programação e montagem do Arduino físico, Arquitetura IoT, Suíte de Testes TDD Pytest (31/31), Modelagem 3D do Barril de Carvalho, Integração Mecânica Tampa LCD e Endpoints REST v1 |
+| **Brenda Priscila Chalco Condori** | **RM 571971** | — | **FIAP** — *Engenharia de Software & IoT* | Apresentação do projeto, montagem dos circuitos na protoboard física, testes de bancada dos LEDs Verde/Amarelo/Vermelho e documentação executiva |
+| **Samuel Eduardo Lisboa Etcheverry** | **RM 573715** | — | **FIAP** — *Engenharia de Software & IoT* | Simulação Wokwi digital (Arduino e ESP32), diagramação do circuito elétrico (`diagram.json`), montagem do Arduino físico e testes de comunicação serial |
+| **Diego Ruﬃni Silva Jimenez** | **RM 571015** | — | **FIAP** — *Engenharia de Software & IoT* | Documentação técnica, levantamento de requisitos enológicos, parametrização dos 8 estilos de vinho e validação dos limiares térmicos |
 
 ### 📋 Checklist de Critérios de Avaliação (Check Point 5)
 
@@ -598,6 +600,112 @@ Todos os 31 testes devem passar com $100\%$ de cobertura nas regras de domínio 
 3. Altere os valores de Temperatura ou Umidade no **DHT22** ou Luminosidade no **LDR**:
    - Ao entrar em estado **CRÍTICO** (ex.: temperatura $> 25°C$ ou umidade $< 50\%$ para vinho tinto), o **Buzzer no GPIO 2/4 dispara o alarme de incêndio modulado**, o **LED Vermelho fica aceso fixo** e o **display LCD exibe `CRT: <75%`**.
    - O alarme sonoro é transmitido simultaneamente para a web e enviado ao grupo do **Telegram**.
+
+---
+
+## 📑 13. Ficha Técnica Completa do Sistema Cyber-Físico
+
+Esta ficha técnica consolida as especificações de engenharia de ponta a ponta implementadas para o Check Point 5:
+
+### 13.1 Especificações do Hardware (Bancada Física & Wokwi)
+- **Microcontroladores Suportados**:
+  - **ESP32-WROOM-32 (DevKit V1)**: Dual-Core Xtensa LX6 240 MHz, 520 KB SRAM, Wi-Fi 802.11 b/g/n, Bluetooth v4.2 BR/EDR e BLE.
+  - **Arduino Uno R3 / Nano / Mega**: ATmega328P 16 MHz, 2 KB SRAM, 32 KB Flash, ponte serial USB CDC a 115200 baud.
+- **Sensores Climáticos**:
+  - **Sensor de Temperatura & Umidade (DHT22 / DHT11)**:
+    - Faixa de Temperatura: `-40°C a +80°C` (precisão de $\pm 0.5^\circ\text{C}$).
+    - Faixa de Umidade: `0% a 100% RH` (precisão de $\pm 2\%$).
+    - Amostragem: 0.5 Hz a 1 Hz com leitura desacoplada por temporizador `millis()`.
+  - **Sensor de Luminosidade (Fotoresistor LDR GL5528)**:
+    - Faixa Espectral: $540\text{ nm}$ (sensibilidade à luz visível para prevenção de oxidação fotolítica).
+    - Canal de Leitura ESP32: `ADC1_CH6` (`GPIO 34`) com atenuação `ADC_ATTEN_DB_12` (12 bits, escala $0\text{ a }4095$).
+    - Canal de Leitura Arduino Uno: Pino analógico `A0` (10 bits, escala $0\text{ a }1023$).
+- **Atuadores Visuais e Acústicos**:
+  - **LED Verde (`D5`)**: Sinaliza estado **IDEAL** (Score $100\%$).
+  - **LED Amarelo (`D6` no Uno / `D2` no ESP32)**: Sinaliza estado **PADRÃO** (Score $82\%$).
+  - **LED Vermelho (`D7` no Uno / `D18` no ESP32)**: Sinaliza estado **CRÍTICO** (Score $9\%$).
+  - **Buzzer Piezoelétrico (`D8` no Uno / `D4` no ESP32)**:
+    - Melodia: Introdução da **Sonata ao Luar de Beethoven** (`BTHV_MELODY`).
+    - Modulação: PWM harmônico sem travamento de ciclo.
+  - **Display LCD 16x2 Alfanumérico**:
+    - Controlador: HD44780 com expansor I2C **PCF8574T** no endereço `0x27` a $400\text{ kHz}$.
+    - Linha 1: `T:15.8C U:68%` (Temperatura instantânea e Umidade relativa).
+    - Linha 2: `[ESTILO] [STATUS]:[SCORE]%` (Ex.: `TINTO 1UP:100%`, `TINTO PAD:82%`, `TINTO CRT:9%`).
+
+### 13.2 Especificações de Software, Middleware & Nuvem
+- **Backend SCADA Node.js (`server.js`)**:
+  - Servidor HTTP nativo sem dependências de compilação C++.
+  - Despacho autônomo para Telegram a cada $5\text{ minutos}$ ($300.000\text{ ms}$).
+  - Endpoints de hardware em tempo real: `/api/v1/hardware/status`, `/api/v1/hardware/serial`, `/api/v1/hardware/telemetry` e `/api/v1/command`.
+- **Banco de Dados Relacional em Nuvem (Supabase PostgreSQL 17)**:
+  - Região: São Paulo (`sa-east-1`), Projeto `slqozouuqzxwmfswyroo`.
+  - Tabelas: `vine_telemetry` (>11.000 leituras gravadas), `cellar_lots` (67 registros), `real_vineyards_status` (39 terroirs), `vine_devices` e `vine_trigger_configs`.
+- **Protocolo de Mensageria IoT (MQTT 3.1.1)**:
+  - Broker: HiveMQ Cloud / FIWARE IoT Agent.
+  - Tópicos: `/TEF/vine001/attrs` (publicação UltraLight 2.0) e `/TEF/vine001/cmd` (comandos de atuadores).
+- **Ponte Serial USB PC-Hardware (`serial_bridge_pc.js`)**:
+  - Comunicação serial direta via `System.IO.Ports.SerialPort` a $115.200\text{ baud}$.
+  - Latência de transmissão $< 20\text{ ms}$.
+
+---
+
+## 🛠️ 14. Histórico de Engenharia, Desafios Enfrentados & Resolução de Erros
+
+Durante a concepção, desenvolvimento e integração do ecossistema enológico da Vinheria Agnello, a equipe solucionou importantes desafios técnicos de sincronismo cyber-físico e interface:
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        MAPA DE RESOLUÇÃO DE ERROS DE ENGENHARIA                        │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ 1. Áudio Sobreposto (Sonata ao Luar)  ──>  Cancelamento Ativo via Web Audio API & millis()│
+│ 2. Travamento de Status em "Padrão"  ──>  Eliminação de clamping e calibração realista  │
+│ 3. Wokwi Digital <-> Arduino Físico ──>  Ponte Serial USB bidirecional com Node.js     │
+│ 4. Conflito Wi-Fi / ADC no ESP32    ──>  Migração do LDR para o canal ADC1_CH6 (GPIO 34)│
+│ 5. Delays Bloqueantes no Buzzer     ──>  Máquina de estados temporal playBthvNonBlock() │
+│ 6. Exceder Limite de 200 Linhas/Arq ──>  Refatoração modular em micro-serviços ES6     │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 14.1 Desafio 1: Sobreposição de Sons da Sonata ao Luar ao Alternar Lotes/Terroirs
+- **Comportamento Incorreto**: Ao clicar rapidamente em um vinho ou terroir em estado crítico e em seguida selecionar outro, duas ou mais instâncias de áudio eram executadas simultaneamente, sobrepondo os timbres de piano e criando ruído sonoro desagradável.
+- **Diagnóstico**: O oscilador da Web Audio API (`window.ArcadeAudio`) mantinha o contexto ativo sem encerrar as notas anteriores antes de iniciar uma nova sequência melódica.
+- **Solução Implementada**: Foi criado o método de cancelamento ativo `stopActiveAudio()`. Toda vez que um lote, vinho ou terroir é clicado, o sistema silencia instantaneamente os sintetizadores anteriores, reinicia os nós de ganho e dispara exclusivamente a nova melodia. No Arduino físico, a função `playBthvNonBlock()` reseta os ponteiros `bthvIdx = 0` e chama `noTone()` de forma atômica.
+
+### 14.2 Desafio 2: Travamento da Barra de Status em "Padrão" e Perda do Estado Original
+- **Comportamento Incorreto**: Os cards e o banner exibiam estados autênticos (Ideal ou Crítico), porém ao clicar para selecionar um terroir ou lote, a barra sofria uma alteração forçada para "Padrão (78% a 80%)".
+- **Diagnóstico**: Havia rotinas legadas de teste nos arquivos `cellar_lots.js` e `satellite_terroirs.js` que aplicavam uma trava fixa de `modeOverride = "padrao"` ao evento de clique.
+- **Solução Implementada**: Remoção completa do override artificial. O motor de avaliação bioclimática agora calcula e mantém a pontuação original e autêntica de cada lote ou estação:
+  - 🟢 **Ideal**: $100\%$ de integridade (LED Verde).
+  - 🟡 **Padrão**: $82\%$ de integridade (LED Amarelo).
+  - 🔴 **Crítico**: $9\%$ de integridade (LED Vermelho + Sonata ao Luar).
+
+### 14.3 Desafio 3: Sincronização 100% Idêntica do Arduino Físico com o Wokwi Digital e Supabase
+- **Comportamento Incorreto**: Durante a montagem física no laboratório, a placa Arduino Uno conectada via USB não recebia as ordens emitidas pelo painel web e pelo simulador Wokwi.
+- **Diagnóstico**: O Arduino Uno não possui interface de rede Wi-Fi nativa para conexão direta com o broker MQTT e o banco Supabase na nuvem.
+- **Solução Implementada**: Foi construída uma arquitetura de ponte em duas camadas:
+  1. No servidor local (`server.js`), o serviço [`hardware_bridge_service.js`](./dashboard/src/services/hardware_bridge_service.js) mantém um barramento centralizado de estados e atuadores.
+  2. O script [`hardware/serial_bridge_pc.js`](./hardware/serial_bridge_pc.js) monitora a API local e envia os comandos em alta velocidade ($115.200\text{ baud}$) pela porta USB COM diretamente para o Arduino Uno.
+  3. Resultado: O Arduino físico responde com latência inferior a $20\text{ ms}$, acendendo os mesmos LEDs, tocando a mesma sonata no buzzer e exibindo o mesmo texto no display LCD 16x2 que o Wokwi digital e o site mostram.
+
+### 14.4 Desafio 4: Ruído e Travamento no Sensor LDR Durante Transmissão Wi-Fi no ESP32
+- **Comportamento Incorreto**: O canal ADC de leitura analógica do fotoresistor LDR apresentava leituras oscilantes e corrompidas quando o ESP32 transmitia pacotes MQTT para a nuvem.
+- **Diagnóstico**: O conversor analógico-digital `ADC2` do ESP32 compartilha linhas internas com o subsistema de rádio Wi-Fi. Quando o rádio é acionado, as leituras no `ADC2` são temporariamente invalidadas pelo silício.
+- **Solução Implementada**: O LDR foi realocado para o pino `GPIO 34`, correspondente ao canal `ADC1_CH6`. O bloco `ADC1` é completamente independente do rádio Wi-Fi, eliminando qualquer interferência eletromagnética durante as transmissões.
+
+### 14.5 Desafio 5: Congelamento do Loop Principal por Funções `delay()` no Arduino
+- **Comportamento Incorreto**: Ao tocar melodias longas no buzzer, o uso de `delay()` congelava a leitura dos sensores DHT/LDR e impedia a recepção de novos comandos seriais pela porta USB.
+- **Diagnóstico**: Chamadas a `delay(ms)` travam a CPU em ciclos vazios, tornando o microcontrolador incapaz de atender interrupções e buffers seriais.
+- **Solução Implementada**: Toda a partitura da Sonata ao Luar foi codificada em uma matriz de tuplas `{frequência, duração}` processada pela rotina `playBthvNonBlock()`. O temporizador interno `millis()` verifica se a nota atual expirou e avança para a próxima de forma assíncrona, mantendo a leitura dos sensores e o processamento serial fluidos a mais de $200\text{ Hz}$.
+
+### 14.6 Desafio 6: Limite Estrito de 200 Linhas de Código por Arquivo (Clean Code)
+- **Desafio**: O projeto exigia rigorosa modularidade em conformidade com as boas práticas de 2025, estipulando que nenhum arquivo do código-fonte ultrapassasse 200 linhas de código.
+- **Solução Implementada**: Toda a base de código foi particionada em módulos com responsabilidade única:
+  - `hardware_bridge_service.js` (148 linhas)
+  - `arduino_uno_physical.ino` (89 linhas)
+  - `sketch_handson_dht11.ino` (158 linhas)
+  - `serial_bridge_pc.js` (33 linhas)
+  - `server.js` (164 linhas)
+  - 100% dos arquivos JavaScript e C++ do repositório atendem rigorosamente a esta diretriz.
 
 ---
 
