@@ -1,0 +1,13 @@
+{
+  "name": "vinheria-agnello-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/screens/WineStatusScreen.tsx",
+  "dependencies": {
+    "react": "18.3.1",
+    "react-native": "0.76.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

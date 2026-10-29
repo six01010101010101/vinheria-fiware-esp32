@@ -1,0 +1,53 @@
+/* ==========================================================================
+   Antigravity Web Wrapper — Layout Responsivo Simétrico (Vinheria Agnello)
+   Identidade Dark Minimalist (#0F0F0F) com Efeito Cromo e Auto-Grid
+   ========================================================================== */
+
+.antigravity-web-wrapper {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  padding: 24px;
+  background-color: #0F0F0F;
+  color: #F5F5F5;
+  border-radius: 14px;
+}
+
+/* Otimização de UI nos cards/status que chegam do Telegram/Supabase */
+.antigravity-web-wrapper > * {
+  background: linear-gradient(145deg, #1A1A1A, #242424);
+  border: 1px solid #333333;
+  border-radius: 12px;
+  padding: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.antigravity-web-wrapper > *:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.05);
+}
+
+/* Cabeçalhos e badges simétricos dos cartões de status */
+.antigravity-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.antigravity-card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #F5F5F5;
+  margin: 0;
+}
+
+.antigravity-badge-status {
+  font-size: 0.72rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-family: monospace;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}

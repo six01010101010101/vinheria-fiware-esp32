@@ -411,6 +411,7 @@ A API REST v1 disponibiliza tanto interface gráfica amigável quanto respostas 
 | `GET` | [`/api/v1/cloud/firebase`](./api/v1/cloud/firebase/index.html) | REST (HTTP) | `JSON / HTML` | Espelho de telemetria sincronizado com Supabase e Firebase |
 | `POST` | `/api/v1/telegram/broadcast` | REST (HTTP) | `JSON` | Disparo manual/periódico do boletim para o grupo do Telegram |
 | `POST` | `/api/v1/telegram/alert` | REST (HTTP) | `JSON` | Disparo de alerta de emergência com acionamento do Buzzer |
+| `POST` | `/api/v1/webhook` | REST (HTTP) | `JSON` | Webhook otimizado com idempotência Supabase (índices GIN/B-Tree) e Telegram |
 | `MQTT` | `/TEF/vine001/attrs` | MQTT 3.1.1 | `UltraLight 2.0` | Telemetria enviada pelo ESP32 (`t\|15.8\|h\|68.0\|l\|9`) |
 | `MQTT` | `/TEF/vine001/cmd` | MQTT 3.1.1 | `UltraLight 2.0` | Comandos remotos recebidos pelo ESP32 (`vine001@diag\|...`) |
 
@@ -440,6 +441,7 @@ vinheria-fiware-esp32/
 │   ├── app.py                             # Servidor Python alternativo (Dash + Flask REST API v1)
 │   ├── assets/                            # Módulos JavaScript (ES6) e folhas de estilo CSS
 │   │   ├── style.css                      # Estilos responsivos, paleta rubi e barras percentuais
+│   │   ├── antigravity_layout.css         # Grid dark minimalist responsivo com elevação cromo
 │   │   ├── wine_catalog.js                # Catálogo enológico com 8 estilos e 15 cavas
 │   │   ├── satellite_terroirs.js          # Conector Open-Meteo para os 15 terroirs satelitais
 │   │   ├── cellar_lots.js                 # Gestão de estados (Ideal, Padrão, Crítico) dos lotes
@@ -449,11 +451,21 @@ vinheria-fiware-esp32/
 │   │   ├── scada_dispatcher.js            # Barramento de eventos SCADA e acionamento sonoro
 │   │   └── dashboard_scada.js             # Controlador central do dashboard
 │   ├── src/
-│   │   └── services/telegram_live_service.js # Daemon do ciclo periódico de 5 minutos do Telegram
+│   │   └── services/
+│   │       ├── telegram_live_service.js   # Daemon do ciclo periódico de 5 minutos do Telegram
+│   │       └── webhook_service.js         # Handler otimizado com idempotência Supabase e Telegram
 │   └── tests/                             # Suíte de testes automatizados TDD (31/31)
 │       ├── test_models.py
 │       ├── test_services.py
 │       └── test_api_routes.py
+├── mobile/                                # Aplicativo Mobile React Native com AntigravityLayout
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── src/
+│       ├── components/AntigravityLayout.tsx # Layout SafeAreaView Dark Minimalist simétrico
+│       └── screens/WineStatusScreen.tsx     # Monitor mobile de cavas e terroirs
+├── supabase/
+│   └── functions/webhook-handler/index.ts # Supabase Edge Function (Deno) com índices GIN/B-Tree
 └── hardware/
     ├── handson_dht11/                     # Firmware para montagem física em bancada (ESP32 + DHT11)
     └── wokwi_dht22/                       # Firmware e diagrama espelhados para o simulador Wokwi

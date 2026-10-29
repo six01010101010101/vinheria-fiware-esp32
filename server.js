@@ -8,6 +8,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const { dispatchLiveWineReport, startPeriodicTelegramReports } = require('./dashboard/src/services/telegram_live_service');
+const { handleWebhookRequest } = require('./dashboard/src/services/webhook_service');
 
 const PORT = 8050;
 const ROOT_DIR = __dirname;
@@ -100,6 +101,17 @@ const server = http.createServer((req, res) => {
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: e.message }));
       }
+    });
+    return;
+  }
+
+  // Endpoint de Webhook Otimizado (Idempotência Supabase + Alerta Telegram)
+  if ((cleanUrl === '/api/v1/webhook' || cleanUrl === '/webhook') && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try { req.body = JSON.parse(body || '{}'); } catch (_) { req.body = {}; }
+      handleWebhookRequest(req, res);
     });
     return;
   }

@@ -37,6 +37,9 @@
     },
     "/api/v1/telegram/alert": {
       "post": { "summary": "Disparo imediato de alarme de transição crítica com acionamento sonoro do Buzzer" }
+    },
+    "/api/v1/webhook": {
+      "post": { "summary": "Recepção otimizada de webhooks com idempotência Supabase (índices GIN/B-Tree) e alertas Telegram" }
     }
   }
 }
