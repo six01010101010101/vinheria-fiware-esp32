@@ -78,13 +78,6 @@
     const ev = window.evaluateLotPreservation ? window.evaluateLotPreservation(lot, realT, realH, realL, p) : { score: 99, stateKey: "ideal" };
     const targetMode = ev.stateKey === "critico" ? "critico" : (ev.stateKey === "padrao" ? "padrao" : "normal");
     setSimBase(realT, realH, realL, targetMode);
-
-    if (targetMode === "critico") {
-      window.arcadeAudio?.ensureContext?.();
-      window.ArcadeAudio?.playCritical?.();
-      if (typeof window.playAcousticChime === "function") window.playAcousticChime(1480, 0.45);
-    }
-
     window.ScadaUIController?.syncPresetControls(p, curPr);
     updateHardwarePlaque(sim.t, sim.h, sim.l, true, targetMode === "critico" ? "critico" : "cava");
     window.ScadaCharts?.renderAllCharts?.(sim.t, sim.h, sim.l, p, lot, true);
@@ -115,7 +108,6 @@
       if (dev >= 2 || realT > (p.tMax + 4.0) || realT < (p.tMin - 4.0)) targetMode = "critico";
       else if (dev === 1) targetMode = "padrao";
       setSimBase(realT, realH, realL, targetMode);
-      if (targetMode === "critico" && typeof window.playAcousticChime === "function") window.playAcousticChime(1480, 0.45);
     } else {
       const vals = window.ScadaDispatcher?.getScenarioValues("normal", curPr, PRESETS) || [15.8, 68, 9];
       setSimBase(vals[0], vals[1], vals[2], "normal");

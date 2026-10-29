@@ -101,7 +101,6 @@
         critCount++;
         // Se a área ativa está em estado crítico, aciona o buzzer e o Telegram
         if (isAct) {
-          if (typeof window.playAcousticChime === "function") window.playAcousticChime(1480, 0.45);
           window.TelegramNotifier?.sendTelegramAlert({
             terroir: v.name, country: v.country, temp: t, hum: h, lum: l,
             stateKey: "critico", score: ev.score, style: targetPr.key || "tinto"

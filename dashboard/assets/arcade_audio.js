@@ -1,6 +1,6 @@
 /**
  * Motor Sonoro Polifônico & Sintetizador Enológico — Vinheria Agnello & Wokwi
- * Web Audio API Nativo: Harmonias Clássicas de Beethoven nos Estados Ideal, Padrão e Crítico.
+ * Web Audio API Nativo com Cancelamento Ativo de Vozes (Zero Sobreposição Indesejada).
  */
 
 class ArcadeAudioEngine {
@@ -9,6 +9,7 @@ class ArcadeAudioEngine {
     this.enabled = true;
     this.volume = 0.095;
     this._lastHover = 0;
+    this.activeVoices = [];
   }
 
   ensureContext() {
@@ -20,11 +21,32 @@ class ArcadeAudioEngine {
     return this.ctx;
   }
 
+  // Interrompe imediatamente todas as vozes e notas agendadas anteriores
+  stopAll() {
+    if (!this.ctx || !this.activeVoices.length) return;
+    const now = this.ctx.currentTime;
+    this.activeVoices.forEach(v => {
+      try {
+        v.gain.gain.cancelScheduledValues(now);
+        v.gain.gain.setValueAtTime(0, now);
+        v.osc.stop(now);
+        v.osc.disconnect();
+        v.gain.disconnect();
+      } catch (_) {}
+    });
+    this.activeVoices = [];
+  }
+
+  _cleanupVoices() {
+    if (this.ctx) this.activeVoices = this.activeVoices.filter(v => v.stopTime > this.ctx.currentTime);
+  }
+
   playTone(freq, duration, type = "square", endFreq = null, delay = 0, volScale = 1) {
     if (!this.enabled) return;
     try {
       const ctx = this.ensureContext();
       if (!ctx) return;
+      this._cleanupVoices();
       const t0 = ctx.currentTime + delay;
       const osc = ctx.createOscillator(), gain = ctx.createGain();
       osc.type = type;
@@ -37,10 +59,10 @@ class ArcadeAudioEngine {
       gain.connect(ctx.destination);
       osc.start(t0);
       osc.stop(t0 + duration);
+      this.activeVoices.push({ osc, gain, stopTime: t0 + duration });
     } catch (_) {}
   }
 
-  // Hover delicado estilo cristal de vinho / harpa clássica
   playWineHover() {
     if (!this.enabled) return;
     const now = Date.now();
@@ -50,31 +72,29 @@ class ArcadeAudioEngine {
     this.playTone(1046.5, 0.05, "sine", 1318.5, 0, 0.35);
   }
 
-  // Seleção de vinho com harmonia clássica de Beethoven por estado de guarda
+  // Seleção de vinho com harmonia clássica de Beethoven (Cancela o som anterior!)
   playWineSelect(stateKey = "ideal", style = "tinto") {
+    this.stopAll();
     this.ensureContext();
     if (stateKey === "critico") {
       this.playCritical();
       return;
     }
     if (stateKey === "padrao") {
-      // Estado Padrão: Transição serena e encorpada em Lá Maior (acorde clássico)
       [[277.18, 0.16], [329.63, 0.16], [440.0, 0.22], [554.37, 0.38]].forEach(([f, d], i) => {
         this.playTone(f, d * 0.9, "triangle", null, i * 0.075, 0.9);
       });
       return;
     }
-    // Estado Ideal: Resolução Maior Luminosa da Sonata (Mi Maior / Dó# Maior arpejado)
     [[329.63, 0.14], [415.30, 0.14], [493.88, 0.14], [659.25, 0.20], [830.61, 0.36]].forEach(([f, d], i) => {
       this.playTone(f, d * 0.9, "sine", null, i * 0.062, 0.95);
     });
   }
 
-  playWineStyle(style, stateKey) {
-    this.playWineSelect(stateKey || window.curScadaMode || "ideal", style);
-  }
+  playWineStyle(style, stateKey) { this.playWineSelect(stateKey || window.curScadaMode || "ideal", style); }
 
   playCavaSelect() {
+    this.stopAll();
     this.ensureContext();
     this.playTone(196.0, 0.08, "triangle", 293.66, 0, 1.2);
     this.playTone(392.0, 0.10, "triangle", 587.33, 0.06, 1.1);
@@ -82,6 +102,7 @@ class ArcadeAudioEngine {
   }
 
   playTerroirSelect() {
+    this.stopAll();
     this.ensureContext();
     this.playTone(880.0, 0.06, "sine", 1318.51, 0, 0.95);
     this.playTone(1318.51, 0.07, "sine", 1760.0, 0.055, 0.9);
@@ -89,6 +110,7 @@ class ArcadeAudioEngine {
   }
 
   playScenario(sc) {
+    this.stopAll();
     this.ensureContext();
     switch (sc) {
       case "normal": this.playWineSelect("ideal"); break;
@@ -102,6 +124,7 @@ class ArcadeAudioEngine {
   }
 
   playThemeSwitch(mode) {
+    this.stopAll();
     this.ensureContext();
     if (mode === "light") [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => this.playTone(f, 0.09, "sine", null, i * 0.045));
     else if (mode === "dark") [659.25, 523.25, 392.0, 261.63].forEach((f, i) => this.playTone(f, 0.10, "triangle", null, i * 0.045));
@@ -113,22 +136,17 @@ class ArcadeAudioEngine {
     this.playTone(1318.51, 0.28, "square", null, 0.075);
   }
 
-  playPowerup() {
-    this.playWineSelect("ideal");
-  }
-
-  playBlip() {
-    this.playTone(932.33, 0.04, "sine", 1174.66, 0, 0.75);
-  }
-
+  playPowerup() { this.playWineSelect("ideal"); }
+  playBlip() { this.playTone(932.33, 0.04, "sine", 1174.66, 0, 0.75); }
   playAlert() {
     this.ensureContext();
     this.playTone(520, 0.13, "sawtooth", 220);
     this.playTone(390, 0.20, "sawtooth", 150, 0.11);
   }
 
-  // Beethoven: Sonata ao Luar (Moonlight Sonata, Op. 27 No. 2 em Dó sustenido menor)
+  // Beethoven: Sonata ao Luar (Cancela o som anterior e inicia a Sonata limpa)
   playCritical() {
+    this.stopAll();
     this.ensureContext();
     const notes = [
       [208, 0.16], [277, 0.16], [330, 0.16], [208, 0.16], [277, 0.16], [330, 0.16],
@@ -146,7 +164,7 @@ class ArcadeAudioEngine {
 
   toggle() {
     this.enabled = !this.enabled;
-    if (this.enabled) this.playCoin();
+    if (this.enabled) this.playCoin(); else this.stopAll();
     return this.enabled;
   }
 }
