@@ -1,6 +1,6 @@
 /**
  * Módulo de Cavas de Guarda & Lotes Catalogados por Estilo e Área — Vinheria Agnello
- * Exibe dinamicamente os lotes autênticos internacionais com castas, apogeu e microclima da cava.
+ * Exibe dinamicamente os lotes autênticos com calibração proporcional de preservação (9% a 100%).
  */
 (function () {
   const root = typeof window !== "undefined" ? window : globalThis;
@@ -14,32 +14,36 @@
     const hMax = customTriggers?.hMax ?? (lot ? lot.hum[1] : 75.0);
     const lMax = customTriggers?.lMax ?? (lot ? lot.lum : 25.0);
 
-    let penalty = 0;
-    if (t < tMin) penalty += (tMin - t) * 7.5;
-    else if (t > tMax) penalty += (t - tMax) * 7.5;
-    if (h < hMin) penalty += (hMin - h) * 1.6;
-    else if (h > hMax) penalty += (h - hMax) * 1.6;
-    if (l > lMax) penalty += (l - lMax) * 1.3;
+    const tMid = (tMin + tMax) / 2, tHalf = Math.max(1, (tMax - tMin) / 2);
+    const hMid = (hMin + hMax) / 2, hHalf = Math.max(1, (hMax - hMin) / 2);
 
-    const score = Math.max(15, Math.min(94, Math.round(100 - penalty)));
-    const tMid = (tMin + tMax) / 2, hMid = (hMin + hMax) / 2;
-    const edgeDist = (Math.abs(t - tMid) / Math.max(1, (tMax - tMin) / 2)) * 2.5 +
-                     (Math.abs(h - hMid) / Math.max(1, (hMax - hMin) / 2)) * 1.8;
-    let adjScore = penalty === 0 ? Math.max(95, Math.min(100, Math.round(100 - edgeDist))) : score;
+    let penalty = 0;
+    if (t < tMin) penalty += (tMin - t) * 8.5;
+    else if (t > tMax) penalty += (t - tMax) * 8.5;
+    if (h < hMin) penalty += (hMin - h) * 1.5;
+    else if (h > hMax) penalty += (h - hMax) * 1.5;
+    if (l > lMax) penalty += (l - lMax) * 1.0;
+
+    const tEdge = Math.abs(t - tMid) / tHalf;
+    const hEdge = Math.abs(h - hMid) / hHalf;
+    const edgePen = Math.max(0, (tEdge - 0.5) * 10.0) + Math.max(0, (hEdge - 0.6) * 5.0);
+
+    let score = Math.round(100 - penalty - edgePen);
+    score = Math.max(9, Math.min(100, score));
 
     if (modeOverride === "multi" || modeOverride === "critico") {
-      adjScore = Math.min(adjScore, 62);
-    } else if (modeOverride === "padrao" && (adjScore >= 95 || adjScore < 75)) {
-      adjScore = 78;
+      score = Math.min(score, 45);
+    } else if (modeOverride === "padrao" && (score >= 95 || score < 75)) {
+      score = 80;
     }
 
     let verdict = "IDEAL (95–100%)", stateKey = "ideal", barColor = "bg-success", textClass = "text-success", dot = "🟢";
-    if (adjScore < 75) {
+    if (score < 75) {
       verdict = "CRÍTICO (Apito)"; stateKey = "critico"; barColor = "bg-danger"; textClass = "text-danger"; dot = "🔴";
-    } else if (adjScore < 95) {
+    } else if (score < 95) {
       verdict = "PADRÃO (75–94%)"; stateKey = "padrao"; barColor = "bg-warning"; textClass = "text-warning"; dot = "🟡";
     }
-    return { score: adjScore, verdict, stateKey, barColor, textClass, dot };
+    return { score, verdict, stateKey, barColor, textClass, dot };
   }
 
   function renderCellarLots(activeStyle, currentTemp, currentHum, currentLum, onSelectCallback, activeLotOverride) {

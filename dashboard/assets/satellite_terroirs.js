@@ -1,6 +1,6 @@
 /**
  * Módulo de Telemetria por Satélite & Estações Meteorológicas Globais — Vinheria Agnello
- * Avalia o microclima WMO de cada terroir em tempo real para a maturação da casta ativa.
+ * Avalia o microclima WMO de cada terroir com diferenciação climática proporcional (9% a 100%).
  */
 (function () {
   let lastClickedTerroir = null;
@@ -23,19 +23,18 @@
     const lim = getViticultureLimits(styleKey);
     let pen = 0;
     if (t < lim.tOptMin) {
-      if (t >= lim.tMin) pen += (lim.tOptMin - t) * 2.0;
-      else pen += (lim.tOptMin - lim.tMin) * 2.0 + (lim.tMin - t) * 7.0;
+      if (t >= lim.tMin) pen += (lim.tOptMin - t) * 3.5;
+      else pen += (lim.tOptMin - lim.tMin) * 3.5 + (lim.tMin - t) * 10.0;
     } else if (t > lim.tOptMax) {
-      if (t <= lim.tMax) pen += (t - lim.tOptMax) * 2.0;
-      else pen += (lim.tMax - lim.tOptMax) * 2.0 + (t - lim.tMax) * 7.0;
+      if (t <= lim.tMax) pen += (t - lim.tOptMax) * 3.5;
+      else pen += (lim.tMax - lim.tOptMax) * 3.5 + (t - lim.tMax) * 10.0;
     }
-    if (h < 40) pen += (40 - h) * 0.9;
-    else if (h > 80) pen += (h - 80) * 0.9;
-    if (t > 34 && l > 90) pen += (l - 90) * 1.5;
+    if (h < 40) pen += (40 - h) * 1.5; else if (h > 80) pen += (h - 80) * 1.5;
+    if (t > 28 && l > 70) pen += (t - 28) * 4.0 + (l - 70) * 0.8;
+    let score = Math.max(9, Math.min(100, Math.round(100 - pen)));
 
-    let score = Math.max(15, Math.min(100, Math.round(100 - pen)));
-    if (modeOverride === "critico") score = Math.min(score, 62);
-    else if (modeOverride === "padrao" && (score >= 95 || score < 75)) score = 78;
+    if (modeOverride === "critico") score = Math.min(score, 45);
+    else if (modeOverride === "padrao" && (score >= 95 || score < 75)) score = 80;
 
     const wShort = (pr?.name || "Tinto").replace("Espumante ", "");
     if (score >= 95) return { score, stateKey: "ideal", txt: `🟢 IDEAL (${wShort})`, cls: "text-success", bar: "bg-success" };
@@ -44,10 +43,9 @@
   }
 
   async function fetchSatelliteData() {
-    const terroirs = window.TERROIRS || {};
-    let updated = false;
-    const list = Object.values(terroirs).filter(x => x.id !== "wokwi_esp32");
+    const list = Object.values(window.TERROIRS || {}).filter(x => x.id !== "wokwi_esp32");
     const lats = list.map(x => x.lat).join(","), lons = list.map(x => x.lon).join(",");
+    let updated = false;
     try {
       const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current=temperature_2m,relative_humidity_2m,shortwave_radiation,is_day&timezone=auto`);
       if (res.ok) {
@@ -67,7 +65,6 @@
         });
       }
     } catch (_) {}
-
     window.SupabaseCloud?.syncLotsAndAreas?.(window.curPr || "tinto", true);
     window.renderCellarLots?.();
     return updated;
