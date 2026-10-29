@@ -11,8 +11,8 @@ const char *SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
 const char *DEVICE_ID = "vine001", *MQTT_BROKER = "broker.hivemq.com";
 const int MQTT_PORT = 1883;
 
-// Pinagem: Buzzer no D2 (pino Amarelo) e D4 (auxiliar), Verde no D5, Vermelho no D18
-enum Pins { PIN_BUZZER = 2, PIN_BUZZER_AUX = 4, PIN_LED_GREEN = 5, PIN_DHT = 15, PIN_LED_RED = 18, PIN_LDR = 34, LCD_ADDR = 0x27 };
+// Pinagem: LED Amarelo (D2), Buzzer (D4), LED Verde (D5), DHT22 (D15), LED Vermelho (D18), LDR (D34)
+enum Pins { PIN_LED_YELLOW = 2, PIN_BUZZER = 4, PIN_LED_GREEN = 5, PIN_DHT = 15, PIN_LED_RED = 18, PIN_LDR = 34, LCD_ADDR = 0x27 };
 
 WiFiClient espClient;
 String curMode = "normal", curPreset = "TINTO";
@@ -21,12 +21,11 @@ bool remoteSync = false;
 unsigned long lastDhtMs = 0, lastLdrMs = 0, lastPubMs = 0, lastToneMs = 0, lastPingMs = 0, lastRetryMs = 0, lastSupaMs = 0;
 float validTemp = 15.8f, validHum = 68.0f, validLum = 9.0f, hwTemp = 15.8f, hwHum = 68.0f, hwLum = 9.0f;
 
-void playToneDual(int f, int d = 0) {
-  if (f <= 0) { noTone(PIN_BUZZER); noTone(PIN_BUZZER_AUX); return; }
-  if (d > 0) { tone(PIN_BUZZER, f, d); tone(PIN_BUZZER_AUX, f, d); }
-  else { tone(PIN_BUZZER, f); tone(PIN_BUZZER_AUX, f); }
+void playToneAlert(int f, int d = 0) {
+  digitalWrite(PIN_LED_YELLOW, HIGH);
+  if (f > 0) { if (d > 0) tone(PIN_BUZZER, f, d); else tone(PIN_BUZZER, f); }
 }
-void stopToneDual() { noTone(PIN_BUZZER); noTone(PIN_BUZZER_AUX); }
+void stopToneAlert() { digitalWrite(PIN_LED_YELLOW, LOW); noTone(PIN_BUZZER); }
 
 void lcdExpWrite(uint8_t d) { Wire.beginTransmission(LCD_ADDR); Wire.write(d | 0x08); Wire.endTransmission(); }
 void lcdWrite4(uint8_t v) { lcdExpWrite(v); lcdExpWrite(v | 0x04); delayMicroseconds(2); lcdExpWrite(v & ~0x04); delayMicroseconds(40); }
@@ -50,15 +49,16 @@ void updateLcd() {
 }
 
 void selfTestLedsAndBuzzer() {
-  digitalWrite(PIN_LED_GREEN, HIGH); playToneDual(880, 100); delay(140); digitalWrite(PIN_LED_GREEN, LOW);
-  digitalWrite(PIN_LED_RED, HIGH); playToneDual(1175, 100); delay(140); digitalWrite(PIN_LED_RED, LOW);
-  stopToneDual();
+  digitalWrite(PIN_LED_GREEN, HIGH); tone(PIN_BUZZER, 880, 100); delay(140); digitalWrite(PIN_LED_GREEN, LOW);
+  digitalWrite(PIN_LED_YELLOW, HIGH); tone(PIN_BUZZER, 1040, 100); delay(140); digitalWrite(PIN_LED_YELLOW, LOW);
+  digitalWrite(PIN_LED_RED, HIGH); tone(PIN_BUZZER, 1175, 100); delay(140); digitalWrite(PIN_LED_RED, LOW);
+  stopToneAlert();
 }
 
 void applyWineStatusTransition(String newMode, int newHealth) {
   if (newMode == curMode && newHealth == curHealth) return;
   curMode = newMode; curHealth = newHealth;
-  if (curMode != "critico") { digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW); stopToneDual(); }
+  if (curMode != "critico") { digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW); stopToneAlert(); }
   else { digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH); }
   updateLcd();
 }
@@ -138,11 +138,13 @@ void mqttLoop() {
 
 void handleActuators() {
   if (curMode != "critico") {
-    digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW); stopToneDual(); soundStep = 0; return;
+    digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, LOW);
+    stopToneAlert(); soundStep = 0; return;
   }
-  digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH); // Crítico: LED Vermelho aceso
+  // No estágio crítico: LED Verde apagado e LED Vermelho aceso fixo
+  digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH);
 
-  // Alarme de Incêndio (Slow Whoop) modulado por intensidade da criticidade (Hertz e Cadência)
+  // Alarme de Incêndio (Slow Whoop) modulado por intensidade do estado crítico (curHealth)
   int fBase = (curHealth >= 60) ? 580 : ((curHealth >= 40) ? 720 : 880);
   int fStep = (curHealth >= 60) ? 80 : ((curHealth >= 40) ? 120 : 160);
   unsigned long stepMs = (curHealth >= 60) ? 130 : ((curHealth >= 40) ? 85 : 60);
@@ -151,8 +153,8 @@ void handleActuators() {
   if (now - lastToneMs >= stepMs) {
     lastToneMs = (now == 0) ? 1 : now;
     soundStep = (soundStep + 1) % 5;
-    if (soundStep < 4) playToneDual(fBase + (soundStep * fStep), stepMs);
-    else stopToneDual(); // Pausa característica do pulso de alarme de incêndio
+    if (soundStep < 4) playToneAlert(fBase + (soundStep * fStep), stepMs);
+    else stopToneAlert(); // Pausa característica do alarme de incêndio
   }
 }
 
@@ -183,8 +185,8 @@ void readAndPubSensors() {
 
 void setup() {
   Serial.begin(115200);
-  pinMode(PIN_LED_GREEN, OUTPUT); pinMode(PIN_LED_RED, OUTPUT);
-  pinMode(PIN_BUZZER, OUTPUT); pinMode(PIN_BUZZER_AUX, OUTPUT); pinMode(PIN_LDR, INPUT);
+  pinMode(PIN_LED_GREEN, OUTPUT); pinMode(PIN_LED_YELLOW, OUTPUT); pinMode(PIN_LED_RED, OUTPUT);
+  pinMode(PIN_BUZZER, OUTPUT); pinMode(PIN_LDR, INPUT);
   lcdInit(); selfTestLedsAndBuzzer(); digitalWrite(PIN_LED_GREEN, HIGH); updateLcd();
   WiFi.mode(WIFI_STA); WiFi.setSleep(false); WiFi.setAutoReconnect(true); WiFi.begin(WIFI_SSID, WIFI_PASS, 6);
   unsigned long t0 = millis(); while (WiFi.status() != WL_CONNECTED && (millis() - t0) < 4000) delay(50);

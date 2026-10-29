@@ -1,17 +1,19 @@
 {
   "version": 1,
-  "author": "Equipe Monitoramento Global de Vinherias - Check Point 5",
+  "author": "Equipe Vinheria Agnello - Check Point 5",
   "editor": "wokwi",
   "parts": [
     { "type": "wokwi-esp32-devkit-v1", "id": "esp", "top": 0, "left": 0, "attrs": {} },
     { "type": "wokwi-lcd1602", "id": "lcd1", "top": -155, "left": -45, "attrs": { "pins": "i2c", "background": "green", "label": "LCD 16x2 Sommelier" } },
     { "type": "wokwi-dht22", "id": "dht1", "top": -45, "left": -150, "attrs": { "temperature": "15.5", "humidity": "68.0" } },
     { "type": "wokwi-photoresistor-sensor", "id": "ldr1", "top": 120, "left": -190, "attrs": {} },
-    { "type": "wokwi-led", "id": "led_green", "top": -55, "left": 145, "attrs": { "color": "green", "label": "LED Verde (Tudo OK / Padrão)" } },
+    { "type": "wokwi-led", "id": "led_green", "top": -55, "left": 145, "attrs": { "color": "green", "label": "LED Verde (Padrão & Ideal)" } },
     { "type": "wokwi-resistor", "id": "r_green", "top": 20, "left": 135, "attrs": { "value": "220" } },
-    { "type": "wokwi-led", "id": "led_red", "top": -55, "left": 215, "attrs": { "color": "red", "label": "LED Vermelho (Crítico)" } },
-    { "type": "wokwi-resistor", "id": "r_red", "top": 20, "left": 205, "attrs": { "value": "220" } },
-    { "type": "wokwi-buzzer", "id": "bz1", "top": -45, "left": 285, "attrs": { "volume": "0.7", "label": "Buzzer Alarme Incêndio (Pino D2 / Amarelo)" } }
+    { "type": "wokwi-led", "id": "led_yellow", "top": -55, "left": 215, "attrs": { "color": "yellow", "label": "LED Amarelo (Pisca no Crítico)" } },
+    { "type": "wokwi-resistor", "id": "r_yellow", "top": 20, "left": 205, "attrs": { "value": "220" } },
+    { "type": "wokwi-led", "id": "led_red", "top": -55, "left": 285, "attrs": { "color": "red", "label": "LED Vermelho (Aceso no Crítico)" } },
+    { "type": "wokwi-resistor", "id": "r_red", "top": 20, "left": 275, "attrs": { "value": "220" } },
+    { "type": "wokwi-buzzer", "id": "bz1", "top": 95, "left": 195, "attrs": { "volume": "0.7", "label": "Buzzer Alarme de Incêndio" } }
   ],
   "connections": [
     [ "esp:TX0", "$serialMonitor:RX", "", [] ],
@@ -29,11 +31,14 @@
     [ "esp:D5", "r_green:1", "green", [ "h0" ] ],
     [ "r_green:2", "led_green:A", "green", [ "v0" ] ],
     [ "led_green:C", "esp:GND.2", "black", [ "v0" ] ],
+    [ "esp:D2", "r_yellow:1", "yellow", [ "h0" ] ],
+    [ "r_yellow:2", "led_yellow:A", "yellow", [ "v0" ] ],
+    [ "led_yellow:C", "esp:GND.2", "black", [ "v0" ] ],
     [ "esp:D18", "r_red:1", "red", [ "h0" ] ],
     [ "r_red:2", "led_red:A", "red", [ "v0" ] ],
     [ "led_red:C", "esp:GND.2", "black", [ "v0" ] ],
     [ "bz1:1", "esp:GND.2", "black", [ "v0" ] ],
-    [ "bz1:2", "esp:D2", "purple", [ "v0" ] ]
+    [ "bz1:2", "esp:D4", "purple", [ "v0" ] ]
   ],
   "dependencies": {}
 }
