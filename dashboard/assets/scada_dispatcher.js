@@ -36,9 +36,7 @@
     if (bge) bge.innerHTML = `<span class="status-dot"></span>WOKWI /cmd: ${stKey.toUpperCase()} (${tag} · ${sc}%)`;
     document.querySelectorAll(".sc-btn").forEach(b => b.classList.toggle("active", b.dataset.sc === cmd));
 
-    if (userTriggered || !document.hidden) {
-      window.ScadaMQTT?.publishState?.({ t, h, l, cmd, stateKey: stKey, score: sc, verdict: v, tag });
-    }
+    window.ScadaMQTT?.publishState?.({ t, h, l, cmd, stateKey: stKey, score: sc, verdict: v, tag });
 
     window.SupabaseCloud?.syncTelemetry?.({
       t, h, l, cmd, score: sc, source: `${tr.name || "Adega"} · ${pr.name || "Vinho"}`, force: userTriggered

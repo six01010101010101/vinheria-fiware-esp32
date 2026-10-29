@@ -148,9 +148,8 @@
     });
   }
 
-  // Keepalive a cada 2.0s apenas na aba visível para manter o Wokwi sincronizado com o vinho ativo
+  // Keepalive a cada 2.0s para manter o Wokwi sincronizado 100% com o site (mesmo em aba de fundo)
   setInterval(() => {
-    if (document.hidden) return;
     if (lastState && pahoClient && pahoClient.isConnected()) {
       flushState(lastState);
     }

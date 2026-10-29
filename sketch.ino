@@ -139,23 +139,19 @@ void mqttLoop() {
 void handleActuators() {
   if (curMode != "critico") {
     digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, LOW);
-    stopToneAlert(); soundStep = 0; return;
+    stopToneAlert(); return;
   }
-  // No estágio crítico: LED Verde apagado e LED Vermelho aceso fixo
+  // No estagio critico: LED Verde apagado e LED Vermelho aceso fixo
   digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH);
 
-  // Alarme de Incêndio (Slow Whoop) modulado por intensidade do estado crítico (curHealth)
-  int fBase = (curHealth >= 60) ? 580 : ((curHealth >= 40) ? 720 : 880);
-  int fStep = (curHealth >= 60) ? 80 : ((curHealth >= 40) ? 120 : 160);
-  unsigned long stepMs = (curHealth >= 60) ? 130 : ((curHealth >= 40) ? 85 : 60);
+  // Frequencia modulada pela intensidade critica (Hertz)
+  int alertFreq = (curHealth >= 60) ? 600 : ((curHealth >= 40) ? 800 : 1000);
 
-  unsigned long now = millis();
-  if (now - lastToneMs >= stepMs) {
-    lastToneMs = (now == 0) ? 1 : now;
-    soundStep = (soundStep + 1) % 5;
-    if (soundStep < 4) playToneAlert(fBase + (soundStep * fStep), stepMs);
-    else stopToneAlert(); // Pausa característica do alarme de incêndio
-  }
+  // Apito lento demorando 1 segundo a cada apito (ciclo continuo de 1000ms):
+  // 750ms apitando com LED amarelo aceso + 250ms com LED amarelo apagado
+  unsigned long cycleMs = millis() % 1000;
+  if (cycleMs < 750) playToneAlert(alertFreq);
+  else stopToneAlert();
 }
 
 void readAndPubSensors() {
@@ -165,19 +161,22 @@ void readAndPubSensors() {
     lastLdrMs = now; float rl = map(analogRead(PIN_LDR), 0, 4095, 100, 0);
     if (rl >= 0.0f && rl <= 100.0f) l = (hwLum * 0.7f) + (rl * 0.3f);
   }
-  bool moved = (fabs(t - hwTemp) >= 0.2f) || (fabs(h - hwHum) >= 0.5f) || (fabs(l - hwLum) >= 1.0f);
-  if (moved) { hwTemp = t; hwHum = h; hwLum = l; validTemp = hwTemp; validHum = hwHum; validLum = hwLum; remoteSync = false; }
+  bool physMoved = (fabs(t - hwTemp) >= 1.5f) || (fabs(h - hwHum) >= 4.0f);
+  if (physMoved) {
+    hwTemp = t; hwHum = h; hwLum = l;
+    if (!remoteSync) { validTemp = hwTemp; validHum = hwHum; validLum = hwLum; }
+  }
   if (!remoteSync) {
     String evalMode; int evalHealth;
     evaluateWineStatus(validTemp, validHum, validLum, curPreset, evalMode, evalHealth);
     applyWineStatusTransition(evalMode, evalHealth);
   }
-  if (moved || (now - lastPubMs >= 1500)) {
+  if (now - lastPubMs >= 1500) {
     lastPubMs = now;
     mqttPub("/TEF/vine001/attrs", "t|" + String(validTemp, 1) + "|h|" + String(validHum, 1) + "|l|" + String(validLum, 1));
     updateLcd();
   }
-  if (now - lastSupaMs >= 10000 || (moved && (now - lastSupaMs >= 3000))) {
+  if (now - lastSupaMs >= 10000) {
     lastSupaMs = now;
     postTelemetryToSupabase(SUPABASE_URL, SUPABASE_KEY, DEVICE_ID, validTemp, validHum, validLum, curMode, curHealth, curPreset);
   }
