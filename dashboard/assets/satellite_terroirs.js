@@ -1,6 +1,6 @@
 /**
- * Módulo de Telemetria por Satélite & Estações Meteorológicas (12 Terroirs) — Vinheria Agnello
- * Avalia cada Terroir em 3 estados: 🟢 IDEAL (95–100%) | 🔵 PADRÃO (75–94%) | 🔴 CRÍTICO (<75% · Apito).
+ * Módulo de Telemetria por Satélite & Estações Meteorológicas Globais — Vinheria Agnello
+ * Avalia o microclima WMO de cada terroir em tempo real para a maturação da casta ativa.
  */
 (function () {
   let lastClickedTerroir = null;
@@ -77,7 +77,8 @@
     const c = document.getElementById("real-vineyards-grid");
     if (!c) return;
     const act = activeId || window.curArea || "fr_margaux";
-    const activePr = (window.PRESETS && window.PRESETS[window.curPr || "tinto"]) || { name: "Vinho Tinto", badge: "🍷 TINTO", tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMax: 25 };
+    const curStyle = window.curPr || "tinto";
+    const activePr = (window.PRESETS && window.PRESETS[curStyle]) || { name: "Vinho Tinto", badge: "🍷 TINTO", tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMax: 25 };
     const curMode = window.curScadaMode || "normal";
     const handler = onSelectCallback || window.onAreaTerroirChange;
     const list = Object.values(window.TERROIRS || {}).filter(x => x.id !== "wokwi_esp32");
@@ -89,16 +90,15 @@
         const col = c.children[idx], card = col ? col.firstElementChild : null;
         if (!card) return;
         const isAct = v.id === act;
-        const isStyleMatch = v.style === (window.curPr || "tinto");
+        const producesStyle = (window.CANONICAL_LOTS || []).some(l => l.terroirId === v.id && l.style === curStyle);
         const t = v.satT !== undefined ? v.satT : v.t;
         const h = v.satH !== undefined ? v.satH : v.h;
         const l = v.satL !== undefined ? v.satL : v.l;
         const dew = calcDewPoint(t, h);
-        const targetPr = isAct ? activePr : ((window.PRESETS && window.PRESETS[v.style]) || activePr);
-        const ev = evalTerroirForWine(t, h, l, targetPr, (isAct && window.manualOverride) ? curMode : null);
+        const ev = evalTerroirForWine(t, h, l, activePr, (isAct && window.manualOverride) ? curMode : null);
         if (ev.stateKey === "ideal") idealCount++; else if (ev.stateKey === "padrao") padraoCount++; else critCount++;
 
-        card.className = ["vineyard-card h-100", isAct ? "active-vineyard border-gold" : (isStyleMatch ? "lot-style-match" : "lot-dimmed")].filter(Boolean).join(" ");
+        card.className = ["vineyard-card h-100", isAct ? "active-vineyard border-gold" : (producesStyle ? "lot-style-match" : "lot-dimmed")].filter(Boolean).join(" ");
         const tagEl = card.querySelector(".sommelier-tag");
         if (tagEl) {
           tagEl.className = `sommelier-tag ${isAct ? "sommelier-tag-active" : ""}`;
@@ -119,17 +119,19 @@
 
     c.innerHTML = list.map((v) => {
       const isAct = v.id === act;
+      const producesStyle = (window.CANONICAL_LOTS || []).some(l => l.terroirId === v.id && l.style === curStyle);
+      const matchingLot = (window.CANONICAL_LOTS || []).find(l => l.terroirId === v.id && l.style === curStyle);
       const t = v.satT !== undefined ? v.satT : v.t;
       const h = v.satH !== undefined ? v.satH : v.h;
       const l = v.satL !== undefined ? v.satL : v.l;
       const dew = calcDewPoint(t, h);
-      const targetPr = isAct ? activePr : ((window.PRESETS && window.PRESETS[v.style]) || activePr);
-      const ev = evalTerroirForWine(t, h, l, targetPr, (isAct && window.manualOverride) ? curMode : null);
+      const ev = evalTerroirForWine(t, h, l, activePr, (isAct && window.manualOverride) ? curMode : null);
       if (ev.stateKey === "ideal") idealCount++; else if (ev.stateKey === "padrao") padraoCount++; else critCount++;
 
-      const justClicked = lastClickedTerroir === v.id, isStyleMatch = v.style === (window.curPr || "tinto");
-      const cls = ["vineyard-card h-100", isAct ? "active-vineyard border-gold" : (isStyleMatch ? "lot-style-match" : "lot-dimmed"), justClicked ? "lot-click-pop" : ""].filter(Boolean).join(" ");
+      const justClicked = lastClickedTerroir === v.id;
+      const cls = ["vineyard-card h-100", isAct ? "active-vineyard border-gold" : (producesStyle ? "lot-style-match" : "lot-dimmed"), justClicked ? "lot-click-pop" : ""].filter(Boolean).join(" ");
       const timeBadge = v.local_time ? `🛰️ ${v.local_time}` : "🛰️ SAT WMO";
+      const wineSub = matchingLot ? matchingLot.wine : v.reg;
 
       return `
       <div class="col-lg-4 col-xl-3 col-md-6 col-12">
@@ -139,7 +141,7 @@
               <span class="flag-circle">${v.flag}</span>
               <div>
                 <div class="lot-wine-title text-truncate" style="font-size:0.84rem;font-weight:700;">${v.name}</div>
-                <span class="text-country" style="font-size:0.70rem;">${v.country} · ${v.reg}</span>
+                <span class="text-country text-truncate d-block" style="font-size:0.70rem;max-width:130px;">${v.country} · ${wineSub}</span>
               </div>
             </div>
             <span class="sommelier-tag ${isAct ? "sommelier-tag-active" : ""}">${isAct ? "● SELECIONADO" : timeBadge}</span>

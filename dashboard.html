@@ -52,7 +52,7 @@
                 <div class="col-sm-7 col-12"><input id="input-wine-search" type="search" class="form-control trigger-input-field" placeholder="🔍 Pesquisar vinho, vinícola ou casta..." list="wine-search-list"></div>
                 <div class="col-sm-5 col-12"><select id="dropdown-wine-preset" class="form-select trigger-input-field"><option value="tinto">🍷 Vinho Tinto</option><option value="branco">🥂 Vinho Branco</option><option value="rose">🌸 Vinho Rosé</option><option value="espumante">🍾 Espumante Brut</option><option value="pinot">🍒 Pinot Noir</option><option value="porto">🏺 Vinho do Porto</option><option value="sobremesa">🍯 Colheita Tardia</option><option value="laranja">🍊 Vinho Laranja</option></select></div>
               </div>
-              <datalist id="wine-search-list"><option value="Vinho Tinto"><option value="Vinho Branco"><option value="Vinho Rosé"><option value="Espumante Brut"><option value="Pinot Noir"><option value="Vinho do Porto"><option value="Colheita Tardia"><option value="Vinho Laranja"><option value="Château Margaux"><option value="Domaine Romanée-Conti"><option value="Taylor's Vintage Port"><option value="Château d'Yquem"><option value="Vega Sicilia"><option value="Cloudy Bay"></datalist>
+              <datalist id="wine-search-list"><option value="Vinho Tinto"><option value="Vinho Branco"><option value="Vinho Rosé"><option value="Espumante Brut"><option value="Pinot Noir"><option value="Vinho do Porto"><option value="Colheita Tardia"><option value="Vinho Laranja"><option value="Château Margaux"><option value="Marchesi Antinori"><option value="Vinícola Miolo"><option value="Cloudy Bay"><option value="Joh. Jos. Prüm"><option value="Mission Hill Estate"><option value="Grace Wine (Fuji)"><option value="Chateau Montelena"><option value="Vega Sicilia"><option value="Concha y Toro"><option value="Penfolds Magill"><option value="Kanonkop Estate"><option value="Catena Zapata"><option value="Domaine Ott"><option value="Abrau-Durso"><option value="Domaine Romanée-Conti"><option value="Taylor's Port"><option value="Château d'Yquem"><option value="Josko Gravner"><option value="Chardonnay"><option value="Sauvignon Blanc"><option value="Riesling"><option value="Cabernet Sauvignon"></datalist>
               <div id="wine-style-pills" class="mb-2"><button type="button" class="btn wine-pill-btn active" data-wine="tinto">🍷 Tinto</button><button type="button" class="btn wine-pill-btn" data-wine="branco">🥂 Branco</button><button type="button" class="btn wine-pill-btn" data-wine="rose">🌸 Rosé</button><button type="button" class="btn wine-pill-btn" data-wine="espumante">🍾 Brut</button><button type="button" class="btn wine-pill-btn" data-wine="pinot">🍒 Pinot</button><button type="button" class="btn wine-pill-btn" data-wine="porto">🏺 Porto</button><button type="button" class="btn wine-pill-btn" data-wine="sobremesa">🍯 Colheita</button><button type="button" class="btn wine-pill-btn" data-wine="laranja">🍊 Laranja</button></div>
             </div>
             <div id="preset-description-text" class="small text-muted pt-2 border-top border-secondary border-opacity-25" style="font-size:0.73rem;">Maturação de tintos encorpados (14–18°C | 60–75% UR): evolução nobre.</div>
@@ -61,7 +61,7 @@
         <div class="col-xl-3 col-lg-6 col-12">
           <div class="control-field-box">
             <div>
-              <label class="small mb-2 d-flex justify-content-between align-items-center"><span class="fw-bold text-wine">🌍 Área &amp; Terroir Global</span><span class="sommelier-tag">12 ESTAÇÕES</span></label>
+              <label class="small mb-2 d-flex justify-content-between align-items-center"><span class="fw-bold text-wine">🌍 Área &amp; Terroir Global</span><span class="sommelier-tag">15 ESTAÇÕES</span></label>
               <select id="dropdown-area-terroir" class="form-select trigger-input-field mb-2">
                 <option value="fr_margaux">🇫🇷 França — Médoc, Bordeaux</option><option value="it_antinori">🇮🇹 Itália — Toscana (Chianti)</option>
                 <option value="cl_concha">🇨🇱 Chile — Vale do Maipo</option><option value="ru_abrau">🇷🇺 Rússia — Abrau-Durso (Mar Negro)</option>
@@ -192,19 +192,19 @@
   <footer class="text-center text-muted small py-3 border-top mt-4" style="font-size:0.74rem;"><div class="mb-2">Check Point 5 — Vinheria Agnello • FIWARE STH-Comet (:8666) &amp; IoT Agent (:4041) • ESP32 Wokwi MQTT (:1883) • Firebase &amp; Supabase • Render.com</div></footer>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
   <script src="dashboard/assets/arcade_audio.js?v=20261029_sync_v2"></script>
-  <script src="dashboard/assets/wine_catalog.js?v=20261029_sync_v2"></script>
-  <script src="dashboard/assets/supabase_client.js?v=20261029_sync_v2"></script>
-  <script src="dashboard/assets/cellar_lots.js?v=20261029_sync_v2"></script>
-  <script src="dashboard/assets/ecosystem.js?v=20261029_sync_v2"></script>
-  <script src="dashboard/assets/theme.js?v=20261029_sync_v2"></script>
-  <script src="dashboard/assets/satellite_terroirs.js?v=20261029_sync_v2"></script>
-  <script src="dashboard/assets/wokwi_lcd.js?v=20261029_sync_v2"></script>
-  <script src="dashboard/assets/scada_mqtt.js?v=20261029_sync_v2"></script>
-  <script src="dashboard/assets/telegram_notifier.js?v=20261029_sync_v2"></script>
-  <script src="dashboard/assets/scada_charts.js?v=20261029_sync_v2"></script>
-  <script src="dashboard/assets/scada_dispatcher.js?v=20261029_sync_v2"></script>
-  <script src="dashboard/assets/scada_ui_controller.js?v=20261029_sync_v2"></script>
-  <script src="dashboard/assets/dashboard_scada.js?v=20261029_sync_v2"></script>
+  <script src="dashboard/assets/wine_catalog.js?v=20261029_styles_v3"></script>
+  <script src="dashboard/assets/supabase_client.js?v=20261029_styles_v3"></script>
+  <script src="dashboard/assets/cellar_lots.js?v=20261029_styles_v3"></script>
+  <script src="dashboard/assets/ecosystem.js?v=20261029_styles_v3"></script>
+  <script src="dashboard/assets/theme.js?v=20261029_styles_v3"></script>
+  <script src="dashboard/assets/satellite_terroirs.js?v=20261029_styles_v3"></script>
+  <script src="dashboard/assets/wokwi_lcd.js?v=20261029_styles_v3"></script>
+  <script src="dashboard/assets/scada_mqtt.js?v=20261029_styles_v3"></script>
+  <script src="dashboard/assets/telegram_notifier.js?v=20261029_styles_v3"></script>
+  <script src="dashboard/assets/scada_charts.js?v=20261029_styles_v3"></script>
+  <script src="dashboard/assets/scada_dispatcher.js?v=20261029_styles_v3"></script>
+  <script src="dashboard/assets/scada_ui_controller.js?v=20261029_styles_v3"></script>
+  <script src="dashboard/assets/dashboard_scada.js?v=20261029_styles_v3"></script>
   <script>
     document.getElementById("btn-telegram-alert")?.addEventListener("click", () => {
       const tr = (window.TERROIRS && window.TERROIRS[window.curArea || "fr_margaux"]) || { name: "Adega Central", country: "Brasil" };

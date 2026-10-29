@@ -9,7 +9,11 @@
     const rangeEl = document.getElementById("active-wine-banner-range");
     const stateEl = document.getElementById("active-wine-banner-state");
     if (badgeEl) badgeEl.textContent = pr.badge || "🍷 VINHO TINTO";
-    if (castaEl) castaEl.textContent = lot ? `${lot.winery} — ${lot.wine} (${lot.vintage}) · ${pr.casta || ""}` : (pr.casta || pr.desc || "");
+    if (castaEl) {
+      castaEl.textContent = lot
+        ? `${lot.winery} — ${lot.wine} (${lot.vintage}) · ${lot.casta || pr.casta || ""}`
+        : (pr.casta || pr.desc || "");
+    }
     if (rangeEl) rangeEl.textContent = `Alvo: ${pr.tMin}–${pr.tMax}°C | ${pr.hMin}–${pr.hMax}% UR | ≤${pr.lMax}% Luz`;
     if (stateEl && res) {
       const isId = res.stateKey === "ideal", isCr = res.stateKey === "critico";
@@ -34,16 +38,21 @@
   function handleWineSearch(q, { onWinePresetChange, onLotSelect }) {
     const s = (q || "").trim().toLowerCase();
     if (!s) return;
-    const lotMatch = (window.CANONICAL_LOTS || []).find(l => (l.winery + " " + l.wine + " " + l.code + " " + l.country).toLowerCase().includes(s));
+    const lotMatch = (window.CANONICAL_LOTS || []).find(l =>
+      (l.winery + " " + l.wine + " " + l.code + " " + l.country + " " + (l.casta || "")).toLowerCase().includes(s)
+    );
+    if (lotMatch) {
+      onLotSelect(lotMatch.style, lotMatch.terroirId, lotMatch.code);
+      return;
+    }
     if (s.includes("pinot") || s.includes("borg") || s.includes("roman")) onWinePresetChange("pinot");
     else if (s.includes("port") || s.includes("fortif") || s.includes("taylor")) onWinePresetChange("porto");
     else if (s.includes("colheit") || s.includes("sobrem") || s.includes("sautern") || s.includes("doce")) onWinePresetChange("sobremesa");
     else if (s.includes("laranj") || s.includes("anfor") || s.includes("ânfor") || s.includes("gravner")) onWinePresetChange("laranja");
-    else if (s.includes("branc") || s.includes("chard") || s.includes("sauv")) onWinePresetChange("branco");
+    else if (s.includes("branc") || s.includes("chard") || s.includes("sauv") || s.includes("riesl") || s.includes("koshu")) onWinePresetChange("branco");
     else if (s.includes("ros") || s.includes("prov")) onWinePresetChange("rose");
     else if (s.includes("brut") || s.includes("espum") || s.includes("champ")) onWinePresetChange("espumante");
-    else if (s.includes("tint") || s.includes("caber") || s.includes("merl") || s.includes("malb")) onWinePresetChange("tinto");
-    else if (lotMatch) onLotSelect(lotMatch.style, lotMatch.terroirId, lotMatch.code);
+    else if (s.includes("tint") || s.includes("caber") || s.includes("merl") || s.includes("malb") || s.includes("shiraz")) onWinePresetChange("tinto");
   }
 
   const STATE_META = {
@@ -52,7 +61,6 @@
     critico: { label: "CRÍTICO", tone: "danger" }
   };
 
-  // Badge do comando MQTT: rótulo acentuado e cor sempre coerentes com o estado (verde | amarelo | vermelho)
   function renderCommandBadge(stateKey, prefix, suffix = "") {
     const el = document.getElementById("mqtt-cmd-badge");
     if (!el) return;
@@ -63,7 +71,6 @@
     el.replaceChildren(dot, document.createTextNode(`${prefix}: ${label}${suffix}`));
   }
 
-  // Pílula de estado acionável por clique, Enter ou Espaço
   function bindStatePill(id, scenario, h) {
     const el = document.getElementById(id);
     if (!el) return;

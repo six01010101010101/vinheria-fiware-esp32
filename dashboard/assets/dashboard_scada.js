@@ -2,7 +2,13 @@
 (function () {
   const PRESETS = window.PRESETS || {}, TERROIRS = window.TERROIRS || {};
   let curPr = "tinto", curArea = "fr_margaux";
-  try { const s = localStorage.getItem("vinheria_preset"); if (s && PRESETS[s]) curPr = s; } catch (_) {}
+  try {
+    const urlP = new URLSearchParams(window.location.search);
+    const qP = urlP.get("preset"), qA = urlP.get("terroir");
+    if (qP && PRESETS[qP]) curPr = qP;
+    else { const s = localStorage.getItem("vinheria_preset"); if (s && PRESETS[s]) curPr = s; }
+    if (qA && TERROIRS[qA]) curArea = qA;
+  } catch (_) {}
 
   const initPreset = PRESETS[curPr] || PRESETS.tinto || { defT: 15.8, defH: 68.0, defL: 9.0, defaultLot: "LOTE-FR-MARGAUX-01", defaultTerroir: "fr_margaux" };
   if (initPreset.defaultLot) window.curLotCode = initPreset.defaultLot;
@@ -13,7 +19,9 @@
 
   const getActiveLot = () => {
     const lots = window.CANONICAL_LOTS || [];
-    return (window.curLotCode ? lots.find(x => x.code === window.curLotCode) : null) || lots.find(x => x.style === curPr) || lots[0] || null;
+    return (window.curLotCode ? lots.find(x => x.code === window.curLotCode) : null) ||
+           (window.findLotByTerroir ? window.findLotByTerroir(curArea, curPr) : null) ||
+           lots.find(x => x.style === curPr) || lots[0] || null;
   };
   const setSimBase = (t, h, l, mode = "normal") => {
     sim.baseT = sim.t = +Number(t).toFixed(1); sim.baseH = sim.h = +Number(h).toFixed(0); sim.baseL = sim.l = +Number(l).toFixed(0);
@@ -49,11 +57,21 @@
     const normKey = presetKey === "brut" ? "espumante" : presetKey;
     curPr = PRESETS[normKey] ? normKey : "tinto"; window.curPr = curPr;
     const p = PRESETS[curPr] || {};
-    if (!keepLot && p.defaultLot) {
-      window.curLotCode = p.defaultLot;
-      const defLot = getActiveLot();
-      if (defLot?.terroirId) { curArea = defLot.terroirId; window.curArea = curArea; const selT = document.getElementById("dropdown-area-terroir"); if (selT) selT.value = curArea; }
-      setSimBase(defLot ? defLot.baseT : p.defT, defLot ? defLot.baseH : p.defH, defLot ? defLot.baseL : p.defL, "normal");
+    if (!keepLot) {
+      const matchInCurArea = window.findLotByTerroir ? window.findLotByTerroir(curArea, curPr) : null;
+      if (matchInCurArea && matchInCurArea.style === curPr) {
+        window.curLotCode = matchInCurArea.code;
+      } else if (p.defaultLot) {
+        window.curLotCode = p.defaultLot;
+        const defLot = getActiveLot();
+        if (defLot?.terroirId) {
+          curArea = defLot.terroirId; window.curArea = curArea;
+          const selT = document.getElementById("dropdown-area-terroir");
+          if (selT) selT.value = curArea;
+        }
+      }
+      const actLot = getActiveLot();
+      setSimBase(actLot ? actLot.baseT : p.defT, actLot ? actLot.baseH : p.defH, actLot ? actLot.baseL : p.defL, "normal");
     }
     window.ScadaUIController?.syncPresetControls(p, curPr);
     updateHardwarePlaque(sim.t, sim.h, sim.l, userTriggered, "wine");
@@ -68,8 +86,9 @@
     const normStyle = (lot?.style || styleKey) === "brut" ? "espumante" : (lot?.style || styleKey || "tinto");
     curPr = PRESETS[normStyle] ? normStyle : "tinto"; window.curPr = curPr;
     const p = PRESETS[curPr] || {};
-    if (terroirKey && TERROIRS[terroirKey]) {
-      curArea = terroirKey; window.curArea = curArea;
+    const trKey = terroirKey || lot?.terroirId;
+    if (trKey && TERROIRS[trKey]) {
+      curArea = trKey; window.curArea = curArea;
       const selT = document.getElementById("dropdown-area-terroir");
       if (selT) selT.value = curArea;
     }
@@ -95,7 +114,8 @@
     const desc = document.getElementById("terroir-description-text");
     if (desc) desc.textContent = curArea === "wokwi_esp32" ? "Telemetria direta do hardware físico/simulado ESP32 Wokwi." : `Clima real de ${tr.country} (${tr.name} · ${tr.reg}) via satélite Open-Meteo e Supabase.`;
 
-    const matchLot = (window.CANONICAL_LOTS || []).find(l => (l.terroirId === curArea && l.style === curPr) || l.code === tr.lotCode || l.terroirId === curArea);
+    const matchLot = window.findLotByTerroir ? window.findLotByTerroir(curArea, curPr) :
+      (window.CANONICAL_LOTS || []).find(l => (l.terroirId === curArea && l.style === curPr) || l.code === tr.lotCode || l.terroirId === curArea);
     if (matchLot) { window.curLotCode = matchLot.code; if (matchLot.style && PRESETS[matchLot.style]) { curPr = matchLot.style; window.curPr = curPr; } }
     const p = PRESETS[curPr] || {};
     window.ScadaUIController?.syncPresetControls(p, curPr);
