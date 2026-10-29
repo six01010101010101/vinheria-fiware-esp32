@@ -32,8 +32,7 @@
     const cmd = stKey === "critico" ? "multi" : (stKey === "padrao" ? "padrao" : "normal");
     const tag = res?.prTag || "TINTO", sc = res?.score || 99, v = stKey === "critico" ? "CRT" : (stKey === "padrao" ? "PAD" : "OK");
 
-    const bge = document.getElementById("mqtt-cmd-badge");
-    if (bge) bge.innerHTML = `<span class="status-dot"></span>WOKWI /cmd: ${stKey.toUpperCase()} (${tag} · ${sc}%)`;
+    window.ScadaUIController?.renderCommandBadge(stKey, "WOKWI /cmd", ` (${tag} · ${sc}%)`);
     document.querySelectorAll(".sc-btn").forEach(b => b.classList.toggle("active", b.dataset.sc === cmd));
 
     window.ScadaMQTT?.publishState?.({ t, h, l, cmd, stateKey: stKey, score: sc, verdict: v, tag });

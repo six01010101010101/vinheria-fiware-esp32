@@ -46,6 +46,35 @@
     else if (lotMatch) onLotSelect(lotMatch.style, lotMatch.terroirId, lotMatch.code);
   }
 
+  const STATE_META = {
+    ideal: { label: "IDEAL", tone: "success" },
+    padrao: { label: "PADRÃO", tone: "warning" },
+    critico: { label: "CRÍTICO", tone: "danger" }
+  };
+
+  // Badge do comando MQTT: rótulo acentuado e cor sempre coerentes com o estado (verde | amarelo | vermelho)
+  function renderCommandBadge(stateKey, prefix, suffix = "") {
+    const el = document.getElementById("mqtt-cmd-badge");
+    if (!el) return;
+    const { label, tone } = STATE_META[stateKey] || STATE_META.ideal;
+    el.className = `badge bg-${tone} bg-opacity-25 text-${tone} border border-${tone} border-opacity-50 font-monospace`;
+    const dot = document.createElement("span");
+    dot.className = "status-dot";
+    el.replaceChildren(dot, document.createTextNode(`${prefix}: ${label}${suffix}`));
+  }
+
+  // Pílula de estado acionável por clique, Enter ou Espaço
+  function bindStatePill(id, scenario, h) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("click", () => h.applyScenario(scenario));
+    el.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      e.preventDefault();
+      h.applyScenario(scenario);
+    });
+  }
+
   function bindScadaEvents(h) {
     document.getElementById("input-wine-search")?.addEventListener("input", e => handleWineSearch(e.target.value, h));
     document.getElementById("dropdown-wine-preset")?.addEventListener("change", e => h.onWinePresetChange(e.target.value));
@@ -55,9 +84,9 @@
     });
     document.querySelectorAll(".wine-pill-btn").forEach(b => b.addEventListener("click", () => h.onWinePresetChange(b.dataset.wine)));
     document.querySelectorAll(".sc-btn").forEach(b => b.addEventListener("click", () => h.applyScenario(b.dataset.sc)));
-    document.getElementById("led-state-ideal")?.addEventListener("click", () => h.applyScenario("normal"));
-    document.getElementById("led-state-padrao")?.addEventListener("click", () => h.applyScenario("padrao"));
-    document.getElementById("led-state-critico")?.addEventListener("click", () => h.applyScenario("multi"));
+    bindStatePill("led-state-ideal", "normal", h);
+    bindStatePill("led-state-padrao", "padrao", h);
+    bindStatePill("led-state-critico", "multi", h);
     window.addEventListener("themeChanged", () => h.onThemeChanged());
   }
 
@@ -74,6 +103,7 @@
     syncPresetControls,
     handleWineSearch,
     readThresholdInputs,
+    renderCommandBadge,
     bindScadaEvents
   };
 })(typeof window !== "undefined" ? window : globalThis);

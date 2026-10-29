@@ -11,26 +11,37 @@
     return +((237.7 * a) / (17.27 - a)).toFixed(1);
   }
 
-  function evalTerroirForWine(t, h, l, pr, modeOverride) {
-    const p = pr || { name: "Vinho Tinto", tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMax: 25 };
-    let pen = 0;
-    if (t < p.tMin) pen += (p.tMin - t) * 7.5;
-    else if (t > p.tMax) pen += (t - p.tMax) * 7.5;
-    if (h < p.hMin) pen += (p.hMin - h) * 1.6;
-    else if (h > p.hMax) pen += (h - p.hMax) * 1.6;
-    if (l > p.lMax) pen += (l - p.lMax) * 1.3;
-    const tMid = (p.tMin + p.tMax) / 2, hMid = (p.hMin + p.hMax) / 2;
-    const edge = (Math.abs(t - tMid) / Math.max(1, (p.tMax - p.tMin) / 2)) * 2.5 +
-                 (Math.abs(h - hMid) / Math.max(1, (p.hMax - p.hMin) / 2)) * 1.8;
-    let score = pen === 0 ? Math.max(95, Math.min(100, Math.round(100 - edge))) : Math.max(15, Math.min(94, Math.round(100 - pen)));
-
-    if (modeOverride === "multi" || modeOverride === "critico") {
-      score = Math.min(score, 62);
-    } else if (modeOverride === "padrao" && (score >= 95 || score < 75)) {
-      score = 78;
+  function getViticultureLimits(styleKey) {
+    const k = (styleKey || "").toLowerCase();
+    if (k.includes("branco") || k.includes("espumante") || k.includes("sobremesa")) {
+      return { tMin: 8, tMax: 23, tOptMin: 11, tOptMax: 20 };
     }
+    if (k.includes("rose") || k.includes("pinot") || k.includes("laranja")) {
+      return { tMin: 10, tMax: 25, tOptMin: 13, tOptMax: 22 };
+    }
+    return { tMin: 12, tMax: 27, tOptMin: 15, tOptMax: 24 };
+  }
 
-    const wShort = (p.name || "Tinto").replace("Espumante ", "");
+  function evalTerroirForWine(t, h, l, pr, modeOverride) {
+    const styleKey = pr?.key || pr?.style || (typeof pr === "string" ? pr : "tinto");
+    const lim = getViticultureLimits(styleKey);
+    let pen = 0;
+    if (t < lim.tOptMin) {
+      if (t >= lim.tMin) pen += (lim.tOptMin - t) * 2.0;
+      else pen += (lim.tOptMin - lim.tMin) * 2.0 + (lim.tMin - t) * 7.0;
+    } else if (t > lim.tOptMax) {
+      if (t <= lim.tMax) pen += (t - lim.tOptMax) * 2.0;
+      else pen += (lim.tMax - lim.tOptMax) * 2.0 + (t - lim.tMax) * 7.0;
+    }
+    if (h < 40) pen += (40 - h) * 0.9;
+    else if (h > 80) pen += (h - 80) * 0.9;
+    if (t > 34 && l > 90) pen += (l - 90) * 1.5;
+
+    let score = Math.max(15, Math.min(100, Math.round(100 - pen)));
+    if (modeOverride === "critico") score = Math.min(score, 62);
+    else if (modeOverride === "padrao" && (score >= 95 || score < 75)) score = 78;
+
+    const wShort = (pr?.name || "Tinto").replace("Espumante ", "");
     if (score >= 95) return { score, stateKey: "ideal", txt: `🟢 IDEAL (${wShort})`, cls: "text-success", bar: "bg-success" };
     if (score >= 75) return { score, stateKey: "padrao", txt: `🟡 PADRÃO (${wShort})`, cls: "text-warning", bar: "bg-warning" };
     return { score, stateKey: "critico", txt: `🔴 CRÍTICO p/ ${wShort}`, cls: "text-danger", bar: "bg-danger" };
@@ -87,7 +98,7 @@
         const l = (isAct && typeof liveLum === "number" && window.manualOverride) ? liveLum : (v.satL !== undefined ? v.satL : v.l);
         const dew = calcDewPoint(t, h);
         const targetPr = isAct ? activePr : ((window.PRESETS && window.PRESETS[v.style]) || activePr);
-        const ev = evalTerroirForWine(t, h, l, targetPr, isAct ? curMode : null);
+        const ev = evalTerroirForWine(t, h, l, targetPr, (isAct && window.manualOverride) ? curMode : null);
         if (ev.stateKey === "ideal") idealCount++; else if (ev.stateKey === "padrao") padraoCount++; else critCount++;
 
         const tEl = card.querySelector(".text-temp"), hEl = card.querySelector(".text-hum"), lEl = card.querySelector(".text-lum"), dEl = card.querySelector(".text-dew");
@@ -109,7 +120,7 @@
       const l = (isAct && typeof liveLum === "number" && window.manualOverride) ? liveLum : (v.satL !== undefined ? v.satL : v.l);
       const dew = calcDewPoint(t, h);
       const targetPr = isAct ? activePr : ((window.PRESETS && window.PRESETS[v.style]) || activePr);
-      const ev = evalTerroirForWine(t, h, l, targetPr, isAct ? curMode : null);
+      const ev = evalTerroirForWine(t, h, l, targetPr, (isAct && window.manualOverride) ? curMode : null);
       if (ev.stateKey === "ideal") idealCount++; else if (ev.stateKey === "padrao") padraoCount++; else critCount++;
 
       const justClicked = lastClickedTerroir === v.id, isStyleMatch = v.style === (window.curPr || "tinto");
@@ -183,4 +194,5 @@
   window.fetchSatelliteData = fetchSatelliteData;
   window.startSatelliteLiveLoop = startSatelliteLiveLoop;
   window.calcDewPoint = calcDewPoint;
+  window.evalTerroirForWine = evalTerroirForWine;
 })();

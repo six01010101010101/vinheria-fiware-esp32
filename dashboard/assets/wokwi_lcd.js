@@ -100,12 +100,12 @@
       crtApogee.className = isIdeal ? "text-success fw-bold" : (isCrit ? "text-danger fw-bold" : "text-warning fw-bold");
     }
 
-    const stIdealEl = document.getElementById("led-state-ideal");
-    const stPadraoEl = document.getElementById("led-state-padrao");
-    const stCritEl = document.getElementById("led-state-critico");
-    if (stIdealEl) stIdealEl.className = `led-state-pill ${isIdeal ? "active-ideal" : ""}`;
-    if (stPadraoEl) stPadraoEl.className = `led-state-pill ${isPadrao ? "active-padrao" : ""}`;
-    if (stCritEl) stCritEl.className = `led-state-pill ${isCrit ? "active-critico" : ""}`;
+    [["led-state-ideal", isIdeal, "active-ideal"], ["led-state-padrao", isPadrao, "active-padrao"], ["led-state-critico", isCrit, "active-critico"]].forEach(([elId, on, activeCls]) => {
+      const pill = document.getElementById(elId);
+      if (!pill) return;
+      pill.className = on ? `led-state-pill ${activeCls}` : "led-state-pill";
+      pill.setAttribute("aria-pressed", String(on));
+    });
 
     const ledG = document.getElementById("led-green"), ledR = document.getElementById("led-red"), ledB = document.getElementById("led-yellow") || document.getElementById("led-blue");
     const lblG = document.getElementById("led-green-lbl"), lblR = document.getElementById("led-red-lbl"), lblB = document.getElementById("led-yellow-lbl") || document.getElementById("led-blue-lbl");

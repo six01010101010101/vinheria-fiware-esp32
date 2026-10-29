@@ -88,8 +88,8 @@ async function dispatchLiveWineReport(options = {}) {
       const hum = cur.relative_humidity_2m !== undefined ? Math.round(Number(cur.relative_humidity_2m)) : 68;
 
       let tag = '🟢 Ideal';
-      if (temp < t.tMin - 3 || temp > t.tMax + 3) { tag = '🔴 Crítico'; critCount++; }
-      else if (temp < t.tMin || temp > t.tMax || hum < t.hMin || hum > t.hMax) { tag = '🟡 Padrão'; padCount++; }
+      if (temp < 6 || temp > 33) { tag = '🔴 Crítico'; critCount++; }
+      else if (temp < 11 || temp > 28 || hum < 35 || hum > 85) { tag = '🟡 Padrão'; padCount++; }
       else { idlCount++; }
 
       supaRows.push({

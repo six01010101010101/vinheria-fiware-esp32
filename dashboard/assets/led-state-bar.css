@@ -1,0 +1,54 @@
+/* ==========================================================================
+   BARRA DE ESTADOS DO PAINEL LED WOKWI — 🟢 IDEAL | 🟡 PADRÃO | 🔴 CRÍTICO
+   Responsabilidade única: layout, cores, foco e animação dos 3 estados,
+   rodapé de LEDs físicos e ponto pulsante dos badges de status.
+   Contrato com o JS (inalterado): ids led-state-* e classes active-ideal /
+   active-padrao / active-critico aplicadas por WokwiLCD.renderWokwiTwin.
+   ========================================================================== */
+
+/* Grade de 3 colunas iguais: minmax(0,1fr) impede que o conteúdo estique as colunas */
+.grid-3-states { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+
+/* Pílula: sempre 2 linhas fixas (nome + faixa), então a altura nunca muda entre estados */
+.led-state-pill {
+  --pill-tone: #94a3b8;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  min-width: 0; min-height: 46px; padding: 6px 8px;
+  text-align: center; line-height: 1.2; cursor: pointer; user-select: none;
+  border: 1px solid var(--border-subtle); border-radius: 10px;
+  background: var(--bg-subbox); color: var(--text-muted);
+  transition: background-color .2s ease, border-color .2s ease, color .2s ease, box-shadow .2s ease;
+}
+#led-state-ideal { --pill-tone: #22c55e; }
+#led-state-padrao { --pill-tone: #f59e0b; }
+#led-state-critico { --pill-tone: #e11d48; }
+
+.led-state-name { font-size: .70rem; font-weight: 800; letter-spacing: .02em; white-space: nowrap; }
+.led-state-range { font-family: var(--font-mono, "JetBrains Mono", monospace); font-size: .60rem; font-weight: 600; opacity: .85; white-space: nowrap; }
+
+.led-state-pill:hover { border-color: var(--pill-tone); }
+.led-state-pill:focus-visible { outline: 2px solid var(--pill-tone); outline-offset: 2px; }
+
+/* Estados ativos: o cyber-cellar mantém a superfície escura em ambos os temas, então as cores são sempre as claras */
+.led-state-pill.active-ideal { background: rgba(34, 197, 94, .16); color: #4ade80; border-color: #22c55e; }
+.led-state-pill.active-padrao { background: rgba(245, 158, 11, .18); color: #fbbf24; border-color: #f59e0b; }
+.led-state-pill.active-critico { background: rgba(225, 29, 72, .22); color: #fda4af; border-color: #f43f5e; animation: ledStateCriticoPulse .9s infinite ease-in-out; }
+
+/* Pulso do crítico: anima só fundo translúcido e brilho, então o texto nunca perde contraste */
+@keyframes ledStateCriticoPulse {
+  0%, 100% { background-color: rgba(225, 29, 72, .22); box-shadow: 0 0 0 0 rgba(225, 29, 72, .45); }
+  50% { background-color: rgba(225, 29, 72, .36); box-shadow: 0 0 14px 2px rgba(225, 29, 72, .55); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .led-state-pill.active-critico { animation: none; box-shadow: 0 0 10px rgba(225, 29, 72, .5); }
+}
+
+/* Rodapé de LEDs físicos (D5 / D2 / D18 / buzzer): grade 2x2 sem quebra de rótulo no meio */
+.led-hw-status { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 10px; align-items: center; }
+.led-hw-status > div { min-width: 0; }
+.led-hw-status small { line-height: 1.25; }
+.led-hw-status .led-indicator { flex: 0 0 12px; }
+
+/* Ponto pulsante dos badges: era um <span> inline (largura/altura ignoradas, ponto invisível) e sempre verde.
+   Agora é inline-block e acompanha a cor do estado. */
+.badge .status-dot { display: inline-block; flex: none; vertical-align: middle; background-color: currentColor; }

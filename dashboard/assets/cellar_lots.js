@@ -67,7 +67,8 @@
         lot.liveL = Math.max(0, Math.min(100, Math.round(lot.baseL)));
 
         const t = isSelected ? tAct : lot.liveT, h = isSelected ? hAct : lot.liveH, l = isSelected ? lAct : lot.liveL;
-        const ev = evaluateLotPreservation(lot, t, h, l, isSelected && activePreset ? activePreset : ((window.PRESETS && window.PRESETS[lot.style]) || null), isSelected ? curMode : null);
+        const lotPreset = (activePreset && (activePreset.key === lot.style || activePreset.style === lot.style)) ? activePreset : ((window.PRESETS && window.PRESETS[lot.style]) || null);
+        const ev = evaluateLotPreservation(lot, t, h, l, lotPreset, (isSelected && window.manualOverride) ? curMode : null);
         if (ev.stateKey === "ideal") idealCount++; else if (ev.stateKey === "padrao") padraoCount++; else critCount++;
 
         const tEl = card.querySelector(".text-temp"), hEl = card.querySelector(".text-hum"), lEl = card.querySelector(".text-lum");
@@ -91,7 +92,8 @@
       lot.liveL = Math.max(0, Math.min(100, Math.round(lot.baseL)));
 
       const t = isSelected ? tAct : lot.liveT, h = isSelected ? hAct : lot.liveH, l = isSelected ? lAct : lot.liveL;
-      const ev = evaluateLotPreservation(lot, t, h, l, isSelected && activePreset ? activePreset : ((window.PRESETS && window.PRESETS[lot.style]) || null), isSelected ? curMode : null);
+      const lotPreset = (activePreset && (activePreset.key === lot.style || activePreset.style === lot.style)) ? activePreset : ((window.PRESETS && window.PRESETS[lot.style]) || null);
+      const ev = evaluateLotPreservation(lot, t, h, l, lotPreset, (isSelected && window.manualOverride) ? curMode : null);
       if (ev.stateKey === "ideal") idealCount++; else if (ev.stateKey === "padrao") padraoCount++; else critCount++;
 
       const justClicked = lastClickedLotCode === lot.code;

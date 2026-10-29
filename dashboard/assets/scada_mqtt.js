@@ -78,11 +78,9 @@
         const topic = m.destinationName || "";
         const raw = m.payloadString || "";
         if (topic.endsWith("/cmdexe")) {
-          const bge = document.getElementById("mqtt-cmd-badge");
-          if (bge && lastState) {
-            const stLbl = (lastState.stateKey || lastState.cmd || "IDEAL").toUpperCase();
+          if (lastState) {
             const tgLbl = (lastState.tag || "TINTO").toUpperCase();
-            bge.innerHTML = `<span class="status-dot"></span>WOKWI SINCRONIZADO: ${stLbl} (${tgLbl})`;
+            window.ScadaUIController?.renderCommandBadge(lastState.stateKey, "WOKWI SINCRONIZADO", ` (${tgLbl})`);
           }
           return;
         }

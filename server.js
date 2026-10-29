@@ -42,15 +42,24 @@ const MIME_TYPES = {
   '.txt': 'text/plain; charset=utf-8'
 };
 
+let lastTelegramAlertTime = 0;
+
 const server = http.createServer((req, res) => {
   let cleanUrl = decodeURI(req.url.split('?')[0]);
 
-  // Endpoint API Telegram
+  // Endpoint API Telegram com Anti-Flood 25s
   if (cleanUrl === '/api/v1/telegram/alert' && req.method === 'POST') {
     let body = '';
     req.on('data', chunk => { body += chunk; });
     req.on('end', () => {
       try {
+        const now = Date.now();
+        if (now - lastTelegramAlertTime < 25000) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ ok: true, throttled: true, message: 'Alerta registrado (anti-flood ativo)' }));
+          return;
+        }
+        lastTelegramAlertTime = now;
         const data = JSON.parse(body || '{}');
         const env = loadEnvCredentials();
         const isCrit = data.state_key === 'critico';

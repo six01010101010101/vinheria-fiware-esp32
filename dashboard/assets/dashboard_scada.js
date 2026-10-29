@@ -106,9 +106,8 @@
     let targetMode = "normal";
 
     if (curArea !== "wokwi_esp32") {
-      let dev = (realT < p.tMin || realT > p.tMax ? 1 : 0) + (realH < p.hMin || realH > p.hMax ? 1 : 0) + (realL > p.lMax ? 1 : 0);
-      if (dev >= 2 || realT > (p.tMax + 4.0) || realT < (p.tMin - 4.0)) targetMode = "critico";
-      else if (dev === 1) targetMode = "padrao";
+      const ev = window.evalTerroirForWine ? window.evalTerroirForWine(realT, realH, realL, p) : { stateKey: "ideal" };
+      targetMode = ev.stateKey === "critico" ? "critico" : (ev.stateKey === "padrao" ? "padrao" : "normal");
       setSimBase(realT, realH, realL, targetMode);
     } else {
       const vals = window.ScadaDispatcher?.getScenarioValues("normal", curPr, PRESETS) || [15.8, 68, 9];
