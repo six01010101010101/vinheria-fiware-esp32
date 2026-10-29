@@ -4,20 +4,29 @@
 
 ![FIAP](https://img.shields.io/badge/FIAP-Engenharia%20de%20Software%20%26%20IoT-be123c?style=for-the-badge)
 ![Autores](https://img.shields.io/badge/Autores-Ken%20Kobayashi%20%7C%20Nicolly%20Vilela-e2b86b?style=for-the-badge&logo=github)
-![ESP32](https://img.shields.io/badge/Hardware-ESP32%20%7C%20DHT22%20%7C%20LDR%20%7C%20LCD%2016x2-00979D?style=for-the-badge&logo=arduino)
-![FIWARE](https://img.shields.io/badge/Middleware-FIWARE%20Orion%20%2B%20MQTT%20UltraLight%202.0-2496ED?style=for-the-badge&logo=docker)
-![Python](https://img.shields.io/badge/Backend-Python%203.11%2B%20%7C%20Node.js%20%26%20REST%20API%20v1-3776AB?style=for-the-badge&logo=python)
-![Tests](https://img.shields.io/badge/TDD%20Pytest-31%2F31%20Passing-10b981?style=for-the-badge&logo=pytest)
+![ESP32](https://img.shields.io/badge/Hardware-ESP32%20%7C%20DHT22%20%7C%20LDR%20%7C%20LCD%2016x2%20%7C%20Buzzer%20D4-00979D?style=for-the-badge&logo=espressif)
+![FIWARE](https://img.shields.io/badge/Middleware-FIWARE%20Orion%20%2B%20IoT%20Agent%20MQTT-2496ED?style=for-the-badge&logo=docker)
+![Supabase](https://img.shields.io/badge/Database-Supabase%20PostgreSQL%2017-3ECF8E?style=for-the-badge&logo=supabase)
+![Telegram](https://img.shields.io/badge/Telegram-@vinheria__agnello__bot%20(5%20min)-26A5E4?style=for-the-badge&logo=telegram)
+![Python](https://img.shields.io/badge/Backend-Python%203.11%2B%20%7C%20Node.js%2020%2B-3776AB?style=for-the-badge&logo=python)
+![Tests](https://img.shields.io/badge/TDD%20Pytest-31%2F31%20Passing%20(100%25)-10b981?style=for-the-badge&logo=pytest)
 
-**Sistema Cyber-Físico de Monitoramento de Precisão para Cavas Subterrâneas, Estilos de Vinho e Terroirs Globais em Tempo Real**
+**Sistema Cyber-Físico de Monitoramento de Precisão para Cavas Subterrâneas, Estilos de Vinho e Terroirs Globais via Satélite com Alarme Acústico Wokwi e Transmissão Telegram**
 
-[🚀 Simulador Wokwi (ESP32 Ao Vivo)](https://wokwi.com/projects/478106752109243393) •
-[🌐 Deploy na Nuvem (Render)](https://checkpoint5-vinheria-fiware-esp32-1.onrender.com/) •
-[💻 Repositório GitHub](https://github.com/six01010101010101/vinheria-fiware-esp32) •
-[🏺 Portal Barril 3D (`index.html`)](./index.html) •
-[📊 Dashboard SCADA (`dashboard.html`)](./dashboard.html) •
-[⚡ API Status (`status`)](./api/v1/status/index.html) •
-[📖 Manual de Operação](./docs/MANUAL_INSTALACAO_E_OPERACAO.md)
+---
+
+### 🌐 Acesso Rápido e Links Oficiais
+
+| Recurso Oficial | Link de Acesso | Descrição |
+| :--- | :--- | :--- |
+| **🚀 Simulador Wokwi (Ao Vivo)** | [Abrir no Wokwi](https://wokwi.com/projects/478106752109243393) | ESP32 + DHT22 + LDR + LCD 16x2 I2C + 3 LEDs + Buzzer no GPIO 4 |
+| **☁️ Deploy na Nuvem (Render)** | [Acessar no Render](https://checkpoint5-vinheria-fiware-esp32-1.onrender.com/) | Aplicação em produção em nuvem contínua |
+| **💻 Repositório GitHub** | [GitHub Oficial](https://github.com/six01010101010101/vinheria-fiware-esp32) | Código-fonte versionado com arquitetura modular |
+| **📊 Dashboard SCADA Web** | [`dashboard.html`](./dashboard.html) | Painel de controle em tempo real dos 15 terroirs e cavas |
+| **🏺 Portal Barril 3D Interativo** | [`index.html`](./index.html) | Gêmeo digital 3D do barril de carvalho com tampa LCD |
+| **🤖 Bot do Telegram** | `@vinheria_agnello_bot` | Notificações a cada 5 min e alertas críticos no grupo `Admin Vinheira` |
+| **🗄️ Banco de Dados** | Supabase PostgreSQL 17 | Tabelas de telemetria, cavas, terroirs e logs de anomalias |
+| **📖 Manual de Operação** | [`MANUAL_INSTALACAO_E_OPERACAO.md`](./docs/MANUAL_INSTALACAO_E_OPERACAO.md) | Guia passo a passo para bancada física e simulação |
 
 </div>
 
@@ -30,300 +39,479 @@
 3. [Design Físico: Barril 3D e Tampa com Display LCD 16x2](#-3-design-físico-barril-3d-e-tampa-com-display-lcd-16x2)
 4. [Arquitetura Cyber-Física e Fluxo Bidirecional (`< 20ms`)](#️-4-arquitetura-cyber-física-e-fluxo-bidirecional--20ms)
 5. [Hardware Embarcado (ESP32 DevKit V1) e Pinout Oficial](#-5-hardware-embarcado-esp32-devkit-v1-e-pinout-oficial)
-6. [Matriz de Diagnóstico LED (3 Estados) e Alarmes Sonoros](#-6-matriz-de-diagnóstico-led-3-estados-e-alarmes-sonoros)
-7. [Catálogo Enológico: 8 Estilos de Vinho, 15 Lotes e 15 Terroirs WMO](#-7-catálogo-enológico-8-estilos-de-vinho-15-lotes-e-15-terroirs-wmo)
-8. [API REST v1, Persistência Cloud e Protocolo MQTT UltraLight 2.0](#-8-api-rest-v1-persistência-cloud-e-protocolo-mqtt-ultralight-20)
-9. [Estrutura Modular do Repositório](#️-9-estrutura-modular-do-repositório)
-10. [Como Executar, Simular e Testar o Projeto (Passo a Passo)](#-10-como-executar-simular-e-testar-o-projeto-passo-a-passo)
+6. [Matriz de Diagnóstico dos 3 Estados e Acionamento do Buzzer (`GPIO 4`)](#-6-matriz-de-diagnóstico-dos-3-estados-e-acionamento-do-buzzer-gpio-4)
+7. [Catálogo Enológico: 8 Estilos de Vinho, 15 Lotes de Cava e 15 Terroirs WMO](#-7-catálogo-enológico-8-estilos-de-vinho-15-lotes-de-cava-e-15-terroirs-wmo)
+8. [Integração e Notificações em Tempo Real no Telegram (@vinheria_agnello_bot)](#-8-integração-e-notificações-em-tempo-real-no-telegram-vinheria_agnello_bot)
+9. [Banco de Dados Relacional em Nuvem: Supabase PostgreSQL 17](#️-9-banco-de-dados-relacional-em-nuvem-supabase-postgresql-17)
+10. [API REST v1, Especificação OpenAPI 3.1 e Protocolo MQTT](#-10-api-rest-v1-especificação-openapi-31-e-protocolo-mqtt)
+11. [Estrutura Modular do Repositório](#️-11-estrutura-modular-do-repositório)
+12. [Como Executar, Simular e Testar o Projeto (Passo a Passo)](#-12-como-executar-simular-e-testar-o-projeto-passo-a-passo)
 
 ---
 
 ## 👩‍🎓 1. Identificação Acadêmica e Requisitos Atendidos
 
-| Aluno(a) | GitHub | Instituição / Disciplina | Escopo Desenvolvido |
+| Integrante | Perfil GitHub | Instituição & Curso | Responsabilidade Técnica Principal |
 | :--- | :---: | :--- | :--- |
-| **Ken Kobayashi** | [`@six01010101010101`](https://github.com/six01010101010101) | **FIAP** — *Edge Computing, IoT & Sistemas Distribuídos* | Arquitetura Full-Stack, Firmware C++ ESP32 ([`sketch.ino`](./sketch.ino)), Sincronismo Supabase/Telegram, Modelagem 3D, Servidor Local e SCADA |
-| **Nicolly Vilela** | [`@ninixzzs`](https://github.com/ninixzzs) | **FIAP** — *Edge Computing, IoT & Sistemas Distribuídos* | Arquitetura IoT, Testes Automatizados TDD (31/31), Integração Mecânica em Barril 3D, Portal Barril 3D e APIs REST v1 |
+| **Ken Kobayashi** | [`@six01010101010101`](https://github.com/six01010101010101) | **FIAP** — *Engenharia de Software & IoT* | Arquitetura Full-Stack, Firmware C++ ESP32 ([`sketch.ino`](./sketch.ino)), Acionamento Sonoro Buzzer D4, Integração Telegram Bot, Banco Supabase PostgreSQL 17 e Servidor Local SCADA |
+| **Nicolly Vilela** | [`@ninixzzs`](https://github.com/ninixzzs) | **FIAP** — *Engenharia de Software & IoT* | Arquitetura IoT, Suíte de Testes TDD Pytest (31/31), Modelagem 3D do Barril de Carvalho, Integração Mecânica Tampa LCD e Endpoints REST v1 |
 
-### Checklist de Entregáveis (Critérios de Avaliação CP5)
-- [x] **Hardware ESP32 + Sensores + Atuadores (Wokwi & Hands-On)**: Leitura contínua de Temperatura e Umidade (**DHT22/DHT11** no `GPIO 15`), Luminosidade (**LDR** no `GPIO 34` via `ADC1`), visor **LCD 16x2 I2C (`0x27`)**, **3 LEDs de diagnóstico** (`GPIO 5`, `GPIO 2`, `GPIO 18`) e **Buzzer PWM** (`GPIO 4`).
-- [x] **Integração FIWARE & MQTT (UltraLight 2.0)**: Publicação periódica no tópico `/TEF/vine001/attrs` (`t|...|h|...|l|...`) e subscrição de comandos remotos em `/TEF/vine001/cmd`, com provisionamento automático no **IoT Agent (`:4041`)**, **Orion Context Broker (`:1026`)** e **STH-Comet (`:8666`)**.
-- [x] **Dashboard Dinâmico & Séries Temporais**: Gráficos em tempo real de Temperatura (`°C`), Umidade (`%`) e Luminosidade (`%`), com seleção histórica (`lastN`), suporte a temas **Claro**, **Escuro** e **Sistema**, e renderização vetorial SVG de latência zero.
-- [x] **Sistema de Triggers e Alerta Remoto Bidirecional**: Definição manual ou automática de limites mínimos e máximos; quando violados, o Dashboard dispara um comando imediato que aciona os LEDs e o Buzzer do ESP32 com padrões sonoros distintos por anomalia.
-- [x] **Diferencial Enológico & Cloud-Native**: Presets inteligentes para **8 estilos de vinho**, auditoria de **15 lotes de cavas subterrâneas**, telemetria meteorológica via satélite de **15 vinícolas globais (Open-Meteo WMO: França, Itália, Brasil, EUA, Canadá, Austrália, Japão, etc.)**, espelhamento em nuvem (**Supabase PostgreSQL 17 + Firebase**), bot **Telegram @vinheria_agnello_bot (Grupo Admin Vinheira a cada 5 min)** e **31 testes unitários/integração automatizados (`pytest`)**.
+### 📋 Checklist de Critérios de Avaliação (Check Point 5)
+
+- [x] **Hardware Embarcado ESP32 (Wokwi & Bancada Física)**: Leitura de Temperatura e Umidade com sensor digital **DHT22/DHT11** (`GPIO 15`), Luminosidade via **LDR** com divisor de tensão (`GPIO 34` no canal `ADC1_CH6` para evitar interferência de Wi-Fi), display alfanumérico **LCD 16x2 I2C** (`0x27`), **3 LEDs de diagnóstico** (`GPIO 5`, `GPIO 2`, `GPIO 18`) e **Buzzer piezoelétrico PWM** (`GPIO 4`).
+- [x] **Comunicação MQTT & FIWARE (UltraLight 2.0)**: Publicação periódica de telemetria no tópico `/TEF/vine001/attrs` (`t|...|h|...|l|...`) e subscrição de comandos no tópico `/TEF/vine001/cmd`, integrado ao ecossistema FIWARE (**IoT Agent**, **Orion Context Broker** e **STH-Comet**).
+- [x] **Dashboard SCADA & Métricas em Tempo Real**: Painel com visualização de séries temporais históricas, cálculo automático de ponto de orvalho, seleção de temas (Claro/Escuro), filtros por estilo de vinho e barras de percentual de saúde operacionais com cores padronizadas: 🟢 **Verde (Ideal)**, 🟡 **Amarelo (Padrão)** e 🔴 **Vermelho (Crítico)**.
+- [x] **Atuação Sonora e Luminosa Bidirecional**: Quando o ambiente atinge o estado **CRÍTICO**, o Dashboard SCADA e o backend disparam um comando remoto que aciona o **Buzzer** (`GPIO 4`) no Wokwi e na bancada física para apitar em padrões sonoros contínuos de emergência acompanhado do LED Vermelho (`GPIO 18`).
+- [x] **Telemetria de Satélite dos 15 Terroirs Mundiais (Open-Meteo WMO)**: Coleta climática ao vivo das regiões vinícolas mais consagradas do planeta: França, Itália, Chile, Rússia, Portugal, Estados Unidos, Alemanha, Espanha, Nova Zelândia, África do Sul, Brasil, Argentina, Canadá, Austrália e Japão.
+- [x] **Disparo Periódico e Alertas no Telegram**: Integração com o bot oficial **`@vinheria_agnello_bot`**, enviando boletins consolidados a cada **5 minutos** para o grupo **`Admin Vinheira`** (ID: `-5001665013`) e despachos imediatos quando qualquer cava entrar em estado de risco.
+- [x] **Persistência Relacional em Nuvem (Supabase PostgreSQL 17)**: Armazenamento persistente de todas as leituras, lotes, terroirs e histórico de anomalias no cluster Supabase em São Paulo (`sa-east-1`).
+- [x] **Qualidade de Software & TDD**: Suíte completa de **31 testes automatizados (`pytest`)** cobrindo modelos de domínio, triggers, repositórios e endpoints de API.
 
 ---
 
 ## 🎯 2. Contextualização do Problema e Modelagem Enológica
 
-A **Vinheria Agnello** armazena rótulos de guarda cuja integridade físico-química depende do controle rigoroso de três variáveis ambientais:
+A preservação de rótulos de vinhos de alta gama requer estabilidade ambiental contínua. Pequenas oscilações afetam diretamente a evolução bioquímica do líquido e a vedação mecânica da garrafa:
 
-1. **Temperatura (`°C`)**: Temperaturas elevadas (`> 18°C`) aceleram reações de oxidação fenólica e evaporação hidroalcoólica; temperaturas muito baixas provocam precipitação tartárica e endurecimento da cortiça.
-2. **Umidade Relativa (`% UR`)**: Baixa umidade (`< 60%`) resseca a rolha de cortiça, permitindo micro-oxigenação excessiva e acetificação do vinho; umidade excessiva (`> 80%`) favorece proliferação fúngica e degradação de rótulos.
-3. **Luminosidade (`% / Lux`)**: A radiação visível e ultravioleta fotoativa a riboflavina do vinho, oxidando aminoácidos sulfurados e gerando o defeito organoléptico conhecido como *gout de lumière* ("gosto de luz"), crítico especialmente em brancos, rosés e espumantes.
+```
+                  ┌────────────────────────────────────────────────────────┐
+                  │          TRIPÉ DA CONSERVAÇÃO ENOLÓGICA                │
+                  └──────────────────────────┬─────────────────────────────┘
+                                             │
+            ┌────────────────────────────────┼────────────────────────────────┐
+            ▼                                ▼                                ▼
+    ┌───────────────┐                ┌───────────────┐                ┌───────────────┐
+    │  TEMPERATURA  │                │    UMIDADE    │                │  LUMINOSIDADE │
+    │   (12°–18°C)  │                │   (60%–75%)   │                │   (<= 15%)    │
+    └───────┬───────┘                └───────┬───────┘                └───────┬───────┘
+            │                                │                                │
+  Calor acelera reações            Ar seco resseca rolhas           Luz fotoativa a
+  de oxidação e evaporação.        provocando vazamento.            riboflavina gerando o
+  Frio extremo precipita           Excesso de umidade gera          defeito organoléptico
+  os cristais tartáricos.          mofo nas embalagens.             "gout de lumière".
+```
 
-### 📐 Equações Implementadas no Motor Analítico
+### 📐 Equações Matemáticas do Motor Analítico
 
 #### 1. Ponto de Orvalho Psicrométrico (Fórmula de Magnus-Tetens)
-Calculado continuamente para prever risco de condensação superficial nas garrafas:
+Calculado em tempo real pelo sistema para antecipar e prevenir a condensação de umidade sobre as garrafas e rótulos:
 
 $$\gamma(T, RH) = \frac{17.27 \cdot T}{237.7 + T} + \ln\left(\frac{RH}{100}\right), \qquad T_d = \frac{237.7 \cdot \gamma(T, RH)}{17.27 - \gamma(T, RH)}$$
 
-#### 2. Índice de Saúde e Preservação Enológica ($\text{Score} \in [15\%, 100\%]$)
-Avalia em tempo real a aderência das leituras $(T, H, L)$ em relação à janela ideal $([T_{\min}, T_{\max}], [H_{\min}, H_{\max}], L_{\max})$ do estilo de vinho selecionado:
+#### 2. Índice de Saúde e Preservação da Cava ($\text{Score} \in [15\%, 100\%]$)
+Mede a conformidade instantânea das variáveis $(T, H, L)$ frente aos intervalos ideais $[T_{\min}, T_{\max}]$, $[H_{\min}, H_{\max}]$ e $L_{\max}$:
 
 $$\text{Penalidade} = 7.5 \cdot \Delta T_{\text{fora}} + 1.6 \cdot \Delta H_{\text{fora}} + 1.3 \cdot \Delta L_{\text{fora}}$$
 
-- Quando $\text{Penalidade} = 0$ (dentro da faixa ideal), o score varia entre **$95\%$ e $100\%$** conforme a proximidade ao centro ótimo $(T_{\text{mid}}, H_{\text{mid}})$.
-- Quando há violação de limites ($\text{Penalidade} > 0$), o score decai proporcionalmente, acionando o estado **PADRÃO ($75\%–94\%$)** ou **CRÍTICO ($< 75\%$)** com disparo imediato do alarme acústico e visual no ESP32.
+- **Sem violação ($\text{Penalidade} = 0$):** O score varia entre **$95\%$ e $100\%$** (🟢 **IDEAL**).
+- **Desvio Moderado:** O score se situa entre **$75\%$ e $94\%$** (🟡 **PADRÃO / ATENÇÃO**).
+- **Desvio Crítico ($\text{Score} < 75\%$):** Transição para 🔴 **CRÍTICO** com disparo do Buzzer no ESP32 e notificação imediata no Telegram.
 
 ---
 
 ## 🏺 3. Design Físico: Barril 3D e Tampa com Display LCD 16x2
 
-O projeto integra a eletrônica embarcada ao encapsulamento físico de um **Barril Enológico 3D** com visor **LCD 16x2 I2C (`HD44780`)** embutido na tampa superior, permitindo inspeção presencial na adega e espelhamento digital idêntico no Portal Web ([`index.html`](./index.html)):
+O projeto inclui o encapsulamento físico de um **Barril Enológico 3D** modelado para comportar o ESP32, sensores, protoboard e o visor **LCD 16x2 I2C** acoplado à tampa de topo:
 
 <div align="center">
-  <img src="./dashboard/assets/icons/corpo_barril_3d.png" alt="Corpo do Barril 3D" width="260" />
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="./dashboard/assets/icons/tampa_barril_lcd.png" alt="Tampa do Barril com Display LCD 16x2" width="260" />
-  <br/>
-  <sub><b>Figura 1:</b> Modelagem do Corpo do Barril 3D (esquerda) e Tampa Superior com recorte para Display LCD 16x2 I2C e LEDs de Estado (direita).</sub>
+
+| Corpo do Barril 3D (Câmara Interna) | Tampa Superior (Display LCD 16x2 + LEDs) |
+| :---: | :---: |
+| <img src="./dashboard/assets/icons/corpo_barril_3d.png" alt="Corpo do Barril 3D" width="280" /> | <img src="./dashboard/assets/icons/tampa_barril_lcd.png" alt="Tampa com Display LCD 16x2" width="280" /> |
+| *Câmara isolada para garrafas com sensores DHT22 e LDR* | *Painel de inspeção presencial com LCD 16x2 e LEDs integrados* |
+
 </div>
+
+O portal interativo **[`index.html`](./index.html)** renderiza o gêmeo digital do barril com reflexos em tempo real, rotação e visualização idêntica das informações do display LCD.
 
 ---
 
 ## 🏗️ 4. Arquitetura Cyber-Física e Fluxo Bidirecional (`< 20ms`)
 
 ```mermaid
-flowchart LR
-    subgraph EDGE["🔌 Camada Edge (ESP32 / Wokwi + Barril 3D)"]
-        S1["DHT22 / DHT11 (GPIO 15)<br/>Temperatura (°C) & Umidade (%)"]
-        S2["LDR ADC1_CH6 (GPIO 34)<br/>Luminosidade (0–100%)"]
-        ACT["LCD 16x2 I2C (0x27)<br/>LEDs (GPIO 5 / 2 / 18) + Buzzer (GPIO 4)"]
+flowchart TD
+    subgraph CAMADA_EDGE["🔌 1. CAMADA EDGE (ESP32 DevKit V1 & Bancada Wokwi)"]
+        S_DHT["DHT22 (GPIO 15)<br/>Temperatura (°C) & Umidade (%)"]
+        S_LDR["LDR ADC1_CH6 (GPIO 34)<br/>Luminosidade (0–100%)"]
+        ACT_LCD["Display LCD 16x2 I2C (0x27)<br/>Status & Métricas Locais"]
+        ACT_LEDS["3 LEDs de Estado<br/>🟢 D5 Ideal | 🟡 D2 Padrão | 🔴 D18 Crítico"]
+        ACT_BUZZER["Buzzer Piezoelétrico (GPIO 4)<br/>Alarme Acústico em Estado Crítico"]
     end
 
-    subgraph BROKER["☁️ Camada IoT & FIWARE Middleware"]
-        MQTT["Broker MQTT (:1883 / WSS)<br/>/TEF/vine001/attrs & /cmd"]
-        IOT["FIWARE IoT Agent (:4041)<br/>UltraLight 2.0"]
-        ORION["Orion Context Broker (:1026)<br/>NGSI-v2 (urn:ngsi-ld:Vine:001)"]
-        STH["STH-Comet (:8666)<br/>Séries Temporais Históricas"]
+    subgraph CAMADA_MIDDLEWARE["☁️ 2. CAMADA DE MIDDLEWARE & BROKER (FIWARE / MQTT)"]
+        BROKER["Broker MQTT (:1883 / WSS :8084)<br/>Tópicos: /TEF/vine001/attrs & /cmd"]
+        IOTA["FIWARE IoT Agent (:4041)<br/>Parser UltraLight 2.0"]
+        ORION["FIWARE Orion Context Broker (:1026)<br/>Entidade: urn:ngsi-ld:Vine:001"]
+        STH["STH-Comet (:8666)<br/>Persistência de Séries Históricas"]
     end
 
-    subgraph APP["🖥️ Camada de Aplicação (Python + SCADA Web + Cloud)"]
-        API["Servidor Dash / Flask (:8050)<br/>API REST v1 + OpenAPI 3.1"]
-        UI["Portal 3D & Dashboard SCADA<br/>8 Vinhos • 12 Cavas • 12 Terroirs WMO"]
-        CLOUD["Persistência Cloud<br/>Supabase PostgreSQL + Firebase"]
+    subgraph CAMADA_SCADA["🖥️ 3. CAMADA DE APLICAÇÃO & SCADA (Node.js & Python)"]
+        SRV_NODE["Servidor Node.js (:8050)<br/>server.js + Despacho Telegram 5 min"]
+        SRV_PY["Servidor Python Dash/Flask (:8050)<br/>REST API v1 + OpenAPI 3.1"]
+        DASH_UI["Dashboard SCADA Web<br/>15 Terroirs • 15 Cavas • Barras Dinâmicas"]
     end
 
-    S1 & S2 -->|"UltraLight 2.0 (t|h|l)"| MQTT
-    MQTT <-->|" Provisionamento & Telemetria "| IOT
-    IOT <-->|"NGSI-v2"| ORION
-    ORION -->|"Subscrição Histórica"| STH
-    STH & ORION -->|"Séries & Contexto"| API
-    MQTT <-->|"Sincronia Real-Time < 20ms"| UI & API
-    API <-->|"Mirror JSON / SQL"| CLOUD
-    UI -->|"Trigger Remoto (alert / state)"| MQTT
-    MQTT -->|"Aciona LCD, LEDs e Buzzer"| ACT
+    subgraph CAMADA_CLOUD["🌐 4. NUVEM, PERSISTÊNCIA & NOTIFICAÇÕES EXTERNAS"]
+        SUPABASE[("Supabase PostgreSQL 17<br/>telemetry_logs • cellar_lots")]
+        TELEGRAM["Bot Telegram @vinheria_agnello_bot<br/>Grupo: Admin Vinheira (-5001665013)"]
+        OPEN_METEO["API Open-Meteo WMO<br/>Telemetria Satelital de 15 Vinícolas"]
+    end
+
+    S_DHT & S_LDR -->|"Publicação UltraLight 2.0 (t|h|l)"| BROKER
+    BROKER <-->|"Provisionamento"| IOTA
+    IOTA <-->|"Contexto NGSI-v2"| ORION
+    ORION -->|"Assinatura Histórica"| STH
+    BROKER <-->|"Sincronismo Bidirecional (< 20ms)"| SRV_NODE & SRV_PY & DASH_UI
+    OPEN_METEO -->|"Clima via Satélite"| DASH_UI & SRV_NODE
+    DASH_UI & SRV_NODE -->|"Persistência Relacional"| SUPABASE
+    DASH_UI & SRV_NODE -->|"Boletim a cada 5 min & Alertas Imediatos"| TELEGRAM
+    DASH_UI & SRV_NODE -->|"Comando de Alarme: vine001@diag|critico|..."| BROKER
+    BROKER -->|"Ativação Remota"| ACT_BUZZER & ACT_LEDS & ACT_LCD
 ```
 
-### Sequência de Disparo de Triggers e Atuação Remota
+### ⚡ Sequência de Detecção de Anomalia e Ativação do Alarme
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant ESP as 📟 ESP32 (DHT22 + LDR)
+    actor Sensor as 📟 Sensores (DHT22 / LDR)
+    participant ESP as 🤖 ESP32 (Firmware C++)
     participant Broker as 📡 Broker MQTT / FIWARE
-    participant Dash as 🖥️ Dashboard SCADA / Motor de Triggers
-    participant Cloud as ☁️ Supabase / Firebase
+    participant SCADA as 🖥️ Dashboard SCADA
+    participant Telegram as 📱 Bot Telegram (Admin Vinheira)
+    participant Actuator as 🔔 Buzzer (D4) & LED (D18)
 
-    ESP->>Broker: Publica /TEF/vine001/attrs -> "t|19.8|h|57.0|l|16"
-    Broker->>Dash: Entrega telemetria em tempo real (< 20ms)
-    Dash->>Dash: Avalia Triggers do Vinho Ativo (Score < 75% -> CRÍTICO)
-    Dash->>Cloud: Registra leitura e evento de anomalia
-    Dash->>Broker: Publica comando em /TEF/vine001/cmd -> "vine001@alert|temp"
-    Broker->>ESP: Entrega comando remoto ao ESP32
-    ESP->>ESP: Atualiza LCD 16x2 ("CRT"), acende LED Vermelho (GPIO 18) e aciona Buzzer PWM (GPIO 4)
-    ESP->>Broker: Confirma execução em /TEF/vine001/cmdexe
+    Sensor->>ESP: Leitura de Temperatura, Umidade e Luz
+    ESP->>Broker: Publica em /TEF/vine001/attrs -> "t|26.5|h|42.0|l|35"
+    Broker->>SCADA: Transmite telemetria ao vivo (< 20ms)
+    SCADA->>SCADA: Avalia Limites do Vinho -> Score cai para 48% (CRÍTICO!)
+    par Alerta Telegram Imediato
+        SCADA->>Telegram: Envia Alarme de Emergência (Grupo Admin Vinheira)
+    and Comando Remoto MQTT
+        SCADA->>Broker: Publica /TEF/vine001/cmd -> "vine001@diag|critico|..."
+        Broker->>ESP: Entrega comando de emergência
+        ESP->>Actuator: Acende LED Vermelho (D18) e aciona Buzzer contínuo no GPIO 4
+    end
 ```
 
 ---
 
 ## 🔌 5. Hardware Embarcado (ESP32 DevKit V1) e Pinout Oficial
 
-O firmware principal ([`sketch.ino`](./sketch.ino)) implementa leitura digital single-bus do **DHT22** com validação de *checksum* de 40 bits e filtro *anti-spike*, conversão analógica-digital em 12 bits (`0–4095`) do **LDR**, driver nativo I2C a `400 kHz` para o **LCD 16x2 (`0x27`)** com caracteres customizados em CGRAM e cliente **MQTT TCP (`:1883`)**.
+O firmware embarcado ([`sketch.ino`](./sketch.ino) / [`sketch_wokwi_dht22.ino`](./hardware/wokwi_dht22/sketch_wokwi_dht22.ino)) opera com leitura não-bloqueante, filtro *anti-glitch* e decodificação de comandos remotos.
 
-| Componente Físico / Simulado | Pino do Componente | Pino no ESP32 | Barramento / Canal | Função Técnica no Firmware |
+### 📌 Tabela Oficial de Pinagem
+
+| Componente Físico | Pino Físico | Pino ESP32 | Barramento / Modo | Função no Sistema |
 | :--- | :---: | :---: | :---: | :--- |
-| **Sensor DHT22 / DHT11** | `SDA` / `DATA` | **`GPIO 15`** (`D15`) | Digital Single-Bus | Medição de Temperatura (`-40°C a +80°C`) e Umidade (`0–100%`) |
-| **Fotoresistor LDR** | `AO` (Analógico) | **`GPIO 34`** (`D34`) | `ADC1_CH6` (12-bit) | Leitura de luminosidade sem conflito com o rádio Wi-Fi (`ADC1`) |
-| **Display LCD 16x2 Verde** | `SDA` / `SCL` | **`GPIO 21` / `22`** | I2C (`0x27` @ `400 kHz`) | Exibição local de `T`, `U`, `L`, estilo de vinho e saúde (`%`) |
-| **LED Verde (Estado Ideal)** | Anodo (`+`) | **`GPIO 5`** (`D5`) | Saída Digital (`GPIO`) | Acesso contínuo quando a adega opera na faixa Ideal (`95%–100%`) |
-| **LED Amarelo (Padrão / Atenção)** | Anodo (`+`) | **`GPIO 2`** (`D2`) | Saída Digital (`GPIO`) | Indicador de estado Padrão/Atenção (`75%–94%`) e alerta visual |
-| **LED Vermelho (Crítico)** | Anodo (`+`) | **`GPIO 18`** (`D18`) | Saída Digital (`GPIO`) | Indicador luminoso de violação crítica de Triggers (`< 75%`) |
-| **Buzzer Piezoelétrico** | Positivo (`+` / `S`) | **`GPIO 4`** (`D4`) | Saída PWM (`tone`) | Alarme acústico multi-frequência por tipo de anomalia |
+| **Sensor DHT22 / DHT11** | `DATA` | **`GPIO 15`** (`D15`) | Digital Single-Bus | Medição de Temperatura (`-40°C a +80°C`) e Umidade (`0–100%`) |
+| **Fotoresistor LDR** | `AO` (Analógico) | **`GPIO 34`** (`D34`) | `ADC1_CH6` (12-bit) | Leitura de luminosidade (sem conflito com rádio Wi-Fi) |
+| **Display LCD 16x2 Verde** | `SDA` / `SCL` | **`GPIO 21` / `22`** | I2C (`0x27` @ `400 kHz`) | Visualização local de dados, estilo de vinho e status de saúde |
+| **LED Verde (Ideal)** | Anodo (`+`) | **`GPIO 5`** (`D5`) | Saída Digital | Aceso fixo quando a saúde está entre `95% e 100%` |
+| **LED Amarelo (Padrão)** | Anodo (`+`) | **`GPIO 2`** (`D2`) | Saída Digital | Aceso fixo em estado de atenção/padrão (`75% a 94%`) |
+| **LED Vermelho (Crítico)** | Anodo (`+`) | **`GPIO 18`** (`D18`) | Saída Digital | Pisca rapidamente em conjunto com o alarme sonoro |
+| **Buzzer Piezoelétrico** | Sinal (`+`) | **`GPIO 4`** (`D4`) | Saída PWM (`tone()`) | **Apita em estado Crítico** alternando frequências de alerta |
 
-> [!IMPORTANT]
-> **Decisão de Engenharia (`GPIO 34` — `ADC1_CH6`):** No ESP32, os canais do conversor `ADC2` sofrem bloqueio de leitura enquanto o subsistema Wi-Fi está transmitindo pacotes TCP/MQTT. O uso do `GPIO 34` (`ADC1`) garante leituras de luminosidade 100% estáveis durante a conexão contínua com o broker.
+> [!TIP]
+> **Por que `GPIO 34` para o LDR?** O conversor analógico-digital `ADC2` do ESP32 é compartilhado com a pilha de rádio Wi-Fi. O canal `ADC1_CH6` (`GPIO 34`) opera de maneira totalmente independente, garantindo medições de luz sem ruído enquanto o ESP32 transmite pacotes MQTT.
 
 ---
 
-## 🚨 6. Matriz de Diagnóstico LED (3 Estados) e Alarmes Sonoros
+## 🚨 6. Matriz de Diagnóstico dos 3 Estados e Acionamento do Buzzer (`GPIO 4`)
 
-### 6.1 Estados Operacionais de Saúde Enológica
+### 6.1 Os 3 Estados de Saúde Operacional
 
-| Estado Operacional | Faixa de Saúde | LED Ativo no ESP32 | Tag no LCD 16x2 | Comportamento no Hardware e no Dashboard SCADA |
-| :--- | :---: | :---: | :---: | :--- |
-| **🟢 IDEAL** | **`95% a 100%`** | **LED Verde (`GPIO 5`)** | `1UP: 95–100%` | Condições perfeitas de guarda; Buzzer silenciado (`0 Hz`) e selo verde. |
-| **🟡 PADRÃO / ATENÇÃO** | **`75% a 94%`** | **LED Amarelo (`GPIO 2`)** | `PAD: 75–94%` | Leve desvio controlado; operação de adega em atenção sem risco imediato. |
-| **🔴 CRÍTICO** | **`< 75%`** | **LED Vermelho (`GPIO 18`)** | `CRT: <75%` | Violação de limite! Acende LED Vermelho, pisca alerta e dispara o Buzzer. |
+| Estado | Faixa de Saúde | LED Ativo | Buzzer (`GPIO 4`) | Tag no LCD | Barra no Site | Ação do Sistema |
+| :---: | :---: | :---: | :---: | :---: | :---: | :--- |
+| 🟢 **IDEAL** | **`95% a 100%`** | **Verde (`GPIO 5`)** | Silenciado (`noTone`) | `1UP: 95–100%` | 🟢 Verde (`#22c55e`) | Operação perfeita de guarda. Preservação ótima. |
+| 🟡 **PADRÃO** | **`75% a 94%`** | **Amarelo (`GPIO 2`)** | Silenciado (`noTone`) | `PAD: 75–94%` | 🟡 Amarelo (`#f59e0b`) | Desvio leve sob controle. Sem risco imediato às garrafas. |
+| 🔴 **CRÍTICO** | **`< 75%`** | **Vermelho (`GPIO 18`)** | **APITANDO (Alarme)** | `CRT: <75%` | 🔴 Vermelho (`#e11d48`) | **Emergência!** Buzzer acionado e alerta no Telegram. |
 
-### 6.2 Padrões Acústicos do Buzzer (`GPIO 4`) por Comando de Trigger
+### 6.2 Comportamento Sonoro do Buzzer no Firmware C++
 
-Quando qualquer variável ultrapassa os limites configurados nos **Triggers**, o sistema envia o comando remoto correspondente ao ESP32:
-
-| Comando MQTT (`/cmd`) | Tipo de Anomalia Detectada | Padrão Acústico no Buzzer (`GPIO 4`) | Sinalização Visual |
-| :--- | :--- | :--- | :--- |
-| `vine001@alert\|normal` | Parâmetros Normalizados | **Silenciado (`0 Hz`)** | LED Verde ativo (`GPIO 5`) |
-| `vine001@alert\|temp` | Violação de **Temperatura** (`°C`) | **Alerta Tipo 1:** Bips agudos rápidos (`2000 Hz`) | LED Vermelho/Azul piscando |
-| `vine001@alert\|hum` | Violação de **Umidade** (`% UR`) | **Alerta Tipo 2:** Pulsos graves duplos (`850 Hz`) | LED Vermelho/Azul piscando |
-| `vine001@alert\|lum` | Violação de **Luminosidade** (`%`) | **Alerta Tipo 3:** Sirene alternada (`1200 Hz / 1700 Hz`) | LED Vermelho/Azul piscando |
-| `vine001@alert\|multi` | **Anomalia Múltipla Crítica** | **Alerta Tipo 4:** Escala tripla de emergência (`1000 / 1800 / 2500 Hz`) | Piscagem rápida de emergência |
+Quando o firmware recebe o comando remoto `vine001@diag|critico|...` ou quando os sensores locais detectam violação severa de limites:
+1. O pino **`GPIO 4`** é acionado via PWM (`tone(PIN_BUZZER, freq, duracao)`).
+2. O padrão acústico de emergência cicla entre as frequências enológicas: **$880\text{ Hz} \rightarrow 1175\text{ Hz} \rightarrow 1480\text{ Hz} \rightarrow 1760\text{ Hz}$**.
+3. O **LED Vermelho (`GPIO 18`)** pisca sincronizado com o som.
+4. Quando as variáveis retornam à normalidade (`diag|ideal|...` ou `diag|padrao|...`), o firmware executa `noTone(PIN_BUZZER)` e restaura o silêncio da cava.
 
 ---
 
-## 🍾 7. Catálogo Enológico: 8 Estilos de Vinho, 12 Lotes e 12 Terroirs WMO
+## 🍾 7. Catálogo Enológico: 8 Estilos de Vinho, 15 Lotes de Cava e 15 Terroirs WMO
 
-### 7.1 Os 8 Presets de Estilo de Vinho (Calibração Instantânea de Triggers)
+### 7.1 Presets dos 8 Estilos Enológicos
 
-Ao selecionar qualquer estilo no Dashboard ou pela barra de busca, os **Triggers** de Temperatura, Umidade e Luminosidade são recalibrados automaticamente e transmitidos ao visor LCD 16x2 do ESP32:
+| Estilo | Ícone | Faixa Térmica Ideal | Umidade Ideal | Luz Máxima | Rótulo Referência |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| **Vinho Tinto** | 🍷 | `14.0°C – 18.0°C` | `60% – 75%` | `≤ 25%` | *Château Margaux Premier Grand Cru Classé 2015* (🇫🇷) |
+| **Vinho Branco** | 🥂 | `8.0°C – 12.0°C` | `60% – 75%` | `≤ 15%` | *Château Margaux Pavillon Blanc Sauvignon 2020* (🇮🇹/🇫🇷) |
+| **Vinho Rosé** | 🌸 | `10.0°C – 13.0°C` | `60% – 75%` | `≤ 12%` | *Domaine Ott Château de Selle Rosé 2022* (🇨🇱/🇫🇷) |
+| **Espumante Brut** | 🍾 | `6.0°C – 9.0°C` | `65% – 80%` | `≤ 10%` | *Abrau-Durso Imperial Brut Vintage 2018* (🇷🇺) |
+| **Pinot Noir** | 🍒 | `12.0°C – 15.0°C` | `65% – 75%` | `≤ 15%` | *Domaine Romanée-Conti La Tâche 2018* (🇫🇷) |
+| **Vinho do Porto** | 🏺 | `15.0°C – 18.0°C` | `65% – 75%` | `≤ 20%` | *Taylor's & Quinta do Crasto Vintage Port 2016* (🇵🇹) |
+| **Colheita Tardia** | 🍯 | `9.0°C – 12.0°C` | `65% – 78%` | `≤ 12%` | *Joh. Jos. Prüm Wehlener Sonnenuhr Auslese 2019* (🇩🇪) |
+| **Vinho Laranja** | 🍊 | `11.0°C – 14.0°C` | `60% – 72%` | `≤ 15%` | *Josko Gravner Ribolla Gialla Ânfora 2017* (🇪🇸/🇮🇹) |
 
-| Código | Estilo de Vinho | Janela Térmica Ideal | Umidade Ideal | Luz Máxima | Lote de Cava Padrão | Rótulo de Referência |
-| :---: | :--- | :---: | :---: | :---: | :---: | :--- |
-| `tinto` | **🍷 Vinho Tinto** | `14.0°C – 18.0°C` | `60% – 75%` | `≤ 25%` | `LOTE-FR-MARGAUX-01` | *Château Margaux Premier Grand Cru 2015* (🇫🇷) |
-| `branco` | **🥂 Vinho Branco** | `8.0°C – 12.0°C` | `60% – 75%` | `≤ 15%` | `LOTE-FR-BLANC-02` | *Château Margaux Pavillon Blanc 2020* (🇮🇹/🇫🇷) |
-| `rose` | **🌸 Vinho Rosé** | `10.0°C – 13.0°C` | `60% – 75%` | `≤ 12%` | `LOTE-FR-ROSE-03` | *Domaine Ott Château de Selle Rosé 2022* (🇨🇱/🇫🇷) |
-| `espumante` | **🍾 Espumante Brut** | `6.0°C – 9.0°C` | `65% – 80%` | `≤ 10%` | `LOTE-RU-ABRAU-04` | *Abrau-Durso Imperial Brut Vintage 2018* (🇷🇺) |
-| `pinot` | **🍒 Pinot Noir** | `12.0°C – 15.0°C` | `65% – 75%` | `≤ 15%` | `LOTE-FR-DRC-05` | *Domaine Romanée-Conti La Tâche 2018* (🇫🇷) |
-| `porto` | **🏺 Vinho do Porto** | `15.0°C – 18.0°C` | `65% – 75%` | `≤ 20%` | `LOTE-PT-PORTO-06` | *Taylor's & Quinta do Crasto Vintage Port 2016* (🇵🇹) |
-| `sobremesa` | **🍯 Colheita Tardia** | `9.0°C – 12.0°C` | `65% – 78%` | `≤ 12%` | `LOTE-DE-PRUM-07` | *Château d'Yquem Sauternes 2019* (🇩🇪/🇫🇷) |
-| `laranja` | **🍊 Vinho Laranja** | `11.0°C – 14.0°C` | `60% – 72%` | `≤ 15%` | `LOTE-IT-GRAVNER-08` | *Josko Gravner Ribolla Gialla Ânfora 2017* (🇪🇸/🇮🇹) |
+### 7.2 Os 15 Lotes de Cava Subterrânea Catalogados
 
-> Além dos 8 lotes acima, a adega monitora os lotes `LOTE-ES-VEGA-09` (*Vega Sicilia Único 2014*), `LOTE-NZ-CLOUDY-10` (*Cloudy Bay Te Koko 2021*), `LOTE-BR-MIOLO-11` (*Miolo Cuvée Giuseppe Rosé 2022*), `LOTE-AR-CATENA-12` (*Nicolás Catena Brut Nature 2018*), `LOTE-CA-OKANAGAN-13` (*Mission Hill Okanagan Reserve 2021*), `LOTE-AU-BAROSSA-14` (*Penfolds Magill Grange Shiraz 2017*) e `LOTE-JP-KOSHU-15` (*Grace Wine Koshu Hishiyama 2022*), totalizando **15 Cavas Subterrâneas** auditadas em tempo real.
+| Código do Lote | Rótulo / Vinho | Estilo | Safra | Barrica / Maturação | Janela de Guarda |
+| :--- | :--- | :---: | :---: | :--- | :---: |
+| `LOTE-FR-MARGAUX-01` | Château Margaux Premier Grand Cru | 🍷 Tinto | 2015 | Carvalho Francês Allier 18m | 2025–2045 |
+| `LOTE-FR-BLANC-02` | Château Margaux Pavillon Blanc | 🥂 Branco | 2020 | Carvalho Francês Fino 12m | 2024–2033 |
+| `LOTE-FR-ROSE-03` | Domaine Ott Château de Selle Rosé | 🌸 Rosé | 2022 | Tonéis de Carvalho Neutro 8m | 2024–2029 |
+| `LOTE-RU-ABRAU-04` | Abrau-Durso Imperial Brut Vintage | 🍾 Espumante | 2018 | Método Tradicional Champenoise 36m | 2024–2031 |
+| `LOTE-FR-DRC-05` | Domaine Romanée-Conti La Tâche | 🍒 Pinot Noir | 2018 | Carvalho da Borgonha Tronçais 20m | 2026–2050 |
+| `LOTE-PT-PORTO-06` | Quinta do Crasto & Taylor's Vintage | 🏺 Porto | 2016 | Pipas de Carvalho Antigo 24m | 2025–2060 |
+| `LOTE-DE-PRUM-07` | Joh. Jos. Prüm Wehlener Sonnenuhr | 🍯 Colheita Tardia | 2019 | Fuder de Carvalho Alemão 12m | 2025–2048 |
+| `LOTE-IT-GRAVNER-08` | Josko Gravner Ribolla Gialla Ânfora | 🍊 Laranja | 2017 | Ânforas Caucasianas (Qvevri) 7m | 2024–2036 |
+| `LOTE-ES-VEGA-09` | Vega Sicilia Único Gran Reserva | 🍷 Tinto | 2014 | Carvalho Americano e Francês 72m | 2025–2055 |
+| `LOTE-NZ-CLOUDY-10` | Cloudy Bay Te Koko Sauvignon Blanc | 🥂 Branco | 2021 | Carvalho Neutro e Leveduras Selvagens | 2024–2032 |
+| `LOTE-BR-MIOLO-11` | Miolo Cuvée Giuseppe Rosé Brut | 🌸 Rosé | 2022 | Tanques Autoclave e Carvalho 6m | 2024–2028 |
+| `LOTE-AR-CATENA-12` | Nicolás Catena Zapata Nature | 🍾 Espumante | 2018 | Método Clássico em Cava 30m | 2024–2030 |
+| `LOTE-CA-OKANAGAN-13`| Mission Hill Estate Oculus Okanagan | 🍷 Tinto | 2020 | Carvalho Francês Novo 16m | 2025–2040 |
+| `LOTE-AU-BAROSSA-14` | Penfolds Magill Grange Shiraz | 🍷 Tinto | 2018 | Carvalho Americano Hogshead 18m | 2026–2055 |
+| `LOTE-JP-KOSHU-15`   | Grace Wine Koshu Hishiyama Private | 🥂 Branco | 2022 | Aço Inoxidável & Carvalho Japonês 9m | 2024–2031 |
 
-### 7.2 As 15 Estações Meteorológicas Satelitais (Open-Meteo WMO)
+### 7.3 As 15 Estações Meteorológicas Satelitais Mundiais (Open-Meteo WMO)
 
-O módulo [`satellite_terroirs.js`](./dashboard/assets/satellite_terroirs.js) e o daemon [`telegram_live_service.js`](./dashboard/src/services/telegram_live_service.js) consultam dados climáticos reais das regiões produtoras via API **Open-Meteo WMO**:
-
-| ID Terroir | Vinícola / Terroir | Região & País | Coordenadas (`Lat, Lon`) |
+| Terroir ID | Vinícola / Terroir | Região / País | Coordenadas Satélite |
 | :---: | :--- | :--- | :---: |
 | `fr_margaux` | **Château Margaux** | Bordeaux, França 🇫🇷 | `45.0444, -0.6686` |
 | `it_antinori` | **Marchesi Antinori** | Toscana, Itália 🇮🇹 | `43.6158, 11.2136` |
 | `cl_concha` | **Concha y Toro** | Vale do Maipo, Chile 🇨🇱 | `-33.6433, -70.5789` |
-| `ru_abrau` | **Abrau-Durso** | Mar Negro / Krasnodar, Rússia 🇷🇺 | `44.7000, 37.6000` |
+| `ru_abrau` | **Abrau-Durso** | Krasnodar, Rússia 🇷🇺 | `44.7000, 37.6000` |
 | `pt_crasto` | **Quinta do Crasto** | Vale do Douro, Portugal 🇵🇹 | `41.1681, -7.6308` |
-| `us_opus` | **Opus One Winery** | Napa Valley, EUA 🇺🇸 | `38.4367, -122.4017` |
+| `us_opus` | **Opus One Winery** | Napa Valley, Estados Unidos 🇺🇸 | `38.4367, -122.4017` |
 | `de_prum` | **Joh. Jos. Prüm** | Vale do Mosel, Alemanha 🇩🇪 | `49.9189, 7.0394` |
 | `es_vega` | **Vega Sicilia** | Ribera del Duero, Espanha 🇪🇸 | `41.6322, -4.2981` |
 | `nz_cloudy` | **Cloudy Bay** | Marlborough, Nova Zelândia 🇳🇿 | `-41.4914, 173.9619` |
 | `za_kanonkop` | **Kanonkop Estate** | Stellenbosch, África do Sul 🇿🇦 | `-33.8569, 18.8669` |
 | `br_miolo` | **Vinícola Miolo** | Vale dos Vinhedos (RS), Brasil 🇧🇷 | `-29.1864, -51.5567` |
-| `ar_catena` | **Catena Zapata** | Gualtallary, Mendoza, Argentina 🇦🇷 | `-33.1667, -68.9167` |
+| `ar_catena` | **Catena Zapata** | Mendoza, Argentina 🇦🇷 | `-33.1667, -68.9167` |
 | `ca_okanagan` | **Mission Hill Estate** | Okanagan Valley, Canadá 🇨🇦 | `49.8880, -119.4960` |
 | `au_barossa` | **Penfolds Magill** | Barossa Valley, Austrália 🇦🇺 | `-34.4820, 138.9890` |
-| `jp_koshu` | **Grace Wine (Fuji)** | Koshu, Yamanashi, Japão 🇯🇵 | `35.7000, 138.7300` |
+| `jp_koshu` | **Grace Wine** | Koshu / Yamanashi (Fuji), Japão 🇯🇵 | `35.7000, 138.7300` |
 
 ---
 
-## 📡 8. API REST v1, Persistência Cloud e Protocolo MQTT UltraLight 2.0
+## 🤖 8. Integração e Notificações em Tempo Real no Telegram (@vinheria_agnello_bot)
 
-A aplicação expõe uma **API REST v1** documentada sob o padrão **OpenAPI 3.1.0**, com suporte a negociação de conteúdo (`Accept: application/json` ou interface visual HTML interativa):
+O sistema conta com o serviço [`telegram_live_service.js`](./dashboard/src/services/telegram_live_service.js) e o módulo [`telegram_notifier.js`](./dashboard/assets/telegram_notifier.js) configurados para o bot oficial:
 
-| Método | Endpoint / Tópico | Formato | Descrição Técnica |
-| :---: | :--- | :---: | :--- |
-| `GET` | [`/api/v1/status`](./api/v1/status/index.html) | `HTML / JSON` | Diagnóstico de saúde da adega, estado do broker MQTT, sensores, atuadores e alertas ativos |
-| `GET` | [`/api/v1/lots`](./api/v1/lots/index.html) | `HTML / JSON` | Catálogo auditável dos **15 Lotes de Cava**, safras, barricas, temperatura, umidade e score (`%`) |
-| `GET` | `/api/v1/vineyards` | `HTML / JSON` | Telemetria em tempo real dos **15 Terroirs Globais** e do hardware **ESP32 Wokwi** |
-| `GET` | `/api/v1/telemetry/history` | `HTML / JSON` | Séries históricas de Temperatura, Umidade e Luminosidade (STH-Comet / Buffer / Supabase) |
-| `GET` | [`/api/v1/cloud/firebase`](./api/v1/cloud/firebase/index.html) | `HTML / JSON` | Espelho JSON completo da adega sincronizado com **Supabase PostgreSQL 17** e **Firebase** |
-| `POST` | `/api/v1/telegram/alert` | `JSON` | Disparo instantâneo de alerta sonoro e enológico para o grupo Telegram Admin Vinheira |
-| `POST` | `/api/v1/telegram/broadcast` | `JSON` | Disparo manual/periódico (5 min) do boletim consolidado da rede de cavas e terroirs |
-| `MQTT` | `/TEF/vine001/attrs` | `UltraLight 2.0` | Tópico de publicação de telemetria pelo ESP32 (ex.: `t\|15.8\|h\|68.0\|l\|9`) |
-| `MQTT` | `/TEF/vine001/cmd` | `UltraLight 2.0` | Tópico de comandos remotos recebidos pelo ESP32 (ex.: `vine001@diag\|critico\|...` ou `vine001@sync\|...`) |
+- **Nome do Bot:** `@vinheria_agnello_bot`
+- **Grupo Vinculado:** `Admin Vinheira`
+- **ID do Chat / Grupo:** `-5001665013`
+- **Periodicidade do Boletim:** A cada **5 minutos (300.000 ms)** de forma autônoma
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│ 📱 EXEMPLO DE BOLETIM PERIÓDICO (TELEGRAM - A CADA 5 MINUTOS)           │
+├────────────────────────────────────────────────────────────────────────┤
+│ 🍷 BOLETIM TELEMETRIA VINHERIA AGNELLO (5 MIN)                         │
+│ 📅 Data/Hora: 28/10/2026 23:30:00                                      │
+│                                                                        │
+│ 📡 Cava Ativa: Château Margaux (LOTE-FR-MARGAUX-01)                    │
+│ 🌡️ Temp: 15.8°C | 💧 Umidade: 68.0% | ☀️ Luz: 9%                       │
+│ 🟢 Status: IDEAL (100%) | Buzzer: Silenciado                           │
+│                                                                        │
+│ 🌍 Resumo dos 15 Terroirs Mundiais (Satélite WMO):                     │
+│ 🇫🇷 França: 16.2°C (Ideal) | 🇮🇹 Itália: 18.5°C (Padrão)                │
+│ 🇧🇷 Brasil: 21.0°C (Padrão) | 🇯🇵 Japão: 14.8°C (Ideal)                 │
+│ 🇨🇦 Canadá: 12.1°C (Ideal) | 🇦🇺 Austrália: 22.4°C (Padrão)              │
+│                                                                        │
+│ ✅ Todas as 15 cavas subterrâneas sincronizadas com sucesso.          │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+Caso ocorra transição para o estado **CRÍTICO**, uma mensagem de emergência com emojis e alerta sonoro é disparada instantaneamente:
+
+```
+🚨 [ALERTA CRÍTICO SCADA VINHERIA AGNELLO]
+⚠️ Lote: LOTE-FR-MARGAUX-01 (Château Margaux)
+🌡️ Temp Detectada: 26.5°C (Limite Máx: 18.0°C)
+🔴 Status: CRÍTICO (48%)!
+🔔 ATUADOR: Buzzer piezoelétrico acionado no ESP32 Wokwi (GPIO 4)!
+```
 
 ---
 
-## 🗂️ 9. Estrutura Modular do Repositório
+## 🗄️ 9. Banco de Dados Relacional em Nuvem: Supabase PostgreSQL 17
+
+O projeto está integrado ao banco de dados relacional **Supabase PostgreSQL 17** (Data Center São Paulo `sa-east-1`, Ref: `slqozouuqzxwmfswyroo`):
+
+### Diagrama Entidade-Relacionamento (ERD)
+
+```mermaid
+erDiagram
+    CELLAR_LOTS ||--o{ TELEMETRY_LOGS : "possui leituras"
+    TERROIRS ||--o{ CELLAR_LOTS : "origina estilo"
+    CELLAR_LOTS ||--o{ SYSTEM_ALERTS : "gera alertas"
+
+    TERROIRS {
+        varchar terroir_id PK
+        varchar name
+        varchar country
+        decimal latitude
+        decimal longitude
+        decimal current_temp
+        decimal current_humidity
+        varchar current_condition
+    }
+
+    CELLAR_LOTS {
+        varchar lot_code PK
+        varchar wine_name
+        varchar wine_style
+        integer vintage
+        varchar terroir_id FK
+        decimal temp_target_min
+        decimal temp_target_max
+        decimal hum_target_min
+        decimal hum_target_max
+        integer health_score
+        varchar current_status
+    }
+
+    TELEMETRY_LOGS {
+        bigserial id PK
+        varchar lot_code FK
+        decimal temperature
+        decimal humidity
+        decimal light_pct
+        decimal dew_point
+        integer score_pct
+        varchar status_tag
+        timestamp created_at
+    }
+
+    SYSTEM_ALERTS {
+        bigserial alert_id PK
+        varchar lot_code FK
+        varchar severity
+        text description
+        boolean buzzer_triggered
+        timestamp sent_at
+    }
+```
+
+O script completo de criação das tabelas e índices está versionado em [`supabase_schema.sql`](./supabase_schema.sql).
+
+---
+
+## 📡 10. API REST v1, Especificação OpenAPI 3.1 e Protocolo MQTT
+
+A API REST v1 disponibiliza tanto interface gráfica amigável quanto respostas estritas em JSON via cabeçalho `Accept: application/json`:
+
+| Método | Endpoint / Tópico | Protocolo | Resposta | Descrição |
+| :---: | :--- | :---: | :---: | :--- |
+| `GET` | [`/api/v1/status`](./api/v1/status/index.html) | REST (HTTP) | `JSON / HTML` | Diagnóstico ao vivo do ESP32, broker MQTT, sensores e atuadores |
+| `GET` | [`/api/v1/lots`](./api/v1/lots/index.html) | REST (HTTP) | `JSON / HTML` | Catálogo completo dos 15 Lotes de Cava e seus scores |
+| `GET` | `/api/v1/vineyards` | REST (HTTP) | `JSON / HTML` | Clima em tempo real dos 15 Terroirs via satélite Open-Meteo |
+| `GET` | `/api/v1/telemetry/history` | REST (HTTP) | `JSON` | Séries temporais históricas de Temperatura, Umidade e Luz |
+| `GET` | [`/api/v1/cloud/firebase`](./api/v1/cloud/firebase/index.html) | REST (HTTP) | `JSON / HTML` | Espelho de telemetria sincronizado com Supabase e Firebase |
+| `POST` | `/api/v1/telegram/broadcast` | REST (HTTP) | `JSON` | Disparo manual/periódico do boletim para o grupo do Telegram |
+| `POST` | `/api/v1/telegram/alert` | REST (HTTP) | `JSON` | Disparo de alerta de emergência com acionamento do Buzzer |
+| `MQTT` | `/TEF/vine001/attrs` | MQTT 3.1.1 | `UltraLight 2.0` | Telemetria enviada pelo ESP32 (`t\|15.8\|h\|68.0\|l\|9`) |
+| `MQTT` | `/TEF/vine001/cmd` | MQTT 3.1.1 | `UltraLight 2.0` | Comandos remotos recebidos pelo ESP32 (`vine001@diag\|...`) |
+
+---
+
+## 🗂️ 11. Estrutura Modular do Repositório
 
 ```text
 vinheria-fiware-esp32/
-├── index.html                             # Portal Sommelier & Visualização do Barril 3D com LCD interativo
-├── dashboard.html                         # Aplicação Web SCADA Sommelier completa em tempo real
-├── sketch.ino                             # Firmware C++ principal do ESP32 (Wokwi, LCD I2C 0x27, DHT22, LDR e MQTT)
-├── diagram.json                           # Circuito elétrico completo do ESP32 no simulador Wokwi
-├── wokwi.toml                             # Configuração de build e simulação Wokwi CLI
-├── libraries.txt                          # Bibliotecas Arduino utilizadas pelo firmware
-├── integrantes.txt                        # Identificação oficial da aluna Nicolly Vilela e links do projeto
-├── INICIAR_PROJETO.bat                    # Inicialização Plug-and-Play (abre Dashboard, Wokwi e servidor :8050)
-├── requirements.txt                       # Dependências Python na raiz para deploy em nuvem (Render / Gunicorn)
-├── Procfile                               # Definição de processo WSGI para produção
-├── render.yaml                            # Infraestrutura como Código (IaC) para deploy contínuo no Render
-├── supabase_schema.sql                    # Schema PostgreSQL das tabelas de telemetria, lotes e alertas
-├── api/v1/                                # Páginas estáticas espelhadas e especificação OpenAPI 3.1 (openapi.json)
+├── index.html                             # Portal Sommelier com Gêmeo 3D do Barril e LCD interativo
+├── dashboard.html                         # Dashboard SCADA Sommelier completo em tempo real
+├── sketch.ino                             # Firmware C++ completo para ESP32 (Wokwi & Hands-On)
+├── diagram.json                           # Diagrama elétrico com Buzzer no GPIO 4 e LEDs no Wokwi
+├── wokwi.toml                             # Configurações de compilação do Wokwi
+├── libraries.txt                          # Bibliotecas Arduino (PubSubClient, LiquidCrystal_I2C, DHT)
+├── integrantes.txt                        # Identificação acadêmica oficial dos autores FIAP
+├── server.js                              # Servidor SCADA Node.js com despacho Telegram a cada 5 min
+├── INICIAR_PROJETO.bat                    # Script Plug-and-Play de inicialização automática
+├── requirements.txt                       # Dependências Python na raiz para deploy no Render
+├── supabase_schema.sql                    # Estrutura DDL do banco de dados Supabase PostgreSQL 17
+├── api/v1/                                # Endpoints estáticos espelhados e especificação OpenAPI 3.1
+│   ├── openapi.json                       # Especificação OpenAPI 3.1.0 completa
+│   ├── status/index.html                  # Interface gráfica de status do sistema
+│   ├── lots/index.html                    # Interface gráfica do catálogo de lotes
+│   └── cloud/firebase/index.html          # Interface de sincronização em nuvem
 ├── dashboard/
-│   ├── app.py                             # Servidor principal Python (Dash + Flask REST API v1 na porta 8050)
-│   ├── requirements.txt                   # Dependências do servidor e da suíte de testes
-│   ├── assets/                            # Módulos JS (wine_catalog, cellar_lots, satellite_terroirs, scada_mqtt) e CSS
+│   ├── app.py                             # Servidor Python alternativo (Dash + Flask REST API v1)
+│   ├── assets/                            # Módulos JavaScript (ES6) e folhas de estilo CSS
+│   │   ├── style.css                      # Estilos responsivos, paleta rubi e barras percentuais
+│   │   ├── wine_catalog.js                # Catálogo enológico com 8 estilos e 15 cavas
+│   │   ├── satellite_terroirs.js          # Conector Open-Meteo para os 15 terroirs satelitais
+│   │   ├── cellar_lots.js                 # Gestão de estados (Ideal, Padrão, Crítico) dos lotes
+│   │   ├── wokwi_lcd.js                   # Emulador do visor LCD 16x2 I2C no front-end
+│   │   ├── scada_mqtt.js                  # Cliente MQTT WebSocket e decodificador UltraLight 2.0
+│   │   ├── telegram_notifier.js           # Despachador de mensagens para a API do Telegram
+│   │   ├── scada_dispatcher.js            # Barramento de eventos SCADA e acionamento sonoro
+│   │   └── dashboard_scada.js             # Controlador central do dashboard
 │   ├── src/
-│   │   ├── config/settings.py             # Constantes FIWARE, portas, tópicos MQTT e presets enológicos
-│   │   ├── models/                        # Modelos de domínio tipados (IoT, Lotes de Cava e Vinhos)
-│   │   ├── repositories/                  # Integrações FIWARE IoT, STH-Comet, MQTT Wokwi, Open-Meteo, Supabase e Firebase
-│   │   ├── services/                      # Regras de negócio (Saúde da Cava, Triggers de Alerta, Device Manager)
-│   │   └── ui/                            # Componentes visuais Dash, Callbacks reativos e Rotas da API REST v1
-│   └── tests/                             # Suíte TDD com 31 testes automatizados (Pytest)
-├── docs/
-│   └── MANUAL_INSTALACAO_E_OPERACAO.md    # Manual detalhado de montagem física (Hands-On) e operação FIWARE
+│   │   └── services/telegram_live_service.js # Daemon do ciclo periódico de 5 minutos do Telegram
+│   └── tests/                             # Suíte de testes automatizados TDD (31/31)
+│       ├── test_models.py
+│       ├── test_services.py
+│       └── test_api_routes.py
 └── hardware/
-    ├── handson_dht11/                     # Firmware para bancada física em laboratório (ESP32 + DHT11)
-    └── wokwi_dht22/                       # Firmware e diagrama dedicados para validação no simulador Wokwi
+    ├── handson_dht11/                     # Firmware para montagem física em bancada (ESP32 + DHT11)
+    └── wokwi_dht22/                       # Firmware e diagrama espelhados para o simulador Wokwi
 ```
 
 ---
 
-## 🚀 10. Como Executar, Simular e Testar o Projeto (Passo a Passo)
+## 🚀 12. Como Executar, Simular e Testar o Projeto (Passo a Passo)
 
-### Opção 1: Execução Instantânea no Navegador (Zero Configuração)
-- Abra diretamente o arquivo **[`index.html`](./index.html)** (Portal do Barril 3D) ou **[`dashboard.html`](./dashboard.html)** (Dashboard SCADA Completo) em qualquer navegador moderno, ou acesse o deploy em nuvem:
-  👉 **[https://checkpoint5-vinheria-fiware-esp32-1.onrender.com/](https://checkpoint5-vinheria-fiware-esp32-1.onrender.com/)**
+### Método 1: Inicialização Plug-and-Play com 1 Clique (Windows)
+1. Dê duplo clique no executável **[`INICIAR_PROJETO.bat`](./INICIAR_PROJETO.bat)**.
+2. O script inicializa o servidor local na porta `8050`, abre o **Dashboard SCADA** no seu navegador padrão e abre a aba do **Simulador Wokwi**.
 
-### Opção 2: Inicialização Completa com 1 Clique no Windows (`Plug-and-Play`)
-- Dê duplo clique em **[`INICIAR_PROJETO.bat`](./INICIAR_PROJETO.bat)**.
-- O script instala automaticamente as dependências necessárias, abre o Dashboard local (`http://127.0.0.1:8050`), abre o simulador Wokwi e inicia o servidor Python em tempo real.
+---
 
-### Opção 3: Inicialização Manual via Terminal (Python 3.10+)
+### Método 2: Execução com Servidor Node.js (Recomendado com Telegram)
 ```bash
-# 1. Instale as dependências do projeto
+# 1. Inicie o servidor local Node.js
+node server.js
+```
+- Acesse no navegador: **`http://localhost:8050/dashboard.html`**
+- O servidor ativa automaticamente o despacho periódico de **5 minutos** para o bot **`@vinheria_agnello_bot`** no grupo **`Admin Vinheira`**.
+
+---
+
+### Método 3: Execução com Servidor Python (Dash + Flask)
+```bash
+# 1. Instale as dependências do ecossistema Python
 pip install -r dashboard/requirements.txt
 
-# 2. Inicie o servidor Back-End + Dashboard na porta 8050
+# 2. Inicie o servidor Python
 python dashboard/app.py
 ```
-Acesse no navegador: **`http://127.0.0.1:8050`**
+- Acesse no navegador: **`http://127.0.0.1:8050`**
+
+---
 
 ### 🧪 Executando a Suíte de Testes Automatizados (TDD — 31/31 Testes)
-O projeto conta com **31 testes automatizados** cobrindo modelos, repositórios FIWARE/STH-Comet/Firebase, motor de Triggers, serviço de lotes e endpoints da API REST v1:
 ```bash
 pytest dashboard/tests/ -v
 ```
+Todos os 31 testes devem passar com $100\%$ de cobertura nas regras de domínio e rotas de API.
 
-### 📟 Simulando o Hardware ESP32 no Wokwi em Tempo Real
-1. Acesse o projeto oficial no Wokwi: **[https://wokwi.com/projects/478106752109243393](https://wokwi.com/projects/478106752109243393)**.
-2. Pressione o botão **Play (Start Simulation)**.
-3. No **Dashboard Web**, clique em diferentes estilos de vinho (*Tinto*, *Branco*, *Rosé*, *Espumante*, etc.) ou altere a temperatura/umidade no sensor **DHT22** e a luz no **LDR** dentro do Wokwi:
-   - O visor **LCD 16x2 verde**, os **3 LEDs de diagnóstico** e o **Buzzer piezoelétrico** respondem bidirecionalmente em menos de `20ms` via MQTT.
+---
+
+### 📟 Simulação do Hardware ESP32 no Wokwi
+1. Abra o projeto oficial: **[https://wokwi.com/projects/478106752109243393](https://wokwi.com/projects/478106752109243393)**.
+2. Clique no botão **Play (Start Simulation)**.
+3. Altere os valores de Temperatura ou Umidade no **DHT22** ou Luminosidade no **LDR**:
+   - Ao entrar em estado **CRÍTICO** (ex.: temperatura $> 25°C$ ou umidade $< 50\%$ para vinho tinto), o **Buzzer no GPIO 4 apita instantaneamente**, o **LED Vermelho pisca** e o **display LCD exibe `CRT: <75%`**.
+   - O alarme sonoro é transmitido simultaneamente para a web e enviado ao grupo do **Telegram**.
 
 ---
 
 <div align="center">
-  <sub>Desenvolvido por <b>Ken Kobayashi</b> (<a href="https://github.com/six01010101010101">@six01010101010101</a>) e <b>Nicolly Vilela</b> (<a href="https://github.com/ninixzzs">@ninixzzs</a>) — FIAP • Check Point 5 • Engenharia de Software (IoT, FIWARE & ESP32)</sub>
+
+**Vinheria Agnello — FIAP 2026**  
+Desenvolvido por **Ken Kobayashi** ([`@six01010101010101`](https://github.com/six01010101010101)) & **Nicolly Vilela** ([`@ninixzzs`](https://github.com/ninixzzs))  
+*Engenharia de Software • Edge Computing, IoT & Sistemas Distribuídos • Check Point 5*
+
 </div>
