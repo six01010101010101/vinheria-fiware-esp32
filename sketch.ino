@@ -16,43 +16,42 @@ enum Pins { PIN_LED_YELLOW = 2, PIN_BUZZER = 4, PIN_LED_GREEN = 5, PIN_DHT = 15,
 
 WiFiClient espClient;
 String curMode = "normal", curPreset = "TINTO";
-int curHealth = 100, soundStep = 0;
+int curHealth = 100, bthvIdx = 0;
 bool remoteSync = false;
-unsigned long lastDhtMs = 0, lastLdrMs = 0, lastPubMs = 0, lastToneMs = 0, lastPingMs = 0, lastRetryMs = 0, lastSupaMs = 0;
+unsigned long lastDhtMs = 0, lastLdrMs = 0, lastPubMs = 0, noteStartMs = 0, lastPingMs = 0, lastRetryMs = 0, lastSupaMs = 0;
 float validTemp = 15.8f, validHum = 68.0f, validLum = 9.0f, hwTemp = 15.8f, hwHum = 68.0f, hwLum = 9.0f;
+
+// Beethoven: Sonata ao Luar (Moonlight Sonata, Op. 27 No. 2 em Do sustenido menor)
+const uint16_t BTHV_MELODY[][2] = {
+  {208,160},{277,160},{330,160},{208,160},{277,160},{330,160},{208,160},{277,160},{330,160},{208,160},{277,160},{330,160},
+  {415,500},{0,40},{415,320},{0,40},{415,180},{440,520},{0,40},{415,320},{0,40},{392,180},{415,680},{0,150},
+  {277,350},{330,350},{415,600},{0,250}
+};
+const int BTHV_TOTAL = sizeof(BTHV_MELODY) / sizeof(BTHV_MELODY[0]);
 
 void playToneAlert(int f, int d = 0) {
   digitalWrite(PIN_LED_YELLOW, HIGH);
   if (f > 0) { if (d > 0) tone(PIN_BUZZER, f, d); else tone(PIN_BUZZER, f); }
 }
 void stopToneAlert() { digitalWrite(PIN_LED_YELLOW, LOW); noTone(PIN_BUZZER); }
-
 void lcdExpWrite(uint8_t d) { Wire.beginTransmission(LCD_ADDR); Wire.write(d | 0x08); Wire.endTransmission(); }
 void lcdWrite4(uint8_t v) { lcdExpWrite(v); lcdExpWrite(v | 0x04); delayMicroseconds(2); lcdExpWrite(v & ~0x04); delayMicroseconds(40); }
 void lcdSend(uint8_t v, uint8_t m) { lcdWrite4((v & 0xF0) | m); lcdWrite4(((v << 4) & 0xF0) | m); }
 void lcdInit() {
   Wire.begin(21, 22); Wire.setClock(400000); delay(40); lcdExpWrite(0x00); delay(15);
-  lcdWrite4(0x30); delayMicroseconds(4500); lcdWrite4(0x30); delayMicroseconds(4500);
-  lcdWrite4(0x30); delayMicroseconds(150);  lcdWrite4(0x20); delayMicroseconds(150);
+  lcdWrite4(0x30); delayMicroseconds(4500); lcdWrite4(0x30); delayMicroseconds(4500); lcdWrite4(0x30); delayMicroseconds(150); lcdWrite4(0x20); delayMicroseconds(150);
   lcdSend(0x28, 0); lcdSend(0x0C, 0); lcdSend(0x06, 0); lcdSend(0x01, 0); delay(3);
 }
-
 void updateLcd() {
-  lcdSend(0x80, 0);
-  String tStr = "T:" + String(validTemp, 1) + (char)223 + "C U:" + String((int)validHum) + "%" + (remoteSync ? "*" : " ");
-  while (tStr.length() < 16) tStr += " ";
-  for (int i = 0; i < 16; i++) lcdSend((uint8_t)tStr[i], 1);
-  lcdSend(0xC0, 0);
-  String bStr = "L:" + String((int)validLum) + "% " + curPreset.substring(0, 4) + " " + ((curMode == "critico") ? "CRT:" : "OK:") + String(curHealth) + "%";
-  while (bStr.length() < 16) bStr += " ";
-  for (int i = 0; i < 16; i++) lcdSend((uint8_t)bStr[i], 1);
+  lcdSend(0x80, 0); String tStr = "T:" + String(validTemp, 1) + (char)223 + "C U:" + String((int)validHum) + "%" + (remoteSync ? "*" : " ");
+  while (tStr.length() < 16) tStr += " "; for (int i = 0; i < 16; i++) lcdSend((uint8_t)tStr[i], 1);
+  lcdSend(0xC0, 0); String bStr = "L:" + String((int)validLum) + "% " + curPreset.substring(0, 4) + " " + ((curMode == "critico") ? "CRT:" : "OK:") + String(curHealth) + "%";
+  while (bStr.length() < 16) bStr += " "; for (int i = 0; i < 16; i++) lcdSend((uint8_t)bStr[i], 1);
 }
-
 void selfTestLedsAndBuzzer() {
   digitalWrite(PIN_LED_GREEN, HIGH); tone(PIN_BUZZER, 880, 100); delay(140); digitalWrite(PIN_LED_GREEN, LOW);
   digitalWrite(PIN_LED_YELLOW, HIGH); tone(PIN_BUZZER, 1040, 100); delay(140); digitalWrite(PIN_LED_YELLOW, LOW);
-  digitalWrite(PIN_LED_RED, HIGH); tone(PIN_BUZZER, 1175, 100); delay(140); digitalWrite(PIN_LED_RED, LOW);
-  stopToneAlert();
+  digitalWrite(PIN_LED_RED, HIGH); tone(PIN_BUZZER, 1175, 100); delay(140); digitalWrite(PIN_LED_RED, LOW); stopToneAlert();
 }
 
 void applyWineStatusTransition(String newMode, int newHealth) {
@@ -139,24 +138,21 @@ void mqttLoop() {
 void handleActuators() {
   if (curMode != "critico") {
     digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, LOW);
-    stopToneAlert(); return;
+    stopToneAlert(); bthvIdx = 0; noteStartMs = 0; return;
   }
   // No estagio critico: LED Verde apagado e LED Vermelho aceso fixo
   digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH);
 
-  // Parametros da sirene continua modulados pela intensidade critica (Hertz)
-  int fMin = (curHealth >= 60) ? 550 : ((curHealth >= 40) ? 680 : 820);
-  int fMax = (curHealth >= 60) ? 850 : ((curHealth >= 40) ? 1080 : 1350);
-  unsigned long cycleMs = (curHealth >= 60) ? 1200 : ((curHealth >= 40) ? 900 : 650);
-
-  // Varredura harmonica continua (Sirene Continua sem pausas de silencio)
-  unsigned long tInCycle = millis() % cycleMs;
-  float halfCycle = cycleMs / 2.0f;
-  float prog = (tInCycle < halfCycle) ? (tInCycle / halfCycle) : ((cycleMs - tInCycle) / halfCycle);
-  int sirenFreq = fMin + (int)(prog * (fMax - fMin));
-
-  tone(PIN_BUZZER, sirenFreq);
-  digitalWrite(PIN_LED_YELLOW, (tInCycle < halfCycle) ? HIGH : LOW);
+  // Sonata de Beethoven (Sonata ao Luar, Op. 27 No. 2) no Buzzer e LED Amarelo sincronizado
+  unsigned long now = millis();
+  uint16_t dur = BTHV_MELODY[bthvIdx][1];
+  if (noteStartMs == 0 || (now - noteStartMs >= dur)) {
+    noteStartMs = (now == 0) ? 1 : now;
+    uint16_t freq = BTHV_MELODY[bthvIdx][0];
+    if (freq > 0) { tone(PIN_BUZZER, freq); digitalWrite(PIN_LED_YELLOW, HIGH); }
+    else { noTone(PIN_BUZZER); digitalWrite(PIN_LED_YELLOW, LOW); }
+    bthvIdx = (bthvIdx + 1) % BTHV_TOTAL;
+  }
 }
 
 void readAndPubSensors() {

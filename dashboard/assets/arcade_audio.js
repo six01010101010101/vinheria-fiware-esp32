@@ -143,15 +143,18 @@ class ArcadeAudioEngine {
     this.playTone(390, 0.20, "sawtooth", 150, 0.11);
   }
 
-  playCritical(score = 50) {
+  playCritical() {
     this.ensureContext();
-    const isVery = score < 40, isMild = score >= 60;
-    const fMin = isMild ? 550 : (isVery ? 820 : 680);
-    const fMax = isMild ? 850 : (isVery ? 1350 : 1080);
-    const dur = isMild ? 1.0 : (isVery ? 0.6 : 0.8);
-    // Sirene Continua: sobe suavemente e desce sem pausas
-    this.playTone(fMin, dur * 0.5, "sawtooth", fMax, 0, 0.9);
-    this.playTone(fMax, dur * 0.5, "sawtooth", fMin, dur * 0.5, 0.9);
+    // Beethoven: Sonata ao Luar (Moonlight Sonata, Op. 27 No. 2 em Do sustenido menor)
+    const notes = [
+      [208, 0.16], [277, 0.16], [330, 0.16], [208, 0.16], [277, 0.16], [330, 0.16],
+      [415, 0.48], [415, 0.30], [415, 0.16], [440, 0.48], [415, 0.30], [392, 0.16], [415, 0.65]
+    ];
+    let offset = 0;
+    notes.forEach(([f, d]) => {
+      this.playTone(f, d * 0.92, "sine", null, offset, 0.95);
+      offset += d;
+    });
   }
 
   playClick() {
