@@ -1,7 +1,6 @@
 """
 Callbacks reativos do Dashboard Dash Otimizados em Tempo Real (1s).
-Garante conversa bidirecional Plug-and-Play entre o Site, Nuvem (Supabase/Firebase/Open-Meteo)
-e o Simulador Wokwi ESP32 (#478106752109243393) em qualquer computador.
+Garante conversa bidirecional Plug-and-Play entre o Site, Nuvem e Simulador Wokwi ESP32.
 """
 
 from datetime import datetime
@@ -26,7 +25,6 @@ from src.ui.components.status_cards_builder import build_devices_table, build_kp
 
 
 def _safe_range(v_min: Any, v_max: Any, def_min: float, def_max: float) -> Tuple[float, float]:
-    """Garante que os limites de Trigger nunca fiquem nulos ou invertidos (min > max)."""
     try:
         a = float(v_min) if v_min is not None else def_min
     except (ValueError, TypeError):
@@ -49,35 +47,29 @@ def register_dashboard_callbacks(app: Dash) -> None:
         Input("dropdown-wine-preset", "value"),
     )
     def apply_wine_preset(preset_key: str) -> Tuple[float, float, float, float, float, float, str]:
-        """Aplica automaticamente os limites de Temperatura, Umidade e Luminosidade do Preset."""
         p = WINE_PRESETS.get(preset_key, WINE_PRESETS["tinto"])
+        preset_lcd = str(p.get("lcd", "TINTO"))
+        wokwi = WokwiMqttRepository.get_instance()
+        wokwi.ensure_connected()
+        wokwi.publish_sync(float(p.get("def_temp", 15.8)), float(p.get("def_hum", 68.0)), float(p.get("def_lum", 9.0)))
+        wokwi.publish_diagnostic("normal", 100, "OK", preset_lcd, force=True)
         return (
-            float(p["temp_min"]), float(p["temp_max"]),
-            float(p["hum_min"]), float(p["hum_max"]),
-            float(p["lum_min"]), float(p["lum_max"]),
-            str(p["description"]),
+            float(p["temp_min"]), float(p["temp_max"]), float(p["hum_min"]),
+            float(p["hum_max"]), float(p["lum_min"]), float(p["lum_max"]), str(p["description"]),
         )
 
     @app.callback(
-        Output("device-feedback-banner", "children"),
-        Output("device-table-container", "children"),
-        Input("btn-register-device", "n_clicks"),
-        Input("btn-refresh-devices", "n_clicks"),
-        Input("btn-delete-device", "n_clicks"),
+        Output("device-feedback-banner", "children"), Output("device-table-container", "children"),
+        Input("btn-register-device", "n_clicks"), Input("btn-refresh-devices", "n_clicks"), Input("btn-delete-device", "n_clicks"),
         State("input-fiware-host", "value"), State("reg-device-id", "value"),
         State("reg-entity-name", "value"), State("reg-entity-type", "value"), State("reg-api-key", "value"),
         prevent_initial_call=True,
     )
-    def handle_device_management(
-        _reg: int, _ref: int, _del: int, host: str, device_id: str, entity_name: str, entity_type: str, api_key: str
-    ) -> Tuple[Any, Any]:
-        """Gerencia o cadastro, listagem e exclusão de IoT Devices no IoT Agent (4041)."""
+    def handle_device_management(_reg: int, _ref: int, _del: int, host: str, device_id: str, entity_name: str, entity_type: str, api_key: str) -> Tuple[Any, Any]:
         clean_host = (host or DEFAULT_FIWARE_HOST).strip()
         banner = None
         if ctx.triggered_id == "btn-register-device":
-            ok, msg = DeviceManagerService.register_new_device(
-                host=clean_host, device_id=device_id, entity_name=entity_name, entity_type=entity_type, api_key=api_key
-            )
+            ok, msg = DeviceManagerService.register_new_device(host=clean_host, device_id=device_id, entity_name=entity_name, entity_type=entity_type, api_key=api_key)
             banner = dbc.Alert(msg, color="success" if ok else "warning", dismissable=True)
         elif ctx.triggered_id == "btn-delete-device":
             ok, msg = DeviceManagerService.remove_device(host=clean_host, device_id=device_id)
@@ -108,27 +100,28 @@ def register_dashboard_callbacks(app: Dash) -> None:
         wokwi_broker: str, device_id: str, api_key: str, host: str, entity_id: str,
         entity_type: str, last_n: int, local_store: Dict[str, List[Dict[str, Any]]],
     ) -> Tuple[Any, Any, Any, Any, Any, Dict[str, List[Dict[str, Any]]], Any, Any, Any]:
-        """Sincroniza telemetria bidirecional entre Site, Wokwi, Vinícolas Reais, Firebase e FIWARE."""
         clean_host, clean_broker = (host or DEFAULT_FIWARE_HOST).strip(), (wokwi_broker or DEFAULT_WOKWI_BROKER).strip()
         clean_entity, clean_type = (entity_id or "urn:ngsi-ld:Vine:001").strip(), (entity_type or "Vine").strip()
         n_samples = max(5, min(100, int(last_n or 30)))
         preset_cfg = WINE_PRESETS.get(wine_preset, WINE_PRESETS["tinto"])
         wine_style, preset_lcd = str(preset_cfg.get("style", "tinto")), str(preset_cfg.get("lcd", "TINTO"))
 
-        t_lo, t_hi = _safe_range(t_min, t_max, 12.0, 18.0)
-        h_lo, h_hi = _safe_range(h_min, h_max, 60.0, 75.0)
-        l_lo, l_hi = _safe_range(l_min, l_max, 0.0, 25.0)
+        t_lo, t_hi = _safe_range(t_min, t_max, float(preset_cfg["temp_min"]), float(preset_cfg["temp_max"]))
+        h_lo, h_hi = _safe_range(h_min, h_max, float(preset_cfg["hum_min"]), float(preset_cfg["hum_max"]))
+        l_lo, l_hi = _safe_range(l_min, l_max, float(preset_cfg["lum_min"]), float(preset_cfg["lum_max"]))
         triggers = TriggerConfig(t_lo, t_hi, h_lo, h_hi, l_lo, l_hi)
 
-        tick = int(n_intervals or 0)
-        wave = math.sin(tick * 0.55)
-        cur_t = round(max(-40.0, min(80.0, float(sim_temp if sim_temp is not None else 15.5))) + wave * 0.2, 1)
-        cur_h = round(max(0.0, min(100.0, float(sim_hum if sim_hum is not None else 68.0))) + math.cos(tick * 0.45) * 0.5, 1)
-        cur_l = round(max(0.0, min(100.0, float(sim_lum if sim_lum is not None else 12.0) + wave * 0.4)), 1)
+        def_t, def_h, def_l = float(preset_cfg.get("def_temp", 15.8)), float(preset_cfg.get("def_hum", 68.0)), float(preset_cfg.get("def_lum", 9.0))
+        base_t = def_t if scenario_mode in ("wokwi_live", "normal", None) else float(sim_temp if sim_temp is not None else def_t)
+        base_h = def_h if scenario_mode in ("wokwi_live", "normal", None) else float(sim_hum if sim_hum is not None else def_h)
+        base_l = def_l if scenario_mode in ("wokwi_live", "normal", None) else float(sim_lum if sim_lum is not None else def_l)
 
-        wokwi_series, wokwi_snap, wokwi_meta = DeviceManagerService.get_wokwi_realtime_data(
-            broker_host=clean_broker, device_id=device_id, api_key=api_key, last_n=n_samples
-        )
+        tick = int(n_intervals or 0)
+        cur_t = round(max(-40.0, min(80.0, base_t)) + math.sin(tick * 0.55) * 0.2, 1)
+        cur_h = round(max(0.0, min(100.0, base_h)) + math.cos(tick * 0.45) * 0.5, 1)
+        cur_l = round(max(0.0, min(100.0, base_l + math.sin(tick * 0.55) * 0.4)), 1)
+
+        wokwi_series, wokwi_snap, wokwi_meta = DeviceManagerService.get_wokwi_realtime_data(broker_host=clean_broker, device_id=device_id, api_key=api_key, last_n=n_samples)
         now_str = datetime.now().strftime("%H:%M:%S")
         store = local_store or {"temperature": [], "humidity": [], "luminosity": []}
         push_to_wokwi_lcd = False
@@ -137,9 +130,7 @@ def register_dashboard_callbacks(app: Dash) -> None:
             WokwiMqttRepository.get_instance().release_remote_sync()
 
         if source_mode == "sth":
-            sth_series, fiware_snap, _ = DeviceManagerService.get_historical_and_latest_data(
-                host=clean_host, entity_type=clean_type, entity_id=clean_entity, last_n=n_samples
-            )
+            sth_series, fiware_snap, _ = DeviceManagerService.get_historical_and_latest_data(host=clean_host, entity_type=clean_type, entity_id=clean_entity, last_n=n_samples)
             active_snapshot = fiware_snap
             temp_pts, hum_pts, lum_pts = sth_series.temperature, sth_series.humidity, sth_series.luminosity
             source_label = f"STH-Comet ({clean_host}:8666)"
@@ -149,7 +140,7 @@ def register_dashboard_callbacks(app: Dash) -> None:
             temp_pts, hum_pts, lum_pts = v_series.temperature, v_series.humidity, v_series.luminosity
             source_label = f"{v_info.name} • {preset_cfg['name']}" if v_info else "Vinícola Real"
             push_to_wokwi_lcd = ctx.triggered_id in ("dropdown-real-vineyard", "dropdown-wine-preset") or (tick % 5 == 0)
-        elif scenario_mode == "wokwi_live" and wokwi_snap is not None:
+        elif scenario_mode == "wokwi_live" and wokwi_snap is not None and ctx.triggered_id != "dropdown-wine-preset":
             active_snapshot = wokwi_snap
             temp_pts, hum_pts, lum_pts = wokwi_series.temperature, wokwi_series.humidity, wokwi_series.luminosity
             source_label = f"Wokwi #478106752109243393 ↔ Site [{preset_lcd}]"
@@ -163,19 +154,15 @@ def register_dashboard_callbacks(app: Dash) -> None:
             hum_pts = [TimeSeriesPoint(d["t"], float(d["v"])) for d in store["humidity"]]
             lum_pts = [TimeSeriesPoint(d["t"], float(d["v"])) for d in store["luminosity"]]
             source_label = f"Sincronizado ↔ Wokwi [{preset_lcd}]"
-            push_to_wokwi_lcd = scenario_mode != "wokwi_live" and (ctx.triggered_id != "interval-auto-refresh" or tick % 5 == 0)
+            push_to_wokwi_lcd = (ctx.triggered_id == "dropdown-wine-preset") or (scenario_mode != "wokwi_live" and (ctx.triggered_id != "interval-auto-refresh" or tick % 5 == 0))
 
         is_user_action = ctx.triggered_id not in (None, "interval-auto-refresh")
         evaluation, _, dispatch_msg = TriggerAlertService.evaluate_and_dispatch_remote_alert(
             host=clean_host, entity_id=clean_entity, snapshot=active_snapshot,
-            triggers=triggers, use_fiware_http=(source_mode == "sth"), force=is_user_action,
-            preset_lcd=preset_lcd,
+            triggers=triggers, use_fiware_http=(source_mode == "sth"), force=is_user_action, preset_lcd=preset_lcd,
         )
         if push_to_wokwi_lcd and active_snapshot.temperature is not None:
-            WokwiMqttRepository.get_instance().publish_sync(
-                float(active_snapshot.temperature), float(active_snapshot.humidity or 65.0),
-                float(active_snapshot.luminosity or 15.0),
-            )
+            WokwiMqttRepository.get_instance().publish_sync(float(active_snapshot.temperature), float(active_snapshot.humidity or 65.0), float(active_snapshot.luminosity or 15.0))
 
         banner = build_green_hardware_plaque(active_snapshot, triggers, evaluation, dispatch_msg, source_label)
         kpis = build_kpi_cards(active_snapshot, triggers)

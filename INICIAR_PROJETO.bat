@@ -13,7 +13,6 @@ echo.
 cd /d "%~dp0dashboard"
 
 set "PY_EXE=python"
-if exist "C:\Users\s6x12\anaconda3\python.exe" set "PY_EXE=C:\Users\s6x12\anaconda3\python.exe"
 
 echo [1/3] Verificando dependencias Python...
 "%PY_EXE%" -m pip install -q -r requirements.txt 2>nul

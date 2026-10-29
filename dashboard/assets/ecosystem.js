@@ -43,7 +43,7 @@ const ECOSYSTEM_SERVICES = [
     protocol: "HTTP :8050 / Render",
     badge: "Cavas de Guarda",
     color: "primary",
-    desc: "Catálogo de 12 grandes lotes mundiais com safras, solos, tipo de carvalho e apogeu.",
+    desc: "Catálogo de 15 grandes lotes mundiais com safras, solos, tipo de carvalho e apogeu.",
     inside: "Códigos de lote, notas do sommelier, tolerâncias térmicas e filtros por estilo e país.",
     url: "api/v1/lots/index.html",
     icon: "🍷"
@@ -67,7 +67,7 @@ const ECOSYSTEM_SERVICES = [
     color: "success",
     desc: "Banco PostgreSQL na nuvem com 5 tabelas ativas e segurança Row Level Security (RLS).",
     inside: "Tabelas vine_telemetry, vine_devices, real_vineyards_status, cellar_lots e triggers.",
-    url: "https://slqozouuqzxwmfswyroo.supabase.co",
+    url: "api/v1/cloud/firebase/index.html",
     icon: "🗄️"
   }
 ];

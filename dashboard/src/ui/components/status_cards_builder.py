@@ -52,10 +52,10 @@ def build_wokwi_status_bar(meta: Dict[str, object]) -> html.Div:
 def build_remote_alert_banner(
     evaluation: AnomalyEvaluation, _dispatch_ok: bool, dispatch_msg: str, source_label: str
 ) -> dbc.Card:
-    """Exibe de forma limpa e direta o estado dos 3 LEDs (Verde, Vermelho e Azul) e do Buzzer no ESP32."""
+    """Exibe de forma limpa e direta o estado dos 3 LEDs (Verde, Amarelo e Vermelho) e do Buzzer no ESP32."""
     led_green_cls = "led-indicator led-green-off" if evaluation.is_anomalous else "led-indicator led-green-on"
-    led_red_cls = "led-indicator led-red-on" if evaluation.is_anomalous else "led-indicator led-red-off"
-    led_blue_cls = "led-indicator led-blue-blinking" if evaluation.is_anomalous else "led-indicator led-blue-off"
+    led_yellow_cls = "led-indicator led-yellow-blinking" if (evaluation.is_anomalous and evaluation.command_code != "multi") else "led-indicator led-yellow-off"
+    led_red_cls = "led-indicator led-red-blinking" if evaluation.command_code == "multi" else "led-indicator led-red-off"
     border_cls = "border-danger" if evaluation.is_anomalous else "border-success"
 
     return dbc.Card(
@@ -68,8 +68,8 @@ def build_remote_alert_banner(
                             html.Div(
                                 [
                                     html.Span([html.Span(className=led_green_cls), html.Strong("Verde (GPIO 5): Normal OK" if not evaluation.is_anomalous else "Verde (GPIO 5): OFF", className="text-dark me-3")]),
-                                    html.Span([html.Span(className=led_red_cls), html.Strong("Vermelho (GPIO 18): ALERTA" if evaluation.is_anomalous else "Vermelho (GPIO 18): OFF", className="text-dark me-3")]),
-                                    html.Span([html.Span(className=led_blue_cls), html.Strong(evaluation.led_status_text, className="text-info me-3")]),
+                                    html.Span([html.Span(className=led_yellow_cls), html.Strong("Amarelo (GPIO 2): ATENÇÃO" if (evaluation.is_anomalous and evaluation.command_code != "multi") else "Amarelo (GPIO 2): OFF", className="text-warning me-3")]),
+                                    html.Span([html.Span(className=led_red_cls), html.Strong("Vermelho (GPIO 18): CRÍTICO" if evaluation.command_code == "multi" else "Vermelho (GPIO 18): OFF", className="text-danger me-3")]),
                                     dbc.Badge(f"CMD: alert|{evaluation.command_code}", color=evaluation.badge_color, className="p-2 me-2"),
                                     dbc.Badge(source_label, color="secondary", className="p-2 border border-secondary bg-transparent text-secondary"),
                                 ],

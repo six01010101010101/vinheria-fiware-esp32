@@ -64,7 +64,7 @@
           service: "Vinheria Agnello — FIWARE & ESP32 Wokwi IoT API v1",
           active_preset: { key: pr.key, name: pr.name, target_temp_c: [pr.tMin, pr.tMax], target_hum_pct: [pr.hMin, pr.hMax], max_lum_pct: pr.lMax },
           telemetry: { device_id: "vine001", entity_id: "urn:ngsi-ld:Vineyard:001", temperature_c: t, humidity_pct: h, luminosity_pct: l, preservation_score: 100, led_state: "IDEAL (95-100%)" },
-          wokwi_esp32: { broker: "broker.hivemq.com", port_tcp: 1883, port_wss: 8884, topic_attrs: "/TEF/vine001/attrs", topic_cmd: "/TEF/vine001/cmd", lcd_i2c: "0x27 (16x2)", leds: { green_d5: "ON", blue_d2: "OFF", red_d18: "OFF", buzzer_d4: "MUDO" } },
+          wokwi_esp32: { broker: "broker.hivemq.com", port_tcp: 1883, port_wss: 8884, topic_attrs: "/TEF/vine001/attrs", topic_cmd: "/TEF/vine001/cmd", lcd_i2c: "0x27 (16x2)", leds: { green_d5: "ON", yellow_d2: "OFF", red_d18: "OFF", buzzer_d4: "MUDO" } },
           counts: { wine_styles: Object.keys(window.PRESETS || {}).length, cellar_lots: (window.CANONICAL_LOTS || []).length, satellite_terroirs: Object.keys(window.TERROIRS || {}).length - 1 }
         };
         document.getElementById("api-json-viewer").textContent = JSON.stringify(payload, null, 2);

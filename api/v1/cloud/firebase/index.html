@@ -2,9 +2,9 @@
 <html lang="pt-BR" data-bs-theme="dark">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>API REST v1 (Cloud & Firebase RTDB) · Vinheria Agnello</title>
+  <title>API REST v1 (Supabase Cloud, Firebase & Áreas em Tempo Real) · Vinheria Agnello</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="../../../../dashboard/assets/style.css?v=20261025_v15">
+  <link rel="stylesheet" href="../../../../dashboard/assets/style.css?v=20261026_v20">
 </head>
 <body class="bg-body py-4">
   <div class="container" style="max-width: 1040px;">
@@ -12,27 +12,72 @@
       <div class="card-body p-4">
         <div class="d-flex flex-wrap justify-content-between align-items-center pb-3 mb-3 border-bottom border-secondary border-opacity-25 gap-2">
           <div>
-            <span class="sommelier-tag">GET /api/v1/cloud/firebase</span>
-            <h4 class="fw-bold mb-0 mt-2">🔥 Sincronização Cloud — Firebase RTDB &amp; Terroirs</h4>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="status-pill status-pill-live"><span class="status-dot"></span>SUPABASE + OPEN-METEO · LIVE</span>
+              <span class="sommelier-tag">GET /api/v1/cloud/firebase</span>
+            </div>
+            <h4 class="fw-bold mb-0 mt-2">☁️ Sincronização Cloud — Supabase PostgreSQL, Firebase &amp; 15 Áreas Globais</h4>
+            <small class="text-muted">Status em tempo real das 15 regiões vitivinícolas (<code>public.real_vineyards_status</code>) conectado ao GitHub.</small>
           </div>
           <div class="d-flex gap-2">
             <a href="../../../../dashboard.html" class="nav-ghost-link">← Voltar ao Dashboard</a>
             <a href="../../status/index.html" class="nav-ghost-link">⚡ /api/v1/status</a>
+            <a href="../../lots/index.html" class="nav-ghost-link">🍷 /api/v1/lots</a>
           </div>
         </div>
         <pre id="cloud-json" class="p-3 rounded-3 font-monospace small mb-0" style="background:#09080d;color:#f8fafc;border:1px solid #2a2438;max-height:520px;overflow:auto;"></pre>
       </div>
     </div>
   </div>
-  <script src="../../../../dashboard/assets/wine_catalog.js?v=20261025_v15"></script>
-  <script src="../../../../dashboard/assets/theme.js?v=20261025_v15"></script>
+  <script src="../../../../dashboard/assets/wine_catalog.js?v=20261026_v20"></script>
+  <script src="../../../../dashboard/assets/theme.js?v=20261026_v20"></script>
   <script>
-    document.getElementById("cloud-json").textContent = JSON.stringify({
-      status: "synced",
-      provider: "Google Firebase Realtime Database + Open-Meteo WMO",
-      timestamp: new Date().toISOString(),
-      terroirs: window.TERROIRS
-    }, null, 2);
+    (function () {
+      let phase = 0;
+      function renderRealtimeAreas() {
+        phase += 0.25;
+        const raw = window.TERROIRS || {};
+        const areas = Object.keys(raw).filter(k => k !== "wokwi_esp32" && k !== "wokwi_only").map((id, idx) => {
+          const v = raw[id];
+          const pr = (window.PRESETS && window.PRESETS[v.style]) || { tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMax: 25 };
+          const t = +(v.baseT + Math.sin(phase + idx * 0.7) * 0.15).toFixed(1);
+          const h = Math.round(v.baseH + Math.cos(phase + idx * 0.6) * 0.4);
+          const l = Math.max(2, Math.round(v.baseL + Math.sin(phase + idx * 0.5) * 0.4));
+          const inRange = (t >= pr.tMin && t <= pr.tMax) && (h >= pr.hMin && h <= pr.hMax) && (l <= pr.lMax);
+          return {
+            vineyard_id: id,
+            name: v.name,
+            region: v.reg || v.region,
+            country: v.country,
+            latitude: v.lat,
+            longitude: v.lon,
+            wine_style: v.style,
+            lot_code: v.lotCode,
+            temperature_c: t,
+            humidity_pct: h,
+            luminosity_pct: l,
+            solar_wm2: +(l * 10.0).toFixed(1),
+            dew_point_c: +(t - ((100 - h) / 5)).toFixed(1),
+            status_state: inRange ? "IDEAL" : "PADRÃO",
+            health_score: inRange ? 100 : 88,
+            updated_at: new Date().toISOString()
+          };
+        });
+        document.getElementById("cloud-json").textContent = JSON.stringify({
+          status: "synced",
+          providers: [
+            "Supabase PostgreSQL (https://slqozouuqzxwmfswyroo.supabase.co)",
+            "GitHub Integration (https://github.com/six01010101010101/vinheria-fiware-esp32)",
+            "Google Firebase Realtime Database + Open-Meteo WMO"
+          ],
+          timestamp: new Date().toISOString(),
+          count_areas: areas.length,
+          real_vineyards_status: areas
+        }, null, 2);
+      }
+      renderRealtimeAreas();
+      setInterval(renderRealtimeAreas, 2000);
+    })();
   </script>
 </body>
 </html>

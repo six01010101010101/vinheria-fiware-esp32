@@ -50,8 +50,8 @@ def build_green_hardware_plaque(
     ]
 
     led_green_cls = "led-indicator led-green-off" if evaluation.is_anomalous else "led-indicator led-green-on"
-    led_red_cls = "led-indicator led-red-on" if evaluation.is_anomalous else "led-indicator led-red-off"
-    led_blue_cls = "led-indicator led-blue-blinking" if evaluation.is_anomalous else "led-indicator led-blue-off"
+    led_yellow_cls = "led-indicator led-yellow-blinking" if (evaluation.is_anomalous and evaluation.command_code != "multi") else "led-indicator led-yellow-off"
+    led_red_cls = "led-indicator led-red-blinking" if evaluation.command_code == "multi" else "led-indicator led-red-off"
     border_cls = "border-danger" if evaluation.is_anomalous else "border-success"
 
     return dbc.Card(
@@ -135,8 +135,8 @@ def build_green_hardware_plaque(
                                     html.Div(
                                         [
                                             html.Span([html.Span(className=led_green_cls), html.Strong("Verde (GPIO 5)", className="small text-dark me-2")]),
-                                            html.Span([html.Span(className=led_red_cls), html.Strong("Vermelho (GPIO 18)", className="small text-dark me-2")]),
-                                            html.Span([html.Span(className=led_blue_cls), html.Strong("Azul (GPIO 2)", className="small text-info")]),
+                                            html.Span([html.Span(className=led_yellow_cls), html.Strong("Amarelo (GPIO 2)", className="small text-warning me-2")]),
+                                            html.Span([html.Span(className=led_red_cls), html.Strong("Vermelho (GPIO 18)", className="small text-danger")]),
                                         ],
                                         className="d-flex flex-wrap align-items-center gap-1 mb-2",
                                     ),

@@ -11,7 +11,7 @@
     { "type": "wokwi-resistor", "id": "r_green", "top": 20, "left": 135, "attrs": { "value": "220" } },
     { "type": "wokwi-led", "id": "led_red", "top": -55, "left": 215, "attrs": { "color": "red", "label": "LED Vermelho (Alerta)" } },
     { "type": "wokwi-resistor", "id": "r_red", "top": 20, "left": 205, "attrs": { "value": "220" } },
-    { "type": "wokwi-led", "id": "led_blue", "top": -55, "left": 285, "attrs": { "color": "blue", "label": "LED Azul (Remoto)" } },
+    { "type": "wokwi-led", "id": "led_blue", "top": -55, "left": 285, "attrs": { "color": "yellow", "label": "LED Amarelo (Atenção / Padrão)" } },
     { "type": "wokwi-resistor", "id": "r1", "top": 20, "left": 275, "attrs": { "value": "220" } },
     { "type": "wokwi-buzzer", "id": "bz1", "top": 95, "left": 195, "attrs": { "volume": "0.6", "label": "Buzzer Mario & Fliperama" } }
   ],

@@ -6,24 +6,37 @@
   window.curLotCode = window.curLotCode || "LOTE-FR-MARGAUX-01";
   let lastClickedLotCode = null;
 
-  function evaluateLotPreservation(lot, t, h, l) {
-    const [tMin, tMax] = lot.temp, [hMin, hMax] = lot.hum, lMax = lot.lum;
+  function evaluateLotPreservation(lot, t, h, l, customTriggers, modeOverride) {
+    const tMin = customTriggers?.tMin ?? lot.temp[0];
+    const tMax = customTriggers?.tMax ?? lot.temp[1];
+    const hMin = customTriggers?.hMin ?? lot.hum[0];
+    const hMax = customTriggers?.hMax ?? lot.hum[1];
+    const lMax = customTriggers?.lMax ?? lot.lum;
+
     let penalty = 0;
     if (t < tMin) penalty += (tMin - t) * 7.5;
     else if (t > tMax) penalty += (t - tMax) * 7.5;
     if (h < hMin) penalty += (hMin - h) * 1.6;
     else if (h > hMax) penalty += (h - hMax) * 1.6;
     if (l > lMax) penalty += (l - lMax) * 1.3;
+
     const score = Math.max(15, Math.min(94, Math.round(100 - penalty)));
     const tMid = (tMin + tMax) / 2, hMid = (hMin + hMax) / 2;
-    const edgeDist = (Math.abs(t - tMid) / Math.max(1, (tMax - tMin) / 2)) * 2.5 + (Math.abs(h - hMid) / Math.max(1, (hMax - hMin) / 2)) * 1.8;
-    const adjScore = penalty === 0 ? Math.max(95, Math.round(100 - edgeDist)) : score;
+    const edgeDist = (Math.abs(t - tMid) / Math.max(1, (tMax - tMin) / 2)) * 2.5 +
+                     (Math.abs(h - hMid) / Math.max(1, (hMax - hMin) / 2)) * 1.8;
+    let adjScore = penalty === 0 ? Math.max(95, Math.min(100, Math.round(100 - edgeDist))) : score;
+
+    if (modeOverride === "multi" || modeOverride === "critico") {
+      adjScore = Math.min(adjScore, 62);
+    } else if (modeOverride === "padrao" && (adjScore >= 95 || adjScore < 75)) {
+      adjScore = 78;
+    }
 
     let verdict = "IDEAL (95–100%)", stateKey = "ideal", barColor = "bg-success", textClass = "text-success", dot = "🟢";
     if (adjScore < 75) {
       verdict = "CRÍTICO (Apito)"; stateKey = "critico"; barColor = "bg-danger"; textClass = "text-danger"; dot = "🔴";
     } else if (adjScore < 95) {
-      verdict = "PADRÃO (~75%)"; stateKey = "padrao"; barColor = "bg-info"; textClass = "text-info"; dot = "🔵";
+      verdict = "PADRÃO (75–94%)"; stateKey = "padrao"; barColor = "bg-warning"; textClass = "text-warning"; dot = "🟡";
     }
     return { score: adjScore, verdict, stateKey, barColor, textClass, dot };
   }
@@ -36,17 +49,43 @@
     const tAct = typeof currentTemp === "number" ? currentTemp : 15.8;
     const hAct = typeof currentHum === "number" ? currentHum : 68;
     const lAct = typeof currentLum === "number" ? currentLum : 9;
+    const activePreset = (window.PRESETS && window.PRESETS[activeStyle]) || null;
+    const curMode = window.curScadaMode || "normal";
 
     const list = window.CANONICAL_LOTS;
-    let okCount = 0;
-    c.innerHTML = list.map(lot => {
+    let idealCount = 0, padraoCount = 0, critCount = 0;
+
+    c.innerHTML = list.map((lot, idx) => {
       const isSelected = lot.code === selCode;
       const isSameStyle = lot.style === activeStyle;
-      const t = isSelected ? tAct : (lot.liveT ?? 15.8);
-      const h = isSelected ? hAct : (lot.liveH ?? 68.0);
-      const l = isSelected ? lAct : (lot.liveL ?? 9.0);
-      const ev = evaluateLotPreservation(lot, t, h, l);
-      if (ev.score >= 75) okCount++;
+      const tr = (window.TERROIRS && lot.terroirId) ? window.TERROIRS[lot.terroirId] : null;
+
+      // Telemetria climática real ancorada no Terroir/Satélite Open-Meteo
+      const phase = (Date.now() / 2200) + idx * 0.9;
+      const baseT = (tr && tr.satT !== undefined) ? tr.satT : (tr && tr.t !== undefined ? tr.t : lot.baseT);
+      const baseH = (tr && tr.satH !== undefined) ? tr.satH : (tr && tr.h !== undefined ? tr.h : lot.baseH);
+      const baseL = (tr && tr.satL !== undefined) ? tr.satL : (tr && tr.l !== undefined ? tr.l : lot.baseL);
+
+      lot.liveT = +(baseT + Math.sin(phase) * 0.1).toFixed(1);
+      lot.liveH = Math.max(10, Math.min(99, Math.round(baseH + Math.cos(phase * 0.8) * 0.3)));
+      lot.liveL = Math.max(0, Math.min(100, Math.round(baseL)));
+
+      const t = isSelected ? tAct : lot.liveT;
+      const h = isSelected ? hAct : lot.liveH;
+      const l = isSelected ? lAct : lot.liveL;
+      const ev = evaluateLotPreservation(
+        lot,
+        t,
+        h,
+        l,
+        isSelected && activePreset ? activePreset : null,
+        isSelected ? curMode : null
+      );
+
+      if (ev.stateKey === "ideal") idealCount++;
+      else if (ev.stateKey === "padrao") padraoCount++;
+      else critCount++;
+
       const justClicked = lastClickedLotCode === lot.code;
       const cardClasses = [
         "vineyard-card h-100",
@@ -88,8 +127,9 @@
     const badge = document.getElementById("cellar-lots-live-badge");
     if (badge) {
       const selLot = list.find(x => x.code === selCode) || list[0];
-      badge.className = "badge font-monospace bg-success bg-opacity-25 text-success border border-success border-opacity-50";
-      badge.innerHTML = `<span class="status-dot"></span>ATIVO: ${selLot.winery.toUpperCase()} (${okCount}/${list.length} PRESERVADOS)`;
+      const badgeCls = critCount > 0 ? "border-danger text-danger bg-danger" : (padraoCount > 0 ? "border-warning text-warning bg-warning" : "border-success text-success bg-success");
+      badge.className = `badge font-monospace ${badgeCls} bg-opacity-25 border border-opacity-50`;
+      badge.innerHTML = `<span class="status-dot"></span>ATIVO: ${selLot.winery.toUpperCase()} · 🟢 ${idealCount} IDEAL · 🟡 ${padraoCount} PADRÃO · 🔴 ${critCount} CRÍTICO`;
     }
 
     const handler = onSelectCallback || window.onLotSelect;

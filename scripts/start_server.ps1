@@ -1,6 +1,5 @@
 # ==============================================================================
 # Script de Inicializacao Automatica em Background — Vinheria Agnello (Porta 8050)
-# Compativel com Antigravity IDE (folderOpen) e Antigravity Hook (SessionStart)
 # ==============================================================================
 
 [CmdletBinding()]
@@ -16,11 +15,9 @@ if (-not $activeConn) {
     $rootDir = Split-Path -Parent $scriptDir
     $dashboardDir = Join-Path $rootDir "dashboard"
 
-    $pythonExe = "C:\Users\s6x12\anaconda3\python.exe"
-    if (-not (Test-Path $pythonExe)) {
-        $cmd = Get-Command python -ErrorAction SilentlyContinue
-        if ($cmd) { $pythonExe = $cmd.Source }
-    }
+    $pythonExe = "python"
+    $cmd = Get-Command python -ErrorAction SilentlyContinue
+    if ($cmd) { $pythonExe = $cmd.Source }
 
     $logFile = Join-Path $dashboardDir "server.log"
     Start-Process -FilePath $pythonExe `

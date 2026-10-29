@@ -1,0 +1,18 @@
+===================================================================
+FIAP — CHECK POINT 5 — VINHERIA AGNELLO (IOT, FIWARE & ESP32)
+===================================================================
+
+Integrantes:
+- Ken Kobayashi (GitHub: https://github.com/six01010101010101)
+- Nicolly Vilela (GitHub: https://github.com/ninixzzs)
+
+Curso: Engenharia de Software / Edge Computing, IoT & Sistemas Distribuídos
+Projeto: Monitoramento Inteligente de Cavas Subterrâneas e Terroirs (Vinheria Agnello)
+
+Links Oficiais do Projeto:
+- Repositório GitHub: https://github.com/six01010101010101/vinheria-fiware-esp32
+- Simulador Wokwi (ESP32 + Sensores + LCD 16x2): https://wokwi.com/projects/478106752109243393
+- Deploy em Nuvem (Render): https://checkpoint5-vinheria-fiware-esp32-1.onrender.com/
+- Portal Barril 3D Interativo: index.html
+- Dashboard SCADA Completo: dashboard.html
+===================================================================

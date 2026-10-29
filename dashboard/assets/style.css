@@ -113,19 +113,22 @@ h1, h2, h3, h4, .section-title { font-family: "Plus Jakarta Sans", sans-serif; f
 }
 .led-state-pill.active-ideal { background: rgba(34, 197, 94, 0.16); color: #16a34a; border-color: #22c55e; font-weight: 800; }
 [data-bs-theme="dark"] .led-state-pill.active-ideal { color: #4ade80; }
-.led-state-pill.active-padrao { background: rgba(56, 189, 248, 0.16); color: #0284c7; border-color: #38bdf8; font-weight: 800; }
-[data-bs-theme="dark"] .led-state-pill.active-padrao { color: #38bdf8; }
+.led-state-pill.active-padrao { background: rgba(245, 158, 11, 0.18); color: #d97706; border-color: #f59e0b; font-weight: 800; }
+[data-bs-theme="dark"] .led-state-pill.active-padrao { color: #fbbf24; }
 .led-state-pill.active-critico { background: rgba(225, 29, 72, 0.22); color: #e11d48; border-color: #f43f5e; font-weight: 800; animation: pulseRed 0.6s infinite ease-in-out; }
 [data-bs-theme="dark"] .led-state-pill.active-critico { color: #fb7185; }
 
 /* LEDs Físicos */
 .led-indicator { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: middle; margin-right: 4px; }
 .led-green-on { background: #22c55e; box-shadow: 0 0 10px #22c55e; border: 2px solid #86efac; }
-.led-green-off, .led-blue-off, .led-red-off { background: var(--bg-subbox); border: 2px solid var(--border-input); opacity: 0.5; }
+.led-green-off, .led-yellow-off, .led-blue-off, .led-red-off { background: var(--bg-subbox); border: 2px solid var(--border-input); opacity: 0.5; }
 .led-red-on { background: #e11d48; box-shadow: 0 0 12px #e11d48; border: 2px solid #fda4af; }
+.led-yellow-on { background: #eab308; box-shadow: 0 0 10px #eab308; border: 2px solid #fef08a; }
 .led-blue-on { background: #0284c7; box-shadow: 0 0 10px #0284c7; border: 2px solid #7dd3fc; }
+@keyframes pulseYellow { 0%, 100% { background: #eab308; box-shadow: 0 0 10px #eab308; } 50% { background: #713f12; box-shadow: none; } }
 @keyframes pulseBlue { 0%, 100% { background: #0284c7; box-shadow: 0 0 10px #0284c7; } 50% { background: #7dd3fc; box-shadow: none; } }
 @keyframes pulseRed { 0%, 100% { background: #e11d48; box-shadow: 0 0 14px #e11d48; } 50% { background: #881337; box-shadow: none; } }
+.led-yellow-blinking { border: 2px solid #fef08a; animation: pulseYellow 0.65s infinite ease-in-out; }
 .led-blue-blinking { border: 2px solid #bae6fd; animation: pulseBlue 0.65s infinite ease-in-out; }
 .led-red-blinking { border: 2px solid #fda4af; animation: pulseRed 0.38s infinite ease-in-out; }
 
@@ -178,8 +181,18 @@ h1, h2, h3, h4, .section-title { font-family: "Plus Jakarta Sans", sans-serif; f
 
 .sc-btn { height: 34px; border-radius: 9px !important; font-weight: 700 !important; font-size: 0.73rem !important; display: flex; align-items: center; justify-content: center; }
 .sc-btn[data-sc="normal"].active { background: rgba(34, 197, 94, 0.18) !important; border-color: #22c55e !important; color: #16a34a !important; }
-.sc-btn[data-sc="padrao"].active { background: rgba(56, 189, 248, 0.18) !important; border-color: #0284c7 !important; color: #0284c7 !important; }
+.sc-btn[data-sc="padrao"].active { background: rgba(245, 158, 11, 0.18) !important; border-color: #f59e0b !important; color: #d97706 !important; }
 .sc-btn[data-sc="multi"].active { background: rgba(225, 29, 72, 0.24) !important; border-color: #e11d48 !important; color: #e11d48 !important; }
 [data-bs-theme="dark"] .sc-btn[data-sc="normal"].active { color: #4ade80 !important; }
-[data-bs-theme="dark"] .sc-btn[data-sc="padrao"].active { color: #38bdf8 !important; }
+[data-bs-theme="dark"] .sc-btn[data-sc="padrao"].active { color: #fbbf24 !important; }
 [data-bs-theme="dark"] .sc-btn[data-sc="multi"].active { color: #fb7185 !important; }
+
+/* Barras de Percentual SCADA (🟢 Ideal | 🟡 Padrão | 🔴 Crítico) */
+.progress { background-color: rgba(255, 255, 255, 0.08) !important; overflow: hidden; }
+[data-bs-theme="light"] .progress { background-color: rgba(0, 0, 0, 0.08) !important; }
+.progress-bar.bg-success { background-color: #22c55e !important; }
+.progress-bar.bg-warning { background-color: #f59e0b !important; }
+.progress-bar.bg-danger { background-color: #e11d48 !important; }
+.text-warning { color: #f59e0b !important; }
+.text-success { color: #22c55e !important; }
+.text-danger { color: #e11d48 !important; }

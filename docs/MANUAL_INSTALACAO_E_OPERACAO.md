@@ -14,7 +14,7 @@ Este documento detalha o procedimento passo a passo para montagem física em lab
 | 1 | **Sensor LDR (Fotoresistor)** | Medição de Luminosidade ambiente da adega (0 a 100%) |
 | 1 | **Resistor 10 kΩ** | Divisor de tensão para o LDR (caso não utilize módulo LDR) |
 | 1 | **Buzzer (Passivo ou Ativo)** | Emissão de alertas sonoros distintos para cada anomalia |
-| 1 | **LED Azul + Resistor 220 Ω** | Alerta visual remoto piscante (também utiliza o LED Azul Onboard `GPIO 2`) |
+| 1 | **LED Amarelo + Resistor 220 Ω** | Alerta visual de estado Padrão/Atenção (utiliza o `GPIO 2`) |
 | 1 | **Protoboard + Jumpers** | Conexões macho-macho e macho-fêmea |
 
 ---
@@ -29,8 +29,8 @@ Este documento detalha o procedimento passo a passo para montagem física em lab
 | **Módulo LDR** | `VCC` | `3V3` | Alimentação 3.3V |
 | **Módulo LDR** | `AO` (Saída Analógica) | **`GPIO 34`** (`D34`) | Canal `ADC1_CH6` (compatível com Wi-Fi ativo) |
 | **Módulo LDR** | `GND` | `GND` | Terra comum |
-| **LED Azul** | Anodo (`+`) | **`GPIO 2`** (`D2`) | Sincronizado com o LED Azul Onboard do ESP32 |
-| **LED Azul** | Catodo (`-`) | `GND` | Conectado via resistor de 220 Ω |
+| **LED Amarelo** | Anodo (`+`) | **`GPIO 2`** (`D2`) | Indicador de Atenção/Padrão (1 desvio nos parâmetros do vinho) |
+| **LED Amarelo** | Catodo (`-`) | `GND` | Conectado via resistor de 220 Ω |
 | **Buzzer** | Pino Positivo (`+` / `S`) | **`GPIO 4`** (`D4`) | Acionado via `tone()` com frequências por anomalia |
 | **Buzzer** | Pino Negativo (`-`) | `GND` | Terra comum |
 

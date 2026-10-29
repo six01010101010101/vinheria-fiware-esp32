@@ -7,7 +7,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="dashboard/assets/style.css?v=20261025_v15">
+  <link rel="stylesheet" href="dashboard/assets/style.css?v=20261026_v20">
 </head>
 <body class="bg-body">
   <nav class="navbar navbar-expand-lg border-bottom sticky-top shadow-sm px-3 px-md-4 pro-navbar">
@@ -15,21 +15,23 @@
       <a class="navbar-brand d-flex align-items-center gap-2" href="#"><span class="fs-4">🍷</span><div class="d-flex flex-column"><span class="navbar-brand-title">Vinheria Agnello</span><small class="navbar-brand-sub">CARTA DA ADEGA · RESERVA DO SOMMELIER</small></div></a>
       <div class="d-flex flex-wrap align-items-center gap-2 mt-2 mt-md-0">
         <a class="status-pill status-pill-live text-decoration-none" href="https://wokwi.com/projects/478106752109243393" target="_blank"><span class="status-dot status-dot-live"></span><span>Wokwi Ao Vivo</span></a>
+        <a id="supabase-sync-pill" class="status-pill status-pill-live text-decoration-none" href="api/v1/cloud/firebase/index.html" title="Banco de Dados Supabase PostgreSQL Conectado"><span class="status-dot status-dot-live"></span><span>Supabase SQL: SYNC</span></a>
+        <button id="btn-telegram-alert" class="status-pill status-pill-live text-decoration-none border-0" style="cursor:pointer;" title="Notificar Grupo Admin Vinheira no Telegram"><span class="status-dot status-dot-live"></span><span>📲 Telegram: Admin Vinheira</span></button>
         <a href="index.html" class="nav-ghost-link">🍷 Início / Barril</a>
         <a href="api/v1/status/index.html" class="nav-ghost-link">⚡ API REST</a>
-        <a href="https://github.com/six01010101010101/vinheria-fiware-esp32" target="_blank" class="nav-ghost-link">GitHub</a>
+        <a href="https://github.com/six01010101010101/vinheria-fiware-esp32" target="_blank" rel="noopener noreferrer" class="nav-ghost-link">GitHub</a>
         <div class="theme-btn-group"><button id="theme-btn-light" class="btn btn-sm theme-btn" type="button">Claro</button><button id="theme-btn-dark" class="btn btn-sm theme-btn active btn-wine" type="button">Escuro</button><button id="theme-btn-system" class="btn btn-sm theme-btn" type="button">Auto</button></div>
       </div>
     </div>
   </nav>
 
   <main class="container-fluid px-3 px-md-4">
-    <!-- 1. Triggers, 4 Estilos de Vinho & Áreas Globais em Tempo Real -->
+    <!-- 1. Triggers, 8 Estilos de Vinho & Áreas Globais em Tempo Real -->
     <div class="card clean-card mb-3 shadow-sm"><div class="card-body p-3">
       <div class="section-title mb-2 pb-2 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
         <div>
           <span>CARTA DE PRESETS ENOLÓGICOS & CONTROLE DO SOMMELIER</span>
-          <small class="text-muted fw-normal d-block mt-1" style="font-size:0.76rem;">Clique em qualquer estilo de vinho, cava ou terroir para sincronizar LCD, LEDs e Gráficos em tempo real.</small>
+          <small class="text-muted fw-normal d-block mt-1" style="font-size:0.76rem;">Clique em qualquer estilo de vinho, cava ou terroir para sincronizar LCD do Wokwi, LEDs, Gráficos e Supabase em tempo real.</small>
         </div>
         <div class="d-flex flex-wrap align-items-center gap-2">
           <span id="active-wine-banner-badge" class="badge bg-wine-pill font-monospace">🍷 TINTO GRAND CRU</span>
@@ -64,6 +66,8 @@
                 <option value="de_prum">🇩🇪 Alemanha — Vale do Mosel</option><option value="es_vega">🇪🇸 Espanha — Ribera del Duero</option>
                 <option value="nz_cloudy">🇳🇿 Nova Zelândia — Marlborough</option><option value="za_kanonkop">🇿🇦 África do Sul — Stellenbosch</option>
                 <option value="br_miolo">🇧🇷 Brasil — Vale dos Vinhedos (RS)</option><option value="ar_catena">🇦🇷 Argentina — Mendoza (Andes)</option>
+                <option value="ca_okanagan">🇨🇦 Canadá — Okanagan Valley</option><option value="au_barossa">🇦🇺 Austrália — Barossa Valley</option>
+                <option value="jp_koshu">🇯🇵 Japão — Vale de Koshu (Yamanashi)</option>
                 <option value="wokwi_esp32">📟 Simulador ESP32 Wokwi (:1883)</option>
               </select>
             </div>
@@ -141,9 +145,9 @@
               <button class="btn btn-sm btn-outline-danger sc-btn" data-sc="multi" title="Estado Crítico (<75% · Solta Apito Vermelho)">🔴 Crítico</button>
             </div>
             <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25 mt-auto">
-              <div class="d-flex align-items-center gap-1"><span id="led-green" class="led-indicator led-green-on"></span><small id="led-green-lbl" class="text-secondary font-monospace" style="font-size:0.67rem;">D5: IDEAL</small></div>
-              <div class="d-flex align-items-center gap-1"><span id="led-blue" class="led-indicator led-blue-off"></span><small id="led-blue-lbl" class="text-secondary font-monospace" style="font-size:0.67rem;">D2: OFF</small></div>
-              <div class="d-flex align-items-center gap-1"><span id="led-red" class="led-indicator led-red-off"></span><small id="led-red-lbl" class="text-secondary font-monospace" style="font-size:0.67rem;">D18: OFF</small></div>
+              <div class="d-flex align-items-center gap-1"><span id="led-green" class="led-indicator led-green-on"></span><small id="led-green-lbl" class="text-secondary font-monospace" style="font-size:0.67rem;">D5: VERDE (IDEAL)</small></div>
+              <div class="d-flex align-items-center gap-1"><span id="led-yellow" class="led-indicator led-yellow-off"></span><small id="led-yellow-lbl" class="text-secondary font-monospace" style="font-size:0.67rem;">D2: AMARELO (ATENÇÃO)</small></div>
+              <div class="d-flex align-items-center gap-1"><span id="led-red" class="led-indicator led-red-off"></span><small id="led-red-lbl" class="text-secondary font-monospace" style="font-size:0.67rem;">D18: VERMELHO (CRÍTICO)</small></div>
               <div class="d-flex align-items-center gap-1"><span id="buzzer-status-icon" style="font-size:0.75rem;">🔇</span><small id="buzzer-status-text" class="text-secondary font-monospace" style="font-size:0.67rem;">D4 Mudo</small></div>
             </div>
           </div>
@@ -184,15 +188,35 @@
   </main>
   <footer class="text-center text-muted small py-3 border-top mt-4" style="font-size:0.74rem;"><div class="mb-2">Check Point 5 — Vinheria Agnello • FIWARE STH-Comet (:8666) &amp; IoT Agent (:4041) • ESP32 Wokwi MQTT (:1883) • Firebase &amp; Supabase • Render.com</div></footer>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
-  <script src="dashboard/assets/arcade_audio.js?v=20261025_v15"></script>
-  <script src="dashboard/assets/wine_catalog.js?v=20261025_v15"></script>
-  <script src="dashboard/assets/cellar_lots.js?v=20261025_v15"></script>
-  <script src="dashboard/assets/ecosystem.js?v=20261025_v15"></script>
-  <script src="dashboard/assets/theme.js?v=20261025_v15"></script>
-  <script src="dashboard/assets/satellite_terroirs.js?v=20261025_v15"></script>
-  <script src="dashboard/assets/wokwi_lcd.js?v=20261025_v15"></script>
-  <script src="dashboard/assets/scada_mqtt.js?v=20261025_v15"></script>
-  <script src="dashboard/assets/scada_charts.js?v=20261025_v15"></script>
-  <script src="dashboard/assets/dashboard_scada.js?v=20261025_v15"></script>
+  <script src="dashboard/assets/arcade_audio.js?v=20261026_v20"></script>
+  <script src="dashboard/assets/wine_catalog.js?v=20261026_v20"></script>
+  <script src="dashboard/assets/supabase_client.js?v=20261026_v20"></script>
+  <script src="dashboard/assets/cellar_lots.js?v=20261026_v20"></script>
+  <script src="dashboard/assets/ecosystem.js?v=20261026_v20"></script>
+  <script src="dashboard/assets/theme.js?v=20261026_v20"></script>
+  <script src="dashboard/assets/satellite_terroirs.js?v=20261026_v20"></script>
+  <script src="dashboard/assets/wokwi_lcd.js?v=20261026_v20"></script>
+  <script src="dashboard/assets/scada_mqtt.js?v=20261026_v20"></script>
+  <script src="dashboard/assets/telegram_notifier.js?v=20261026_v20"></script>
+  <script src="dashboard/assets/scada_charts.js?v=20261026_v20"></script>
+  <script src="dashboard/assets/scada_dispatcher.js?v=20261026_v20"></script>
+  <script src="dashboard/assets/scada_ui_controller.js?v=20261026_v20"></script>
+  <script src="dashboard/assets/dashboard_scada.js?v=20261026_v20"></script>
+  <script>
+    document.getElementById("btn-telegram-alert")?.addEventListener("click", () => {
+      const tr = (window.TERROIRS && window.TERROIRS[window.curArea || "fr_margaux"]) || { name: "Adega Central", country: "Brasil" };
+      window.TelegramNotifier?.sendTelegramAlert({
+        terroir: tr.name, country: tr.country,
+        temp: (typeof window.simT === "number" ? window.simT : (tr.satT || 15.8)),
+        hum: (typeof window.simH === "number" ? window.simH : (tr.satH || 68)),
+        lum: (typeof window.simL === "number" ? window.simL : (tr.satL || 9)),
+        stateKey: window.curScadaMode || "critico",
+        score: window.curHealthScore || 45,
+        style: window.curPr || "tinto",
+        force: true,
+        details: "Teste manual disparado pelo operador no Dashboard SCADA"
+      });
+    });
+  </script>
 </body>
 </html>

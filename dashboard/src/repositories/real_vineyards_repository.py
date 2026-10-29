@@ -30,6 +30,9 @@ REAL_VINEYARDS: Dict[str, Dict[str, Any]] = {
     "crasto_pt": {"name": "Quinta do Crasto", "region": "Vale do Douro", "country": "Portugal", "lat": 41.1681, "lon": -7.6308},
     "opus_us": {"name": "Opus One Winery", "region": "Oakville, Napa Valley", "country": "EUA", "lat": 38.4367, "lon": -122.4017},
     "abrau_ru": {"name": "Vinícola Abrau-Durso", "region": "Krai de Krasnodar, Mar Negro", "country": "Rússia", "lat": 44.7000, "lon": 37.6000},
+    "okanagan_ca": {"name": "Mission Hill Winery", "region": "Okanagan Valley, BC", "country": "Canadá", "lat": 49.8880, "lon": -119.4960},
+    "barossa_au": {"name": "Penfolds Grange", "region": "Barossa Valley, SA", "country": "Austrália", "lat": -34.4820, "lon": 138.9890},
+    "koshu_jp": {"name": "Grace Wine", "region": "Koshu, Yamanashi (Fuji)", "country": "Japão", "lat": 35.7000, "lon": 138.7300},
 }
 
 

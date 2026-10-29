@@ -58,7 +58,7 @@
       if (nm.includes("laranja")) return "LARAN";
       if (nm.includes("brut") || nm.includes("espumante")) return "BRUT";
       if (nm.includes("rose") || nm.includes("rosé")) return "ROSE";
-      if (nm.includes("branco")) return "BRANCO";
+      if (nm.includes("branco")) return "BRANC";
       return "TINTO";
     })();
 
@@ -84,23 +84,22 @@
 
     const crtStatus = document.getElementById("crt-status-val");
     if (crtStatus) {
-      crtStatus.textContent = isIdeal ? `🟢 IDEAL (95–100%: ${score}%)` : (isCrit ? `🔴 CRÍTICO (<75%: ${score}% · APITO)` : `🔵 PADRÃO (Faixa 75%: ${score}%)`);
-      crtStatus.className = isIdeal ? "text-success fw-bold" : (isCrit ? "text-danger fw-bold" : "text-info fw-bold");
+      crtStatus.textContent = isIdeal ? `🟢 IDEAL (95–100%: ${score}%)` : (isCrit ? `🔴 CRÍTICO (<75%: ${score}% · APITO)` : `🟡 PADRÃO (Faixa 75–94%: ${score}%)`);
+      crtStatus.className = isIdeal ? "text-success fw-bold" : (isCrit ? "text-danger fw-bold" : "text-warning fw-bold");
     }
 
     const crtTag = document.getElementById("crt-status-tag") || document.getElementById("crt-status-pill");
     if (crtTag) {
-      crtTag.textContent = isIdeal ? "STATUS: 🟢 IDEAL (95–100%)" : (isCrit ? "STATUS: 🔴 CRÍTICO (APITO)" : "STATUS: 🔵 PADRÃO (~75%)");
-      crtTag.style.color = isIdeal ? "#4ade80" : (isCrit ? "#f87171" : "#38bdf8");
+      crtTag.textContent = isIdeal ? "STATUS: 🟢 IDEAL (95–100%)" : (isCrit ? "STATUS: 🔴 CRÍTICO (APITO)" : "STATUS: 🟡 PADRÃO (75–94%)");
+      crtTag.style.color = isIdeal ? "#4ade80" : (isCrit ? "#f87171" : "#eab308");
     }
 
     const crtApogee = document.getElementById("crt-apogee-val");
     if (crtApogee) {
       crtApogee.textContent = `${score}% [${isIdeal ? "IDEAL 95–100%" : (isCrit ? "CRÍTICO <75%" : "PADRÃO 75–94%")}]`;
-      crtApogee.className = isIdeal ? "text-success fw-bold" : (isCrit ? "text-danger fw-bold" : "text-info fw-bold");
+      crtApogee.className = isIdeal ? "text-success fw-bold" : (isCrit ? "text-danger fw-bold" : "text-warning fw-bold");
     }
 
-    // Painel de Luzes LED: APENAS 3 ESTADOS (🟢 IDEAL | 🔵 PADRÃO | 🔴 CRÍTICO)
     const stIdealEl = document.getElementById("led-state-ideal");
     const stPadraoEl = document.getElementById("led-state-padrao");
     const stCritEl = document.getElementById("led-state-critico");
@@ -108,16 +107,15 @@
     if (stPadraoEl) stPadraoEl.className = `led-state-pill ${isPadrao ? "active-padrao" : ""}`;
     if (stCritEl) stCritEl.className = `led-state-pill ${isCrit ? "active-critico" : ""}`;
 
-    const ledG = document.getElementById("led-green"), ledR = document.getElementById("led-red"), ledB = document.getElementById("led-blue");
-    const lblG = document.getElementById("led-green-lbl"), lblR = document.getElementById("led-red-lbl"), lblB = document.getElementById("led-blue-lbl");
+    const ledG = document.getElementById("led-green"), ledR = document.getElementById("led-red"), ledB = document.getElementById("led-yellow") || document.getElementById("led-blue");
+    const lblG = document.getElementById("led-green-lbl"), lblR = document.getElementById("led-red-lbl"), lblB = document.getElementById("led-yellow-lbl") || document.getElementById("led-blue-lbl");
     if (ledG) ledG.className = isIdeal ? "led-indicator led-green-on" : "led-indicator led-green-off";
     if (lblG) lblG.textContent = isIdeal ? "D5: IDEAL" : "D5: OFF";
-    if (ledB) ledB.className = isPadrao ? "led-indicator led-blue-blinking" : "led-indicator led-blue-off";
-    if (lblB) lblB.textContent = isPadrao ? "D2: PADRÃO" : "D2: OFF";
+    if (ledB) ledB.className = isPadrao ? "led-indicator led-yellow-on led-yellow-blinking" : "led-indicator led-yellow-off";
+    if (lblB) lblB.textContent = isPadrao ? "D2: AMARELO (ATENÇÃO)" : "D2: OFF";
     if (ledR) ledR.className = isCrit ? "led-indicator led-red-on led-red-blinking" : "led-indicator led-red-off";
     if (lblR) lblR.textContent = isCrit ? "D18: CRÍTICO!" : "D18: OFF";
 
-    // Buzzer (D4): Apenas o CRÍTICO (Vermelho) solta o apito!
     const bzIcon = document.getElementById("buzzer-status-icon"), bzTxt = document.getElementById("buzzer-status-text");
     if (bzIcon) bzIcon.textContent = isCrit ? "🚨" : "🔇";
     if (bzTxt) bzTxt.textContent = isCrit ? "D4 APITANDO!" : "D4 Mudo";

@@ -8,7 +8,6 @@ echo ===========================================================================
 echo.
 
 set "PY_EXE=python"
-if exist "C:\Users\s6x12\anaconda3\python.exe" set "PY_EXE=C:\Users\s6x12\anaconda3\python.exe"
 
 :: 1. Executa suite TDD antes de subir
 echo [1/4] Executando testes automatizados (Pytest)...

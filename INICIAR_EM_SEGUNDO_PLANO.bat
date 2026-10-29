@@ -1,10 +1,10 @@
 @echo off
 chcp 65001 >nul
-title Vinheria Agnello - Inicializacao em Segundo Plano (Sem Antigravity)
+title Vinheria Agnello - Inicializacao em Segundo Plano
 
 echo ============================================================================
 echo   VINHERIA AGNELLO - INICIANDO SERVIDOR EM SEGUNDO PLANO
-echo   (Nao precisa do Antigravity ou janela aberta para continuar rodando)
+echo   (O servidor continuara ativo mesmo apos fechar esta janela)
 echo ============================================================================
 
 set "PROJECT_DIR=%~dp0"
@@ -12,16 +12,12 @@ cd /d "%PROJECT_DIR%dashboard"
 
 :: Localiza o executavel pythonw.exe (modo silencioso sem janela preta)
 set "PY_EXE="
-if exist "C:\Users\s6x12\anaconda3\pythonw.exe" (
-    set "PY_EXE=C:\Users\s6x12\anaconda3\pythonw.exe"
+where pythonw.exe >nul 2>&1
+if not errorlevel 1 (
+    set "PY_EXE=pythonw.exe"
 ) else (
-    where pythonw.exe >nul 2>&1
-    if not errorlevel 1 (
-        set "PY_EXE=pythonw.exe"
-    ) else (
-        where python.exe >nul 2>&1
-        if not errorlevel 1 set "PY_EXE=python.exe"
-    )
+    where python.exe >nul 2>&1
+    if not errorlevel 1 set "PY_EXE=python.exe"
 )
 
 if "%PY_EXE%"=="" (
@@ -46,7 +42,7 @@ start "" "http://127.0.0.1:8050"
 echo.
 echo ============================================================================
 echo   SUCESSO! O site esta rodando em segundo plano.
-echo   Voce pode fechar esta janela e o Antigravity que o site continuara ativo.
+echo   Voce pode fechar esta janela que o site continuara ativo.
 echo   Para parar o site quando quiser, execute PARAR_SERVIDOR.bat
 echo ============================================================================
 ping -n 4 127.0.0.1 >nul
