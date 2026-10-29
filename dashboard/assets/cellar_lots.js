@@ -7,7 +7,7 @@
   root.curLotCode = root.curLotCode || "LOTE-FR-MARGAUX-01";
   let lastClickedLotCode = null;
 
-  function evaluateLotPreservation(lot, t, h, l, customTriggers, modeOverride) {
+  function evaluateLotPreservation(lot, t, h, l, customTriggers) {
     const tMin = customTriggers?.tMin ?? (lot ? lot.temp[0] : 14.0);
     const tMax = customTriggers?.tMax ?? (lot ? lot.temp[1] : 18.0);
     const hMin = customTriggers?.hMin ?? (lot ? lot.hum[0] : 60.0);
@@ -28,14 +28,7 @@
     const hEdge = Math.abs(h - hMid) / hHalf;
     const edgePen = Math.max(0, (tEdge - 0.5) * 10.0) + Math.max(0, (hEdge - 0.6) * 5.0);
 
-    let score = Math.round(100 - penalty - edgePen);
-    score = Math.max(9, Math.min(100, score));
-
-    if (modeOverride === "multi" || modeOverride === "critico") {
-      score = Math.min(score, 45);
-    } else if (modeOverride === "padrao" && (score >= 95 || score < 75)) {
-      score = 80;
-    }
+    let score = Math.max(9, Math.min(100, Math.round(100 - penalty - edgePen)));
 
     let verdict = "IDEAL (95–100%)", stateKey = "ideal", barColor = "bg-success", textClass = "text-success", dot = "🟢";
     if (score < 75) {
@@ -57,7 +50,6 @@
     }
     const selCode = window.curLotCode;
     const activePreset = (window.PRESETS && window.PRESETS[curStyle]) || null;
-    const curMode = window.curScadaMode || "normal";
 
     let idealCount = 0, padraoCount = 0, critCount = 0;
     const isSameList = c.children && c.children.length === list.length && c.children[0]?.firstElementChild?.dataset?.lcode === list[0]?.code;
@@ -72,7 +64,7 @@
         lot.liveH = Math.max(10, Math.min(99, Math.round(lot.baseH + Math.cos(phase * 0.75) * 0.4)));
         lot.liveL = Math.max(0, Math.min(100, Math.round(lot.baseL)));
 
-        const ev = evaluateLotPreservation(lot, lot.liveT, lot.liveH, lot.liveL, activePreset, (isSelected && window.manualOverride) ? curMode : null);
+        const ev = evaluateLotPreservation(lot, lot.liveT, lot.liveH, lot.liveL, activePreset);
         if (ev.stateKey === "ideal") idealCount++; else if (ev.stateKey === "padrao") padraoCount++; else critCount++;
 
         card.className = ["vineyard-card h-100", isSelected ? "active-vineyard border-gold" : "lot-style-match"].join(" ");
@@ -101,7 +93,7 @@
       lot.liveH = Math.max(10, Math.min(99, Math.round(lot.baseH + Math.cos(phase * 0.75) * 0.4)));
       lot.liveL = Math.max(0, Math.min(100, Math.round(lot.baseL)));
 
-      const ev = evaluateLotPreservation(lot, lot.liveT, lot.liveH, lot.liveL, activePreset, (isSelected && window.manualOverride) ? curMode : null);
+      const ev = evaluateLotPreservation(lot, lot.liveT, lot.liveH, lot.liveL, activePreset);
       if (ev.stateKey === "ideal") idealCount++; else if (ev.stateKey === "padrao") padraoCount++; else critCount++;
 
       const justClicked = lastClickedLotCode === lot.code;

@@ -3,25 +3,22 @@
   const PRESETS = window.PRESETS || {}, TERROIRS = window.TERROIRS || {};
   let curPr = "tinto", curArea = "fr_margaux";
   try {
-    const urlP = new URLSearchParams(window.location.search);
-    const qP = urlP.get("preset"), qA = urlP.get("terroir");
-    if (qP && PRESETS[qP]) curPr = qP;
-    else { const s = localStorage.getItem("vinheria_preset"); if (s && PRESETS[s]) curPr = s; }
+    const urlP = new URLSearchParams(window.location.search), qP = urlP.get("preset"), qA = urlP.get("terroir");
+    curPr = (qP && PRESETS[qP]) ? qP : (localStorage.getItem("vinheria_preset") || "tinto");
     if (qA && TERROIRS[qA]) curArea = qA;
   } catch (_) {}
 
-  const initPreset = PRESETS[curPr] || PRESETS.tinto || { defT: 15.8, defH: 68.0, defL: 9.0, defaultLot: "LOTE-FR-MARGAUX-01", defaultTerroir: "fr_margaux" };
-  if (initPreset.defaultLot) window.curLotCode = initPreset.defaultLot;
-  if (initPreset.defaultTerroir) curArea = initPreset.defaultTerroir;
-  let sim = { baseT: initPreset.defT || 15.8, baseH: initPreset.defH || 68.0, baseL: initPreset.defL || 9.0, t: 15.8, h: 68.0, l: 9.0, score: 99, mode: "normal" };
+  const initPr = PRESETS[curPr] || PRESETS.tinto || { defT: 15.8, defH: 68.0, defL: 9.0, defaultLot: "LOTE-FR-MARGAUX-01", defaultTerroir: "fr_margaux" };
+  if (initPr.defaultLot) window.curLotCode = initPr.defaultLot;
+  if (initPr.defaultTerroir) curArea = initPr.defaultTerroir;
+  let sim = { baseT: initPr.defT || 15.8, baseH: initPr.defH || 68.0, baseL: initPr.defL || 9.0, t: 15.8, h: 68.0, l: 9.0, score: 99, mode: "normal" };
   sim.t = sim.baseT; sim.h = sim.baseH; sim.l = sim.baseL;
   window.curPr = curPr; window.curArea = curArea; window.curScadaMode = sim.mode;
 
   const getActiveLot = () => {
     const lots = window.CANONICAL_LOTS || [];
     return (window.curLotCode ? lots.find(x => x.code === window.curLotCode) : null) ||
-           (window.findLotByTerroir ? window.findLotByTerroir(curArea, curPr) : null) ||
-           lots.find(x => x.style === curPr) || lots[0] || null;
+           (window.findLotByTerroir ? window.findLotByTerroir(curArea, curPr) : null) || lots.find(x => x.style === curPr) || lots[0] || null;
   };
   const setSimBase = (t, h, l, mode = "normal") => {
     sim.baseT = sim.t = +Number(t).toFixed(1); sim.baseH = sim.h = +Number(h).toFixed(0); sim.baseL = sim.l = +Number(l).toFixed(0);
@@ -29,26 +26,24 @@
   };
 
   let lastTelegramMode = null;
-  function updateHardwarePlaque(t, h, l, userTriggered = false, soundType = "auto") {
+  function updateHardwarePlaque(t, h, l, userTriggered = false, soundType = "auto", explicitScore, explicitStateKey) {
     const lot = getActiveLot();
     const res = window.ScadaDispatcher?.dispatchHardwarePlaque({
-      t, h, l, curPr, curArea, simMode: sim.mode, userTriggered, soundType, PRESETS, TERROIRS, lot
+      t, h, l, curPr, curArea, simMode: sim.mode, userTriggered, soundType, PRESETS, TERROIRS, lot,
+      score: explicitScore, stateKey: explicitStateKey
     });
     if (res && res.score !== undefined) sim.score = res.score;
     window.simT = sim.t; window.simH = sim.h; window.simL = sim.l; window.curHealthScore = sim.score;
 
-    const stKey = res?.stateKey || "ideal";
+    const stKey = res?.stateKey || explicitStateKey || "ideal";
     const isCrit = (stKey === "critico" && lastTelegramMode !== "critico"), modeChanged = (lastTelegramMode !== null && lastTelegramMode !== stKey);
     if (userTriggered || isCrit || modeChanged) {
       lastTelegramMode = stKey;
       const tr = TERROIRS[curArea] || {};
       window.TelegramNotifier?.sendTelegramAlert({
-        terroir: `${lot?.winery || tr.name} (${lot?.wine || ""})`,
-        country: lot?.country || tr.country,
-        wine_style: curPr,
-        temp: sim.t, hum: sim.h, lum: sim.l,
-        stateKey: stKey, score: sim.score, style: curPr,
-        force: userTriggered || isCrit
+        terroir: `${lot?.winery || tr.name} (${lot?.wine || ""})`, country: lot?.country || tr.country,
+        wine_style: curPr, temp: sim.t, hum: sim.h, lum: sim.l,
+        stateKey: stKey, score: sim.score, style: curPr, force: userTriggered || isCrit
       });
     }
   }
@@ -59,22 +54,26 @@
     const p = PRESETS[curPr] || {};
     if (!keepLot) {
       const matchInCurArea = window.findLotByTerroir ? window.findLotByTerroir(curArea, curPr) : null;
-      if (matchInCurArea && matchInCurArea.style === curPr) {
-        window.curLotCode = matchInCurArea.code;
-      } else if (p.defaultLot) {
+      if (matchInCurArea && matchInCurArea.style === curPr) window.curLotCode = matchInCurArea.code;
+      else if (p.defaultLot) {
         window.curLotCode = p.defaultLot;
         const defLot = getActiveLot();
-        if (defLot?.terroirId) {
+        if (defLot?.terroirId && TERROIRS[defLot.terroirId]) {
           curArea = defLot.terroirId; window.curArea = curArea;
           const selT = document.getElementById("dropdown-area-terroir");
           if (selT) selT.value = curArea;
         }
       }
       const actLot = getActiveLot();
-      setSimBase(actLot ? actLot.baseT : p.defT, actLot ? actLot.baseH : p.defH, actLot ? actLot.baseL : p.defL, "normal");
+      const ev = actLot ? window.evaluateLotPreservation?.(actLot, actLot.baseT, actLot.baseH, actLot.baseL, p) : null;
+      const stKey = ev?.stateKey || "ideal";
+      setSimBase(actLot ? actLot.baseT : p.defT, actLot ? actLot.baseH : p.defH, actLot ? actLot.baseL : p.defL, stKey);
+      window.ScadaUIController?.syncPresetControls(p, curPr);
+      updateHardwarePlaque(sim.t, sim.h, sim.l, userTriggered, "wine", ev?.score, stKey);
+    } else {
+      window.ScadaUIController?.syncPresetControls(p, curPr);
+      updateHardwarePlaque(sim.t, sim.h, sim.l, userTriggered, "wine");
     }
-    window.ScadaUIController?.syncPresetControls(p, curPr);
-    updateHardwarePlaque(sim.t, sim.h, sim.l, userTriggered, "wine");
     window.ScadaCharts?.renderAllCharts?.(sim.t, sim.h, sim.l, p, getActiveLot(), true);
     renderCellarLots(); renderRealVineyards();
     window.ScadaDispatcher?.syncCloudConfig(curPr, curArea, window.curLotCode, TERROIRS);
@@ -92,15 +91,12 @@
       const selT = document.getElementById("dropdown-area-terroir");
       if (selT) selT.value = curArea;
     }
-    const realT = (lot?.liveT !== undefined) ? lot.liveT : (lot?.baseT ?? p.defT);
-    const realH = (lot?.liveH !== undefined) ? lot.liveH : (lot?.baseH ?? p.defH);
-    const realL = (lot?.liveL !== undefined) ? lot.liveL : (lot?.baseL ?? p.defL);
+    const realT = lot?.liveT ?? lot?.baseT ?? p.defT, realH = lot?.liveH ?? lot?.baseH ?? p.defH, realL = lot?.liveL ?? lot?.baseL ?? p.defL;
 
     const ev = window.evaluateLotPreservation ? window.evaluateLotPreservation(lot, realT, realH, realL, p) : { score: 99, stateKey: "ideal" };
-    const targetMode = ev.stateKey === "critico" ? "critico" : (ev.stateKey === "padrao" ? "padrao" : "normal");
-    setSimBase(realT, realH, realL, targetMode);
+    setSimBase(realT, realH, realL, ev.stateKey);
     window.ScadaUIController?.syncPresetControls(p, curPr);
-    updateHardwarePlaque(sim.t, sim.h, sim.l, true, targetMode === "critico" ? "critico" : "wine");
+    updateHardwarePlaque(sim.t, sim.h, sim.l, true, ev.stateKey === "critico" ? "critico" : "wine", ev.score, ev.stateKey);
     window.ScadaCharts?.renderAllCharts?.(sim.t, sim.h, sim.l, p, lot, true);
     renderCellarLots(); renderRealVineyards();
     window.ScadaDispatcher?.syncCloudConfig(curPr, curArea, window.curLotCode, TERROIRS);
@@ -116,17 +112,16 @@
 
     const matchLot = window.findLotByTerroir ? window.findLotByTerroir(curArea, curPr) :
       (window.CANONICAL_LOTS || []).find(l => (l.terroirId === curArea && l.style === curPr) || l.code === tr.lotCode || l.terroirId === curArea);
-    if (matchLot) { window.curLotCode = matchLot.code; if (matchLot.style && PRESETS[matchLot.style]) { curPr = matchLot.style; window.curPr = curPr; } }
+    if (matchLot) { window.curLotCode = matchLot.code; }
+
     const p = PRESETS[curPr] || {};
     window.ScadaUIController?.syncPresetControls(p, curPr);
 
-    if (curArea !== "wokwi_esp32" && matchLot) {
-      setSimBase(matchLot.baseT, matchLot.baseH, matchLot.baseL, "normal");
-    } else {
-      const vals = window.ScadaDispatcher?.getScenarioValues("normal", curPr, PRESETS) || [15.8, 68, 9];
-      setSimBase(vals[0], vals[1], vals[2], "normal");
-    }
-    updateHardwarePlaque(sim.t, sim.h, sim.l, true, "terroir");
+    const realT = tr.satT ?? tr.t ?? tr.baseT ?? p.defT, realH = tr.satH ?? tr.h ?? tr.baseH ?? p.defH, realL = tr.satL ?? tr.l ?? tr.baseL ?? p.defL;
+
+    const ev = window.evalTerroirForWine ? window.evalTerroirForWine(realT, realH, realL, p) : { score: 99, stateKey: "ideal" };
+    setSimBase(realT, realH, realL, ev.stateKey);
+    updateHardwarePlaque(sim.t, sim.h, sim.l, true, ev.stateKey === "critico" ? "critico" : "terroir", ev.score, ev.stateKey);
     window.ScadaCharts?.renderAllCharts?.(sim.t, sim.h, sim.l, p, getActiveLot(), true);
     renderCellarLots(); renderRealVineyards();
     window.ScadaDispatcher?.syncCloudConfig(curPr, curArea, window.curLotCode, TERROIRS);
@@ -156,16 +151,16 @@
     scrollTimeout = setTimeout(() => { isScrolling = false; }, 140);
   }, { passive: true });
 
-  const renderRealVineyards = () => window.renderRealVineyards?.(curArea, onAreaTerroirChange, sim.t, sim.h, sim.l);
+  const renderRealVineyards = () => window.renderRealVineyards?.(curArea, onAreaTerroirChange);
   const renderCellarLots = () => window.renderCellarLots?.(curPr, sim.t, sim.h, sim.l, onLotSelect, window.curLotCode);
 
   function fetchLiveTicker() {
     if (document.hidden) return;
-    const phase = Date.now() / 2000;
+    const ph = Date.now() / 2000;
     if (curArea !== "wokwi_esp32") {
-      sim.t = +(sim.baseT + Math.sin(phase) * 0.25).toFixed(1);
-      sim.h = Math.max(20, Math.min(99, Math.round(sim.baseH + Math.cos(phase * 0.75) * 1.2)));
-      sim.l = Math.max(0, Math.min(100, Math.round(sim.baseL + Math.sin(phase * 0.5) * 0.6)));
+      sim.t = +(sim.baseT + Math.sin(ph) * 0.25).toFixed(1);
+      sim.h = Math.max(20, Math.min(99, Math.round(sim.baseH + Math.cos(ph * 0.75) * 1.2)));
+      sim.l = Math.max(0, Math.min(100, Math.round(sim.baseL + Math.sin(ph * 0.5) * 0.6)));
     }
     updateHardwarePlaque(sim.t, sim.h, sim.l, false);
     if (!isScrolling) window.ScadaCharts?.renderAllCharts?.(sim.t, sim.h, sim.l, PRESETS[curPr], getActiveLot(), false);
@@ -179,7 +174,6 @@
     updateHardwarePlaque(sim.t, sim.h, sim.l, true);
     window.ScadaCharts?.renderAllCharts?.(sim.t, sim.h, sim.l, PRESETS[curPr], getActiveLot(), true);
     window.ScadaDispatcher?.syncCloudConfig(curPr, curArea, window.curLotCode, TERROIRS);
-
     window.ScadaMQTT?.init?.((d) => {
       if (curArea !== "wokwi_esp32") return;
       if (d.t !== undefined) sim.baseT = sim.t = d.t;
@@ -196,7 +190,6 @@
     });
     setInterval(fetchLiveTicker, 2200);
   }
-
   window.onLotSelect = onLotSelect; window.onWinePresetChange = onWinePresetChange; window.onAreaTerroirChange = onAreaTerroirChange;
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bootScada); else bootScada();
 })();

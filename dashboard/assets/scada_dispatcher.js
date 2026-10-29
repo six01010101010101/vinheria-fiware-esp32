@@ -20,17 +20,20 @@
   }
 
   function dispatchHardwarePlaque(opts) {
-    const { t, h, l, curPr, curArea, simMode, userTriggered, soundType, PRESETS, TERROIRS, lot } = opts;
+    const { t, h, l, curPr, curArea, simMode, userTriggered, soundType, PRESETS, TERROIRS, lot, score: explicitScore, stateKey: explicitStateKey } = opts;
     const pr = (PRESETS && PRESETS[curPr]) || { key: "tinto", name: "Vinho Tinto", tMin: 14, tMax: 18, hMin: 60, hMax: 75, lMin: 0, lMax: 25 };
     const tr = (TERROIRS && TERROIRS[curArea]) || { name: "ESP32 Wokwi", flag: "📟", country: "Wokwi" };
     if (!window.WokwiLCD) return { score: 99, stateKey: "ideal" };
 
-    const res = window.WokwiLCD.renderWokwiTwin({ t, h, l, preset: pr, terroir: tr, lot, isWokwi: curArea === "wokwi_esp32", mode: simMode });
+    const res = window.WokwiLCD.renderWokwiTwin({
+      t, h, l, preset: pr, terroir: tr, lot, isWokwi: curArea === "wokwi_esp32", mode: simMode,
+      score: explicitScore, stateKey: explicitStateKey
+    });
     window.ScadaUIController?.updateWineProfileBanner(pr, lot, res);
 
-    const stKey = res?.stateKey || "ideal";
+    const stKey = res?.stateKey || explicitStateKey || "ideal";
     const cmd = stKey === "critico" ? "multi" : (stKey === "padrao" ? "padrao" : "normal");
-    const tag = res?.prTag || "TINTO", sc = res?.score || 99, v = stKey === "critico" ? "CRT" : (stKey === "padrao" ? "PAD" : "OK");
+    const tag = res?.prTag || "TINTO", sc = res?.score ?? explicitScore ?? 99, v = stKey === "critico" ? "CRT" : (stKey === "padrao" ? "PAD" : "OK");
 
     window.ScadaUIController?.renderCommandBadge(stKey, "WOKWI /cmd", ` (${tag} · ${sc}%)`);
     document.querySelectorAll(".sc-btn").forEach(b => b.classList.toggle("active", b.dataset.sc === cmd));
@@ -48,8 +51,7 @@
       else if (soundType === "cava") window.ArcadeAudio?.playCavaSelect?.();
       else if (soundType === "terroir") window.ArcadeAudio?.playTerroirSelect?.();
       else if (soundType && soundType.startsWith("sc:")) window.ArcadeAudio?.playScenario?.(soundType.slice(3));
-      else if (stKey === "ideal") window.ArcadeAudio?.playPowerup?.();
-      else window.ArcadeAudio?.playScenario?.("padrao");
+      else window.ArcadeAudio?.playWineSelect?.(stKey, curPr);
       fetch("/api/v1/command", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ command: cmd, preset: tag, preset_key: curPr, health: sc, verdict: v, temperature: t, humidity: h, luminosity: l })
