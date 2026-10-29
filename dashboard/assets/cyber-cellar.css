@@ -1,186 +1,189 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap');
+/* ==========================================================================
+   VINHERIA AGNELLO — CYBER-CELLAR SCADA HIGH-PERFORMANCE EDITION
+   Harmonizado com Bootstrap 5: Zero conflitos de grid, 100% DOM e JS Seguro
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap');
 
-:root {
-  --bg-obsidian: #060608; --bg-surface: rgba(16, 16, 20, 0.78); --bg-surface-elevated: rgba(24, 24, 30, 0.88);
-  --bg-hardware-screen: #050E0A; --chrome-edge-subtle: rgba(255, 255, 255, 0.08); --chrome-edge-bright: rgba(255, 255, 255, 0.22);
-  --chrome-gradient: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 50%, rgba(255,255,255,0.08) 100%);
-  --wine-merlot: #8B0029; --wine-ruby-neon: #E11D48; --wine-glow: rgba(225, 29, 72, 0.22);
-  --telemetry-ok: #10B981; --telemetry-std: #3B82F6; --telemetry-crit: #EF4444;
-  --text-primary: #F4F4F6; --text-secondary: #A1A1AA; --text-muted: #71717A;
+:root, [data-bs-theme="dark"] {
+  --bg-obsidian: #060608;
+  --bg-surface: rgba(17, 14, 24, 0.88);
+  --bg-surface-elevated: rgba(26, 21, 36, 0.92);
+  --bg-subbox: rgba(14, 11, 20, 0.95);
+  --bg-hardware-screen: #031409;
+  --chrome-edge-subtle: rgba(255, 255, 255, 0.08);
+  --chrome-edge-bright: rgba(255, 255, 255, 0.20);
+  --wine-merlot: #8B0029;
+  --wine-ruby-neon: #E11D48;
+  --wine-glow: rgba(225, 29, 72, 0.28);
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace; --font-serif: 'Playfair Display', serif;
-  --container-max: 1480px; --grid-gap: 20px; --radius-lg: 18px; --radius-md: 12px; --radius-sm: 8px;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
 }
 
-*, *::before, *::after { box-sizing: border-box; }
-
-html, body {
+/* 1. FUNDO ATMOSFÉRICO MERLOT & OBSIDIANA */
+body {
   background-color: var(--bg-obsidian) !important;
   background-image: 
-    radial-gradient(ellipse 80% 50% at 50% -15%, rgba(139, 0, 41, 0.35), transparent),
-    radial-gradient(ellipse 60% 40% at 90% 20%, rgba(255, 255, 255, 0.04), transparent) !important;
-  background-attachment: fixed;
+    radial-gradient(ellipse 90% 60% at 50% -10%, rgba(139, 0, 41, 0.40), transparent),
+    radial-gradient(ellipse 70% 50% at 95% 25%, rgba(225, 29, 72, 0.08), transparent),
+    radial-gradient(ellipse 60% 40% at 5% 75%, rgba(139, 0, 41, 0.15), transparent) !important;
+  background-attachment: fixed !important;
   color: var(--text-primary) !important;
   font-family: var(--font-sans) !important;
   -webkit-font-smoothing: antialiased;
-  margin: 0; padding: 0; overflow-x: hidden;
 }
 
-nav {
+/* 2. FLOATING GLASS DOCK NAVBAR */
+nav, main, footer { position: relative !important; z-index: 1 !important; }
+.navbar.pro-navbar {
   position: sticky !important; top: 0 !important; z-index: 1000 !important;
-  background: rgba(8, 8, 12, 0.82) !important;
+  background: rgba(8, 7, 12, 0.85) !important;
   backdrop-filter: blur(20px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
   border-bottom: 1px solid var(--chrome-edge-subtle) !important;
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.9) !important;
-  padding: 12px 24px !important;
 }
 
-nav > div {
-  max-width: var(--container-max) !important; margin: 0 auto !important;
-  display: flex !important; align-items: center !important;
-  justify-content: space-between !important; flex-wrap: wrap !important; gap: 16px !important;
+/* 3. CARDS PRINCIPAIS COM ACABAMENTO CHROME & FILETE RUBI */
+.clean-card {
+  position: relative !important;
+  background: var(--bg-surface) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid var(--chrome-edge-subtle) !important;
+  border-top: 1px solid var(--chrome-edge-bright) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.85) !important;
+  overflow: hidden !important;
 }
 
-nav a {
-  text-decoration: none !important; color: var(--text-primary) !important;
-  font-size: 0.82rem !important; font-weight: 500 !important; letter-spacing: 0.02em !important;
-  padding: 8px 14px !important; border-radius: 999px !important;
-  background: rgba(255, 255, 255, 0.03) !important; border: 1px solid var(--chrome-edge-subtle) !important;
-  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1) !important;
-  display: inline-flex !important; align-items: center !important; gap: 8px !important;
-}
-
-nav a:hover {
-  background: rgba(225, 29, 72, 0.12) !important; border-color: var(--wine-ruby-neon) !important;
-  transform: translateY(-1px) !important; box-shadow: 0 4px 16px var(--wine-glow) !important;
-}
-
-nav > div > a:first-child {
-  background: transparent !important; border: none !important; padding: 0 !important;
-  font-size: 1.15rem !important; font-weight: 700 !important;
-}
-
-nav > div > a:first-child small {
-  display: block !important; font-size: 0.65rem !important; letter-spacing: 0.14em !important;
-  color: var(--text-secondary) !important; font-family: var(--font-mono) !important;
-}
-
-main {
-  max-width: var(--container-max) !important; margin: 28px auto !important;
-  padding: 0 24px !important; display: flex !important; flex-direction: column !important; gap: 28px !important;
-}
-
-main > div > div {
-  background: var(--bg-surface) !important; backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important; border: 1px solid var(--chrome-edge-subtle) !important;
-  border-top: 1px solid var(--chrome-edge-bright) !important; border-radius: var(--radius-lg) !important;
-  padding: 24px !important; box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.85) !important;
-  position: relative !important; overflow: hidden !important;
-}
-
-main > div > div::before {
+.clean-card::before {
   content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent 5%, var(--wine-ruby-neon) 35%, rgba(255,255,255,0.45) 50%, var(--wine-ruby-neon) 65%, transparent 95%);
+  background: linear-gradient(90deg, transparent 5%, var(--wine-ruby-neon) 35%, rgba(255,255,255,0.6) 50%, var(--wine-ruby-neon) 65%, transparent 95%);
   opacity: 0.85; pointer-events: none;
 }
 
-main > div:nth-child(1) > div > div:last-child,
-main > div:nth-child(2) > div > div:last-child,
-main > div:nth-child(5) > div > div:last-child {
-  display: grid !important; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)) !important;
-  gap: var(--grid-gap) !important; align-items: stretch !important; margin-top: 18px !important;
+/* 4. SUB-CAIXAS SIMÉTRICAS DAS SEÇÕES (ALTURA 100% E ALINHAMENTO PERFEITO) */
+.control-field-box, .proto-thumb-box, .chart-panel-box, .green-crt-frame {
+  background: var(--bg-surface-elevated) !important;
+  border: 1px solid var(--chrome-edge-subtle) !important;
+  border-radius: var(--radius-md) !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease !important;
 }
 
-main > div:nth-child(1) > div > div:last-child > div,
-main > div:nth-child(2) > div > div:last-child > div,
-main > div:nth-child(5) > div > div:last-child > div {
-  background: var(--bg-surface-elevated) !important; border: 1px solid var(--chrome-edge-subtle) !important;
-  border-radius: var(--radius-md) !important; padding: 20px !important;
-  display: flex !important; flex-direction: column !important; justify-content: space-between !important;
-  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease !important;
+.proto-thumb-box:hover, .chart-panel-box:hover {
+  border-color: rgba(225, 29, 72, 0.40) !important;
+  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.8), 0 0 16px var(--wine-glow) !important;
 }
 
-main > div:nth-child(2) > div > div:last-child > div:hover,
-main > div:nth-child(5) > div > div:last-child > div:hover {
-  transform: translateY(-3px) !important; border-color: rgba(225, 29, 72, 0.45) !important;
-  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.9), 0 0 20px var(--wine-glow) !important;
+.threshold-subbox {
+  background: var(--bg-subbox) !important;
+  border: 1px solid var(--chrome-edge-subtle) !important;
+  border-radius: var(--radius-sm) !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
 }
 
-main > div:nth-child(3) > div > div:last-child,
-main > div:nth-child(4) > div > div:last-child,
-main > div:nth-child(6) > div > div:last-child {
-  display: grid !important; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)) !important;
-  gap: 16px !important; margin-top: 18px !important;
+/* 5. CARDS DE CAVAS, TERROIRS E ECOSSISTEMA */
+.vineyard-card, .ecosystem-card {
+  background: linear-gradient(160deg, rgba(26, 21, 36, 0.92) 0%, rgba(14, 11, 20, 0.95) 100%) !important;
+  border: 1px solid var(--chrome-edge-subtle) !important;
+  border-radius: var(--radius-md) !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-main > div:nth-child(3) > div > div:last-child > *,
-main > div:nth-child(4) > div > div:last-child > *,
-main > div:nth-child(6) > div > div:last-child > * {
-  background: linear-gradient(160deg, rgba(28, 28, 36, 0.9) 0%, rgba(14, 14, 18, 0.95) 100%) !important;
-  border: 1px solid var(--chrome-edge-subtle) !important; border-radius: var(--radius-md) !important;
-  padding: 16px !important; transition: all 0.22s cubic-bezier(0.22, 1, 0.36, 1) !important; cursor: pointer !important;
+.vineyard-card:hover, .ecosystem-card:hover {
+  transform: translateY(-4px) !important;
+  border-color: var(--wine-ruby-neon) !important;
+  box-shadow: 0 12px 28px -6px var(--wine-glow) !important;
 }
 
-main > div:nth-child(3) > div > div:last-child > *:hover,
-main > div:nth-child(4) > div > div:last-child > *:hover,
-main > div:nth-child(6) > div > div:last-child > *:hover {
-  border-color: var(--wine-ruby-neon) !important; transform: translateY(-4px) scale(1.01) !important;
-  box-shadow: 0 10px 28px -6px var(--wine-glow) !important;
+.active-vineyard {
+  border: 2px solid var(--wine-ruby-neon) !important;
+  background: linear-gradient(180deg, var(--bg-surface-elevated) 0%, rgba(190, 18, 60, 0.20) 100%) !important;
+  box-shadow: 0 0 0 3px var(--wine-glow), 0 14px 30px -6px rgba(0, 0, 0, 0.8) !important;
 }
 
-select {
-  width: 100% !important; background-color: #0B0B0E !important; color: var(--text-primary) !important;
-  border: 1px solid var(--chrome-edge-bright) !important; border-radius: var(--radius-sm) !important;
-  padding: 12px 16px !important; font-family: var(--font-sans) !important; font-size: 0.92rem !important;
-  font-weight: 500 !important; outline: none !important; cursor: pointer !important;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
-}
-
-select:hover, select:focus {
-  border-color: var(--wine-ruby-neon) !important; box-shadow: 0 0 0 3px var(--wine-glow) !important;
-}
-
-pre {
-  background: #050507 !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-left: 3px solid var(--wine-ruby-neon) !important; border-radius: var(--radius-sm) !important;
-  padding: 12px !important; font-family: var(--font-mono) !important; font-size: 0.78rem !important;
-  color: #34D399 !important; overflow-x: auto !important;
+/* 6. VISOR FÍSICO OLED/LCD 16x2 (0x27) */
+.green-crt-frame {
+  background: radial-gradient(circle at center, #062111 0%, #030e07 100%) !important;
+  border: 1.5px solid #166534 !important;
+  box-shadow: inset 0 0 24px rgba(34, 197, 94, 0.22) !important;
 }
 
 .wokwi-lcd-bezel {
-  background: #0D0E12 !important; border: 2px solid #2A2B36 !important;
-  border-radius: var(--radius-sm) !important; padding: 8px !important;
-  box-shadow: inset 0 2px 8px rgba(0,0,0,0.9), 0 4px 14px rgba(0,0,0,0.7) !important;
+  background: #090e0b !important;
+  border: 2px solid #1e452e !important;
+  border-radius: 8px !important;
+  padding: 6px 8px !important;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.9), 0 2px 8px rgba(0, 0, 0, 0.6) !important;
 }
 
 .wokwi-lcd-screen {
-  background: var(--bg-hardware-screen) !important; border: 1px solid rgba(16, 185, 129, 0.25) !important;
-  border-radius: 4px !important; padding: 10px 14px !important; font-family: var(--font-mono) !important;
-  box-shadow: inset 0 0 16px rgba(16, 185, 129, 0.15) !important;
+  background: var(--bg-hardware-screen) !important;
+  border: 1px solid rgba(34, 197, 94, 0.35) !important;
+  border-radius: 5px !important;
+  padding: 8px 12px !important;
+  box-shadow: inset 0 0 16px rgba(34, 197, 94, 0.15) !important;
 }
 
 .wokwi-lcd-line {
-  font-family: var(--font-mono) !important; color: #34D399 !important; font-size: 0.95rem !important;
-  letter-spacing: 0.08em !important; text-shadow: 0 0 8px rgba(52, 211, 153, 0.6) !important; line-height: 1.4 !important;
+  color: #34D399 !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.88rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-shadow: 0 0 8px rgba(52, 211, 153, 0.65) !important;
+  line-height: 1.45 !important;
+}
+
+/* 7. CONTROLES DE FORMULARIO HARMONIOSOS */
+.form-control, .form-select {
+  height: 38px !important; background-color: var(--bg-subbox) !important;
+  border: 1px solid var(--chrome-edge-bright) !important; color: var(--text-primary) !important;
+  border-radius: var(--radius-sm) !important; font-size: 0.82rem !important; font-weight: 600 !important;
+  transition: all 0.18s ease !important;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--wine-ruby-neon) !important; box-shadow: 0 0 0 3px var(--wine-glow) !important;
+}
+.input-group-text {
+  background-color: rgba(255, 255, 255, 0.04) !important; border: 1px solid var(--chrome-edge-bright) !important;
+  color: var(--text-secondary) !important; font-size: 0.72rem !important; font-weight: 700 !important;
+}
+
+/* 8. BOTOES DE ESTILO DE VINHO & BARRIL 3D */
+.wine-pill-btn {
+  background: var(--bg-subbox) !important; border: 1px solid var(--chrome-edge-subtle) !important;
+  color: var(--text-secondary) !important; font-size: 0.72rem !important; font-weight: 600 !important;
+  border-radius: 7px !important; transition: all 0.18s ease !important;
+}
+.wine-pill-btn:hover { border-color: var(--wine-ruby-neon) !important; color: #fff !important; transform: translateY(-1px) !important; }
+.wine-pill-btn.active {
+  background: linear-gradient(135deg, var(--wine-merlot), var(--wine-ruby-neon)) !important;
+  border-color: var(--wine-ruby-neon) !important; color: #fff !important; box-shadow: 0 4px 14px var(--wine-glow) !important;
 }
 
 img[src*="barril"] {
-  filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.85)) contrast(1.05) !important;
-  transition: transform 0.3s ease !important;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.75)) contrast(1.05) !important;
+  transition: transform 0.25s ease !important;
 }
-
 img[src*="barril"]:hover { transform: scale(1.03) !important; }
 
-footer {
-  max-width: var(--container-max) !important; margin: 40px auto 24px !important;
-  padding: 20px 24px !important; text-align: center !important;
-  border-top: 1px solid var(--chrome-edge-subtle) !important; color: var(--text-muted) !important;
-  font-family: var(--font-mono) !important; font-size: 0.78rem !important; letter-spacing: 0.04em !important;
-}
-
-@media (max-width: 768px) {
-  nav { padding: 10px 16px !important; }
-  main { padding: 0 14px !important; gap: 18px !important; }
-  main > div > div { padding: 16px !important; }
-}
+/* 9. RODAPE SCADA */
+footer { color: var(--text-muted) !important; font-family: var(--font-mono) !important; border-top: 1px solid var(--chrome-edge-subtle) !important; }
