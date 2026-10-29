@@ -23,8 +23,7 @@
   }
 
   function setSimBase(t, h, l, mode = "normal") {
-    sim.baseT = +Number(t).toFixed(1); sim.baseH = +Number(h).toFixed(0); sim.baseL = +Number(l).toFixed(0);
-    sim.t = sim.baseT; sim.h = sim.baseH; sim.l = sim.baseL;
+    sim.baseT = sim.t = +Number(t).toFixed(1); sim.baseH = sim.h = +Number(h).toFixed(0); sim.baseL = sim.l = +Number(l).toFixed(0);
     sim.mode = mode; window.curScadaMode = mode;
   }
 
@@ -38,7 +37,8 @@
     window.simT = sim.t; window.simH = sim.h; window.simL = sim.l; window.curHealthScore = sim.score;
 
     const stKey = res?.stateKey || "ideal";
-    if (userTriggered || (lastTelegramMode !== null && lastTelegramMode !== stKey)) {
+    const isCrit = (stKey === "critico" && lastTelegramMode !== "critico"), modeChanged = (lastTelegramMode !== null && lastTelegramMode !== stKey);
+    if (userTriggered || isCrit || modeChanged) {
       lastTelegramMode = stKey;
       const tr = TERROIRS[curArea] || {};
       window.TelegramNotifier?.sendTelegramAlert({
@@ -47,7 +47,7 @@
         wine_style: curPr,
         temp: sim.t, hum: sim.h, lum: sim.l,
         stateKey: stKey, score: sim.score, style: curPr,
-        force: userTriggered
+        force: userTriggered || isCrit
       });
     }
   }
