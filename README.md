@@ -4,7 +4,7 @@
 
 ![FIAP](https://img.shields.io/badge/FIAP-Engenharia%20de%20Software%20%26%20IoT-be123c?style=for-the-badge)
 ![Autores](https://img.shields.io/badge/Autores-Ken%20Kobayashi%20%7C%20Nicolly%20Vilela-e2b86b?style=for-the-badge&logo=github)
-![ESP32](https://img.shields.io/badge/Hardware-ESP32%20%7C%20DHT22%20%7C%20LDR%20%7C%20LCD%2016x2%20%7C%20Buzzer%20D4-00979D?style=for-the-badge&logo=espressif)
+![ESP32](https://img.shields.io/badge/Hardware-ESP32%20%7C%20DHT22%20%7C%20LDR%20%7C%20LCD%2016x2%20%7C%20Buzzer%20D2%2FD4-00979D?style=for-the-badge&logo=espressif)
 ![FIWARE](https://img.shields.io/badge/Middleware-FIWARE%20Orion%20%2B%20IoT%20Agent%20MQTT-2496ED?style=for-the-badge&logo=docker)
 ![Supabase](https://img.shields.io/badge/Database-Supabase%20PostgreSQL%2017-3ECF8E?style=for-the-badge&logo=supabase)
 ![Telegram](https://img.shields.io/badge/Telegram-@vinheria__agnello__bot%20(5%20min)-26A5E4?style=for-the-badge&logo=telegram)
@@ -207,33 +207,39 @@ O firmware embarcado ([`sketch.ino`](./sketch.ino) / [`sketch_wokwi_dht22.ino`](
 | **Sensor DHT22 / DHT11** | `DATA` | **`GPIO 15`** (`D15`) | Digital Single-Bus | Medição de Temperatura (`-40°C a +80°C`) e Umidade (`0–100%`) |
 | **Fotoresistor LDR** | `AO` (Analógico) | **`GPIO 34`** (`D34`) | `ADC1_CH6` (12-bit) | Leitura de luminosidade (sem conflito com rádio Wi-Fi) |
 | **Display LCD 16x2 Verde** | `SDA` / `SCL` | **`GPIO 21` / `22`** | I2C (`0x27` @ `400 kHz`) | Visualização local de dados, estilo de vinho e status de saúde |
-| **LED Verde (Ideal)** | Anodo (`+`) | **`GPIO 5`** (`D5`) | Saída Digital | Aceso fixo quando a saúde está entre `95% e 100%` |
-| **LED Amarelo (Padrão)** | Anodo (`+`) | **`GPIO 2`** (`D2`) | Saída Digital | Aceso fixo em estado de atenção/padrão (`75% a 94%`) |
-| **LED Vermelho (Crítico)** | Anodo (`+`) | **`GPIO 18`** (`D18`) | Saída Digital | Pisca rapidamente em conjunto com o alarme sonoro |
-| **Buzzer Piezoelétrico** | Sinal (`+`) | **`GPIO 4`** (`D4`) | Saída PWM (`tone()`) | **Apita em estado Crítico** alternando frequências de alerta |
+| **LED Verde (Tudo OK / Padrão)** | Anodo (`+`) | **`GPIO 5`** (`D5`) | Saída Digital | **Aceso fixo** quando a adega está operando normalmente (dentro do padrão) |
+| **Buzzer Alarme de Incêndio (Amarelo)** | Positivo (`+`) | **`GPIO 2` / `4`** (`D2/D4`) | Saída PWM (`tone()`) | **O Amarelo é o Buzzer**: dispara sirene de incêndio em estado crítico |
+| **LED Vermelho (Crítico)** | Anodo (`+`) | **`GPIO 18`** (`D18`) | Saída Digital | **Fica aceso fixo** sinalizando visualmente que o estado é crítico |
 
 > [!TIP]
 > **Por que `GPIO 34` para o LDR?** O conversor analógico-digital `ADC2` do ESP32 é compartilhado com a pilha de rádio Wi-Fi. O canal `ADC1_CH6` (`GPIO 34`) opera de maneira totalmente independente, garantindo medições de luz sem ruído enquanto o ESP32 transmite pacotes MQTT.
 
 ---
 
-## 🚨 6. Matriz de Diagnóstico dos 3 Estados e Acionamento do Buzzer (`GPIO 4`)
+## 🚨 6. Matriz de Diagnóstico dos 3 Estados e Alarme de Incêndio no Buzzer (`GPIO 2` / `D2`)
 
 ### 6.1 Os 3 Estados de Saúde Operacional
 
-| Estado | Faixa de Saúde | LED Ativo | Buzzer (`GPIO 4`) | Tag no LCD | Barra no Site | Ação do Sistema |
+| Estado | Faixa de Saúde | LED Verde (`D5`) | LED Vermelho (`D18`) | Buzzer / Amarelo (`D2/D4`) | Barra no Site | Comportamento do Sistema |
 | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
-| 🟢 **IDEAL** | **`95% a 100%`** | **Verde (`GPIO 5`)** | Silenciado (`noTone`) | `1UP: 95–100%` | 🟢 Verde (`#22c55e`) | Operação perfeita de guarda. Preservação ótima. |
-| 🟡 **PADRÃO** | **`75% a 94%`** | **Amarelo (`GPIO 2`)** | Silenciado (`noTone`) | `PAD: 75–94%` | 🟡 Amarelo (`#f59e0b`) | Desvio leve sob controle. Sem risco imediato às garrafas. |
-| 🔴 **CRÍTICO** | **`< 75%`** | **Vermelho (`GPIO 18`)** | **APITANDO (Alarme)** | `CRT: <75%` | 🔴 Vermelho (`#e11d48`) | **Emergência!** Buzzer acionado e alerta no Telegram. |
+| 🟢 **TUDO OK / IDEAL** | **`95% a 100%`** | **ACESO** | APAGADO | Silenciado (`noTone`) | 🟢 Verde (`#22c55e`) | Operação perfeita de guarda. Preservação ótima. |
+| 🟡 **PADRÃO** | **`75% a 94%`** | **ACESO** | APAGADO | Silenciado (`noTone`) | 🟡 Amarelo (`#f59e0b`) | Faixa de operação padrão. Sem risco às garrafas. |
+| 🔴 **CRÍTICO** | **`< 75%`** | APAGADO | **ACESO FIXO** | **DISPARANDO SIRENE** | 🔴 Vermelho (`#e11d48`) | **Emergência!** Alarme de incêndio no Buzzer e alerta Telegram. |
 
-### 6.2 Comportamento Sonoro do Buzzer no Firmware C++
+### 6.2 Modulação de Frequência (Hertz) por Grau de Criticidade (Alarme de Incêndio)
 
-Quando o firmware recebe o comando remoto `vine001@diag|critico|...` ou quando os sensores locais detectam violação severa de limites:
-1. O pino **`GPIO 4`** é acionado via PWM (`tone(PIN_BUZZER, freq, duracao)`).
-2. O padrão acústico de emergência cicla entre as frequências enológicas: **$880\text{ Hz} \rightarrow 1175\text{ Hz} \rightarrow 1480\text{ Hz} \rightarrow 1760\text{ Hz}$**.
-3. O **LED Vermelho (`GPIO 18`)** pisca sincronizado com o som.
-4. Quando as variáveis retornam à normalidade (`diag|ideal|...` ou `diag|padrao|...`), o firmware executa `noTone(PIN_BUZZER)` e restaura o silêncio da cava.
+O som do buzzer foi projetado para soar como um **alarme de incêndio predial harmônico** (*Slow Whoop* NFPA), sem ser estridente ou irritante. A frequência (Hertz) e a cadência aceleram conforme a severidade do desvio:
+
+1. **Pouco Crítico ($60\% \le \text{Saúde} < 75\%$):**
+   - *Frequências:* **$580\text{ Hz} \rightarrow 660\text{ Hz} \rightarrow 740\text{ Hz} \rightarrow 820\text{ Hz}$** (timbre suave e grave).
+   - *Cadência:* ciclos de $130\text{ ms}$ por degrau.
+2. **Médio Crítico ($40\% \le \text{Saúde} < 60\%$):**
+   - *Frequências:* **$720\text{ Hz} \rightarrow 840\text{ Hz} \rightarrow 960\text{ Hz} \rightarrow 1080\text{ Hz}$** (sirene de alarme clássico).
+   - *Cadência:* ciclos de $85\text{ ms}$ por degrau.
+3. **Muito Crítico / Alerta Máximo ($\text{Saúde} < 40\%$):**
+   - *Frequências:* **$880\text{ Hz} \rightarrow 1040\text{ Hz} \rightarrow 1200\text{ Hz} \rightarrow 1380\text{ Hz}$** (emergência de alta prioridade).
+   - *Cadência:* ciclos rápidos de $60\text{ ms}$ por degrau.
+4. **Retorno ao Padrão:** O buzzer é imediatamente silenciado (`stopToneDual()`), o LED Vermelho apaga e o **LED Verde acende**.
 
 ---
 

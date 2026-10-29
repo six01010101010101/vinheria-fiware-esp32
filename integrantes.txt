@@ -11,7 +11,7 @@ Projeto: Monitoramento Inteligente de Cavas Subterrâneas e Terroirs Globais
 
 Links Oficiais do Projeto:
 - Repositório GitHub: https://github.com/six01010101010101/vinheria-fiware-esp32
-- Simulador Wokwi (ESP32 + DHT22 + LDR + LCD + LEDs + Buzzer D4): https://wokwi.com/projects/478106752109243393
+- Simulador Wokwi (ESP32 + DHT22 + LDR + LCD + LEDs + Buzzer D2/D4): https://wokwi.com/projects/478106752109243393
 - Deploy em Nuvem (Render): https://checkpoint5-vinheria-fiware-esp32-1.onrender.com/
 - Dashboard Local: http://localhost:8050/dashboard.html
 - Portal Barril 3D Interativo: index.html

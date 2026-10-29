@@ -143,11 +143,15 @@ class ArcadeAudioEngine {
     this.playTone(390, 0.20, "sawtooth", 150, 0.11);
   }
 
-  playCritical() {
+  playCritical(score = 50) {
     this.ensureContext();
-    [880, 1175, 1480, 1760, 1318, 987].forEach((f, i) => {
-      this.playTone(f, 0.09, "sawtooth", f * 0.82, i * 0.075, 1.05);
-    });
+    const isVery = score < 40, isMild = score >= 60;
+    const fBase = isMild ? 580 : (isVery ? 880 : 720), fStep = isMild ? 80 : (isVery ? 160 : 120);
+    const dur = isMild ? 0.12 : (isVery ? 0.06 : 0.085);
+    for (let i = 0; i < 4; i++) {
+      const f = fBase + (i * fStep);
+      this.playTone(f, dur, "sawtooth", f * 1.04, i * dur, 0.95);
+    }
   }
 
   playClick() {

@@ -4,16 +4,14 @@
   "editor": "wokwi",
   "parts": [
     { "type": "wokwi-esp32-devkit-v1", "id": "esp", "top": 0, "left": 0, "attrs": {} },
-    { "type": "wokwi-lcd1602", "id": "lcd1", "top": -155, "left": -45, "attrs": { "pins": "i2c", "background": "green", "label": "LCD 16x2 Fliperama" } },
+    { "type": "wokwi-lcd1602", "id": "lcd1", "top": -155, "left": -45, "attrs": { "pins": "i2c", "background": "green", "label": "LCD 16x2 Sommelier" } },
     { "type": "wokwi-dht22", "id": "dht1", "top": -45, "left": -150, "attrs": { "temperature": "15.5", "humidity": "68.0" } },
     { "type": "wokwi-photoresistor-sensor", "id": "ldr1", "top": 120, "left": -190, "attrs": {} },
-    { "type": "wokwi-led", "id": "led_green", "top": -55, "left": 145, "attrs": { "color": "green", "label": "LED Verde (1-UP / OK)" } },
+    { "type": "wokwi-led", "id": "led_green", "top": -55, "left": 145, "attrs": { "color": "green", "label": "LED Verde (Tudo OK / Padrão)" } },
     { "type": "wokwi-resistor", "id": "r_green", "top": 20, "left": 135, "attrs": { "value": "220" } },
-    { "type": "wokwi-led", "id": "led_red", "top": -55, "left": 215, "attrs": { "color": "red", "label": "LED Vermelho (Alerta)" } },
+    { "type": "wokwi-led", "id": "led_red", "top": -55, "left": 215, "attrs": { "color": "red", "label": "LED Vermelho (Crítico)" } },
     { "type": "wokwi-resistor", "id": "r_red", "top": 20, "left": 205, "attrs": { "value": "220" } },
-    { "type": "wokwi-led", "id": "led_blue", "top": -55, "left": 285, "attrs": { "color": "yellow", "label": "LED Amarelo (Atenção / Padrão)" } },
-    { "type": "wokwi-resistor", "id": "r1", "top": 20, "left": 275, "attrs": { "value": "220" } },
-    { "type": "wokwi-buzzer", "id": "bz1", "top": 95, "left": 195, "attrs": { "volume": "0.6", "label": "Buzzer Mario & Fliperama" } }
+    { "type": "wokwi-buzzer", "id": "bz1", "top": -45, "left": 285, "attrs": { "volume": "0.7", "label": "Buzzer Alarme Incêndio (Pino D2 / Amarelo)" } }
   ],
   "connections": [
     [ "esp:TX0", "$serialMonitor:RX", "", [] ],
@@ -34,11 +32,8 @@
     [ "esp:D18", "r_red:1", "red", [ "h0" ] ],
     [ "r_red:2", "led_red:A", "red", [ "v0" ] ],
     [ "led_red:C", "esp:GND.2", "black", [ "v0" ] ],
-    [ "esp:D2", "r1:1", "blue", [ "h0" ] ],
-    [ "r1:2", "led_blue:A", "blue", [ "v0" ] ],
-    [ "led_blue:C", "esp:GND.2", "black", [ "v0" ] ],
     [ "bz1:1", "esp:GND.2", "black", [ "v0" ] ],
-    [ "bz1:2", "esp:D4", "purple", [ "v0" ] ]
+    [ "bz1:2", "esp:D2", "purple", [ "v0" ] ]
   ],
   "dependencies": {}
 }

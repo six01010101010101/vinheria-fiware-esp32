@@ -5,25 +5,28 @@
 #include "wine_presets.h"
 #include "supabase_client.h"
 
-// Configurações Supabase Cloud & Broker MQTT (Portabilidade entre Máquinas)
 const char *WIFI_SSID = "Wokwi-GUEST", *WIFI_PASS = "";
 const char *SUPABASE_URL = "https://slqozouuqzxwmfswyroo.supabase.co";
 const char *SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNscW96b3V1cXp4d21mc3d5cm9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyMDkxOTMsImV4cCI6MjEwNzc4NTE5M30.spwyPsi31yzG6rvh2FsSHWM8Fkv2CPLHpUx9Us8aRo4";
 const char *DEVICE_ID = "vine001", *MQTT_BROKER = "broker.hivemq.com";
 const int MQTT_PORT = 1883;
 
-// Pinagem (Substituição: LED Amarelo no GPIO 2)
-enum Pins {
-  PIN_LED_YELLOW = 2, PIN_BUZZER = 4, PIN_LED_GREEN = 5,
-  PIN_DHT = 15, PIN_LED_RED = 18, PIN_LDR = 34, LCD_ADDR = 0x27
-};
+// Pinagem: Buzzer no D2 (pino Amarelo) e D4 (auxiliar), Verde no D5, Vermelho no D18
+enum Pins { PIN_BUZZER = 2, PIN_BUZZER_AUX = 4, PIN_LED_GREEN = 5, PIN_DHT = 15, PIN_LED_RED = 18, PIN_LDR = 34, LCD_ADDR = 0x27 };
 
 WiFiClient espClient;
 String curMode = "normal", curPreset = "TINTO";
 int curHealth = 100, soundStep = 0;
-bool ledState = false, remoteSync = false;
-unsigned long lastDhtMs = 0, lastLdrMs = 0, lastPubMs = 0, lastBlinkMs = 0, lastPingMs = 0, lastRetryMs = 0, lastSupaMs = 0;
+bool remoteSync = false;
+unsigned long lastDhtMs = 0, lastLdrMs = 0, lastPubMs = 0, lastToneMs = 0, lastPingMs = 0, lastRetryMs = 0, lastSupaMs = 0;
 float validTemp = 15.8f, validHum = 68.0f, validLum = 9.0f, hwTemp = 15.8f, hwHum = 68.0f, hwLum = 9.0f;
+
+void playToneDual(int f, int d = 0) {
+  if (f <= 0) { noTone(PIN_BUZZER); noTone(PIN_BUZZER_AUX); return; }
+  if (d > 0) { tone(PIN_BUZZER, f, d); tone(PIN_BUZZER_AUX, f, d); }
+  else { tone(PIN_BUZZER, f); tone(PIN_BUZZER_AUX, f); }
+}
+void stopToneDual() { noTone(PIN_BUZZER); noTone(PIN_BUZZER_AUX); }
 
 void lcdExpWrite(uint8_t d) { Wire.beginTransmission(LCD_ADDR); Wire.write(d | 0x08); Wire.endTransmission(); }
 void lcdWrite4(uint8_t v) { lcdExpWrite(v); lcdExpWrite(v | 0x04); delayMicroseconds(2); lcdExpWrite(v & ~0x04); delayMicroseconds(40); }
@@ -41,29 +44,22 @@ void updateLcd() {
   while (tStr.length() < 16) tStr += " ";
   for (int i = 0; i < 16; i++) lcdSend((uint8_t)tStr[i], 1);
   lcdSend(0xC0, 0);
-  String tag = (curMode == "normal") ? "1UP:" : ((curMode == "padrao") ? "PAD:" : "CRT:");
-  String bStr = "L:" + String((int)validLum) + "% " + curPreset.substring(0, 4) + " " + tag + String(curHealth) + "%";
+  String bStr = "L:" + String((int)validLum) + "% " + curPreset.substring(0, 4) + " " + ((curMode == "critico") ? "CRT:" : "OK:") + String(curHealth) + "%";
   while (bStr.length() < 16) bStr += " ";
   for (int i = 0; i < 16; i++) lcdSend((uint8_t)bStr[i], 1);
 }
 
 void selfTestLedsAndBuzzer() {
-  digitalWrite(PIN_LED_GREEN, HIGH); tone(PIN_BUZZER, 1319, 120); delay(180); digitalWrite(PIN_LED_GREEN, LOW);
-  digitalWrite(PIN_LED_YELLOW, HIGH); tone(PIN_BUZZER, 784, 120); delay(180); digitalWrite(PIN_LED_YELLOW, LOW);
-  digitalWrite(PIN_LED_RED, HIGH); tone(PIN_BUZZER, 1480, 120); delay(180); digitalWrite(PIN_LED_RED, LOW);
-  noTone(PIN_BUZZER);
+  digitalWrite(PIN_LED_GREEN, HIGH); playToneDual(880, 100); delay(140); digitalWrite(PIN_LED_GREEN, LOW);
+  digitalWrite(PIN_LED_RED, HIGH); playToneDual(1175, 100); delay(140); digitalWrite(PIN_LED_RED, LOW);
+  stopToneDual();
 }
 
 void applyWineStatusTransition(String newMode, int newHealth) {
   if (newMode == curMode && newHealth == curHealth) return;
   curMode = newMode; curHealth = newHealth;
-  if (curMode == "normal") {
-    digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, LOW); tone(PIN_BUZZER, 1319, 90);
-  } else if (curMode == "padrao") {
-    digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, HIGH); digitalWrite(PIN_LED_RED, LOW); tone(PIN_BUZZER, 784, 70); delay(80); tone(PIN_BUZZER, 784, 70);
-  } else {
-    digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, HIGH); tone(PIN_BUZZER, 1480, 100); delay(110); tone(PIN_BUZZER, 1760, 120);
-  }
+  if (curMode != "critico") { digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW); stopToneDual(); }
+  else { digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH); }
   updateLcd();
 }
 
@@ -141,23 +137,22 @@ void mqttLoop() {
 }
 
 void handleActuators() {
-  if (curMode == "normal") {
-    digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, LOW);
-    noTone(PIN_BUZZER);
-    return;
+  if (curMode != "critico") {
+    digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW); stopToneDual(); soundStep = 0; return;
   }
-  unsigned long now = millis(), iv = (curMode == "padrao") ? 350 : 160;
-  if (lastBlinkMs == 0 || (now - lastBlinkMs >= iv)) {
-    lastBlinkMs = (now == 0) ? 1 : now; ledState = !ledState;
-    if (curMode == "padrao") {
-      digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, LOW);
-      digitalWrite(PIN_LED_YELLOW, ledState ? HIGH : LOW); noTone(PIN_BUZZER);
-    } else {
-      digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, LOW);
-      digitalWrite(PIN_LED_RED, ledState ? HIGH : LOW);
-      soundStep = (soundStep + 1) % 4;
-      if (ledState) { int f[4] = {880, 1175, 1480, 1760}; tone(PIN_BUZZER, f[soundStep], 110); } else noTone(PIN_BUZZER);
-    }
+  digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH); // Crítico: LED Vermelho aceso
+
+  // Alarme de Incêndio (Slow Whoop) modulado por intensidade da criticidade (Hertz e Cadência)
+  int fBase = (curHealth >= 60) ? 580 : ((curHealth >= 40) ? 720 : 880);
+  int fStep = (curHealth >= 60) ? 80 : ((curHealth >= 40) ? 120 : 160);
+  unsigned long stepMs = (curHealth >= 60) ? 130 : ((curHealth >= 40) ? 85 : 60);
+
+  unsigned long now = millis();
+  if (now - lastToneMs >= stepMs) {
+    lastToneMs = (now == 0) ? 1 : now;
+    soundStep = (soundStep + 1) % 5;
+    if (soundStep < 4) playToneDual(fBase + (soundStep * fStep), stepMs);
+    else stopToneDual(); // Pausa característica do pulso de alarme de incêndio
   }
 }
 
@@ -188,7 +183,8 @@ void readAndPubSensors() {
 
 void setup() {
   Serial.begin(115200);
-  pinMode(PIN_LED_GREEN, OUTPUT); pinMode(PIN_LED_YELLOW, OUTPUT); pinMode(PIN_LED_RED, OUTPUT); pinMode(PIN_BUZZER, OUTPUT); pinMode(PIN_LDR, INPUT);
+  pinMode(PIN_LED_GREEN, OUTPUT); pinMode(PIN_LED_RED, OUTPUT);
+  pinMode(PIN_BUZZER, OUTPUT); pinMode(PIN_BUZZER_AUX, OUTPUT); pinMode(PIN_LDR, INPUT);
   lcdInit(); selfTestLedsAndBuzzer(); digitalWrite(PIN_LED_GREEN, HIGH); updateLcd();
   WiFi.mode(WIFI_STA); WiFi.setSleep(false); WiFi.setAutoReconnect(true); WiFi.begin(WIFI_SSID, WIFI_PASS, 6);
   unsigned long t0 = millis(); while (WiFi.status() != WL_CONNECTED && (millis() - t0) < 4000) delay(50);
