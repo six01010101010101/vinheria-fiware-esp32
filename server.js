@@ -125,15 +125,27 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Redirecionamento amigável de rotas principais
+  // Redirecionamento amigavel de rotas principais e sub-pastas de API
   if (cleanUrl === '/' || cleanUrl === '') cleanUrl = '/index.html';
   else if (cleanUrl === '/dashboard' || cleanUrl === '/dash') cleanUrl = '/dashboard.html';
+  else if (cleanUrl === '/api/v1/status' || cleanUrl === '/api/v1/status/') cleanUrl = '/api/v1/status/index.html';
+  else if (cleanUrl === '/api/v1/lots' || cleanUrl === '/api/v1/lots/') cleanUrl = '/api/v1/lots/index.html';
+  else if (cleanUrl === '/api/v1/cloud/firebase' || cleanUrl === '/api/v1/cloud/firebase/') cleanUrl = '/api/v1/cloud/firebase/index.html';
+  else if (cleanUrl === '/api/v1/cloud/supabase' || cleanUrl === '/api/v1/cloud/supabase/' || cleanUrl === '/api/v1/supabase' || cleanUrl === '/supabase') cleanUrl = '/api/v1/cloud/supabase/index.html';
+  else if (cleanUrl === '/api/v1/cloud' || cleanUrl === '/api/v1/cloud/') cleanUrl = '/api/v1/cloud/firebase/index.html';
+  else if (cleanUrl === '/api/v1/openapi' || cleanUrl === '/openapi.json') cleanUrl = '/api/v1/openapi.json';
 
-  const filePath = path.normalize(path.join(ROOT_DIR, cleanUrl));
+  let filePath = path.normalize(path.join(ROOT_DIR, cleanUrl));
   if (!filePath.startsWith(ROOT_DIR)) {
     res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('403 Proibido');
     return;
+  }
+
+  // Resolve automaticamente index.html se for um diretorio
+  if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
+    const idx = path.join(filePath, 'index.html');
+    if (fs.existsSync(idx)) filePath = idx;
   }
 
   fs.stat(filePath, (err, stats) => {

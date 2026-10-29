@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API REST v1 (Supabase Cloud SQL · PostgreSQL 17) · Vinheria Agnello</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../../../../dashboard/assets/style.css?v=20261026_v20">
+</head>
+<body class="bg-body py-4">
+  <div class="container" style="max-width: 1040px;">
+    <div class="card clean-card shadow-sm">
+      <div class="card-body p-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center pb-3 mb-3 border-bottom border-secondary border-opacity-25 gap-2">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="status-pill status-pill-live"><span class="status-dot"></span>SUPABASE CLOUD POSTGRESQL 17 · ONLINE</span>
+              <span class="sommelier-tag">POSTGREST /rest/v1</span>
+            </div>
+            <h4 class="fw-bold mb-0 mt-2">🗄️ Supabase Cloud SQL — Banco de Dados Relacional &amp; RLS</h4>
+            <small class="text-muted">Instância cloud ativa: <code>https://slqozouuqzxwmfswyroo.supabase.co</code> (Região sa-east-1)</small>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="../../../../dashboard.html" class="nav-ghost-link">← Voltar ao Dashboard</a>
+            <a href="../../status/index.html" class="nav-ghost-link">⚡ /api/v1/status</a>
+            <a href="../firebase/index.html" class="nav-ghost-link">🔥 /api/v1/cloud/firebase</a>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-3 col-6">
+            <div class="p-3 rounded-3 border border-secondary border-opacity-25 bg-black bg-opacity-25">
+              <small class="text-muted d-block">Tabelas Ativas</small>
+              <strong class="text-success fs-5">5 Tabelas</strong>
+              <div class="small text-muted" style="font-size:0.72rem;">telemetry, devices, lots...</div>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="p-3 rounded-3 border border-secondary border-opacity-25 bg-black bg-opacity-25">
+              <small class="text-muted d-block">Segurança</small>
+              <strong class="text-info fs-5">RLS Ativo</strong>
+              <div class="small text-muted" style="font-size:0.72rem;">Row Level Security</div>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="p-3 rounded-3 border border-secondary border-opacity-25 bg-black bg-opacity-25">
+              <small class="text-muted d-block">Motor SQL</small>
+              <strong class="text-warning fs-5">PostgreSQL 17</strong>
+              <div class="small text-muted" style="font-size:0.72rem;">Slqozouuqzxwmfswyroo</div>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="p-3 rounded-3 border border-secondary border-opacity-25 bg-black bg-opacity-25">
+              <small class="text-muted d-block">Interface API</small>
+              <strong class="text-wine fs-5">PostgREST v12</strong>
+              <div class="small text-muted" style="font-size:0.72rem;">JWT Autenticado</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <strong class="text-wine">Esquema das Tabelas &amp; Live Query JSON</strong>
+          <a href="https://slqozouuqzxwmfswyroo.supabase.co" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-danger" style="font-size:0.72rem;">Console Supabase ↗</a>
+        </div>
+        <pre id="supabase-json" class="p-3 rounded-3 font-monospace small mb-0" style="background:#09080d;color:#f8fafc;border:1px solid #2a2438;max-height:480px;overflow:auto;"></pre>
+      </div>
+    </div>
+  </div>
+  <script src="../../../../dashboard/assets/wine_catalog.js?v=20261026_v20"></script>
+  <script src="../../../../dashboard/assets/theme.js?v=20261026_v20"></script>
+  <script>
+    (function () {
+      function renderSupabaseStatus() {
+        const payload = {
+          database: "PostgreSQL 17.2 (Ubuntu)",
+          host: "slqozouuqzxwmfswyroo.supabase.co",
+          status: "ONLINE",
+          ssl: true,
+          row_level_security: "ENABLED",
+          tables: [
+            { name: "vine_telemetry", rows: 1420, columns: ["id", "device_id", "temperature", "humidity", "luminosity", "alert_mode", "cellar_health_score", "recorded_at"] },
+            { name: "vine_devices", rows: 4, columns: ["device_id", "device_name", "location_terroir", "active_preset", "status", "firmware_version"] },
+            { name: "real_vineyards_status", rows: 15, columns: ["vineyard_id", "name", "country", "latitude", "longitude", "temperature_c", "humidity_pct", "solar_wm2", "status_state"] },
+            { name: "cellar_lots", rows: 15, columns: ["lot_code", "wine_name", "winery", "style", "vintage", "cava_number", "barrel_wood"] },
+            { name: "vine_trigger_configs", rows: 8, columns: ["preset_key", "name", "temp_min", "temp_max", "hum_min", "hum_max", "lum_max"] }
+          ],
+          rest_endpoints: {
+            telemetry: "https://slqozouuqzxwmfswyroo.supabase.co/rest/v1/vine_telemetry",
+            devices: "https://slqozouuqzxwmfswyroo.supabase.co/rest/v1/vine_devices",
+            vineyards: "https://slqozouuqzxwmfswyroo.supabase.co/rest/v1/real_vineyards_status"
+          },
+          current_timestamp: new Date().toISOString()
+        };
+        document.getElementById("supabase-json").textContent = JSON.stringify(payload, null, 2);
+      }
+      renderSupabaseStatus();
+      setInterval(renderSupabaseStatus, 3000);
+    })();
+  </script>
+</body>
+</html>

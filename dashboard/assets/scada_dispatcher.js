@@ -44,8 +44,8 @@
 
     if (userTriggered) {
       window.arcadeAudio?.ensureContext?.();
-      if (stKey === "critico") window.ArcadeAudio?.playCritical?.(sc);
-      else if (soundType === "wine") window.ArcadeAudio?.playWineStyle?.(curPr);
+      if (stKey === "critico") window.ArcadeAudio?.playWineSelect?.("critico", curPr);
+      else if (soundType === "wine") window.ArcadeAudio?.playWineSelect?.(stKey, curPr);
       else if (soundType === "cava") window.ArcadeAudio?.playCavaSelect?.();
       else if (soundType === "terroir") window.ArcadeAudio?.playTerroirSelect?.();
       else if (soundType && soundType.startsWith("sc:")) window.ArcadeAudio?.playScenario?.(soundType.slice(3));

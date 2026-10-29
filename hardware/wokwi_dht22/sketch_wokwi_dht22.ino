@@ -56,7 +56,7 @@ void selfTestLedsAndBuzzer() {
 
 void applyWineStatusTransition(String newMode, int newHealth) {
   if (newMode == curMode && newHealth == curHealth) return;
-  curMode = newMode; curHealth = newHealth;
+  curMode = newMode; curHealth = newHealth; bthvIdx = 0; noteStartMs = 0;
   if (curMode != "critico") { digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW); stopToneAlert(); }
   else { digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH); }
   updateLcd();
@@ -140,18 +140,17 @@ void handleActuators() {
     digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, LOW);
     stopToneAlert(); bthvIdx = 0; noteStartMs = 0; return;
   }
-  // No estagio critico: LED Verde apagado e LED Vermelho aceso fixo
   digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH);
-
-  // Sonata de Beethoven (Sonata ao Luar, Op. 27 No. 2) no Buzzer e LED Amarelo sincronizado
   unsigned long now = millis();
-  uint16_t dur = BTHV_MELODY[bthvIdx][1];
+  uint16_t dur = BTHV_MELODY[bthvIdx][1], toneDur = (dur > 40) ? (dur * 78) / 100 : dur;
   if (noteStartMs == 0 || (now - noteStartMs >= dur)) {
     noteStartMs = (now == 0) ? 1 : now;
     uint16_t freq = BTHV_MELODY[bthvIdx][0];
-    if (freq > 0) { tone(PIN_BUZZER, freq); digitalWrite(PIN_LED_YELLOW, HIGH); }
+    if (freq > 0) { tone(PIN_BUZZER, freq, toneDur); digitalWrite(PIN_LED_YELLOW, HIGH); }
     else { noTone(PIN_BUZZER); digitalWrite(PIN_LED_YELLOW, LOW); }
     bthvIdx = (bthvIdx + 1) % BTHV_TOTAL;
+  } else if (now - noteStartMs >= toneDur) {
+    noTone(PIN_BUZZER); digitalWrite(PIN_LED_YELLOW, LOW);
   }
 }
 
@@ -177,9 +176,9 @@ void readAndPubSensors() {
     mqttPub("/TEF/vine001/attrs", "t|" + String(validTemp, 1) + "|h|" + String(validHum, 1) + "|l|" + String(validLum, 1));
     updateLcd();
   }
-  if (now - lastSupaMs >= 10000) {
+  if (now - lastSupaMs >= 15000) {
     lastSupaMs = now;
-    postTelemetryToSupabase(SUPABASE_URL, SUPABASE_KEY, DEVICE_ID, validTemp, validHum, validLum, curMode, curHealth, curPreset);
+    if (curMode != "critico") postTelemetryToSupabase(SUPABASE_URL, SUPABASE_KEY, DEVICE_ID, validTemp, validHum, validLum, curMode, curHealth, curPreset);
   }
 }
 
