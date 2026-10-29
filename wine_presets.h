@@ -35,27 +35,32 @@ inline WineLimit findWineLimit(const String& presetName) {
   return WINE_PRESETS[0];
 }
 
-// Avalia desvios e determina o modo ('normal', 'padrao', 'critico') e saúde (%)
+// Avalia desvios e determina o modo ('normal', 'padrao', 'critico') e saude (%)
 inline void evaluateWineStatus(
   float temp, float hum, float lum, const String& preset,
   String& outMode, int& outHealth
 ) {
   WineLimit lim = findWineLimit(preset);
-  int deviations = 0;
+  float tDiff = (temp < lim.tMin) ? (lim.tMin - temp) : ((temp > lim.tMax) ? (temp - lim.tMax) : 0.0f);
+  float hDiff = (hum < lim.hMin) ? (lim.hMin - hum) : ((hum > lim.hMax) ? (hum - lim.hMax) : 0.0f);
+  float lDiff = (lum > lim.lMax) ? (lum - lim.lMax) : 0.0f;
 
-  if (temp < lim.tMin || temp > lim.tMax) deviations++;
-  if (hum < lim.hMin || hum > lim.hMax) deviations++;
-  if (lum > lim.lMax) deviations++;
+  int deviations = 0;
+  if (tDiff > 0.0f) deviations++;
+  if (hDiff > 0.0f) deviations++;
+  if (lDiff > 0.0f) deviations++;
 
   if (deviations == 0) {
     outMode = "normal";
     outHealth = 100;
-  } else if (deviations == 1) {
+  } else if (deviations == 1 && tDiff < 4.0f && hDiff < 12.0f && lDiff < 15.0f) {
     outMode = "padrao";
     outHealth = 85;
   } else {
     outMode = "critico";
-    outHealth = 40;
+    if (deviations == 1) outHealth = 65;       // Pouco critico (desvio unico severo)
+    else if (deviations == 2) outHealth = 45;  // Medio critico (dois parametros violados)
+    else outHealth = 25;                       // Muito critico (temperatura, umidade e luz fora)
   }
 }
 
