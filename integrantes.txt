@@ -7,13 +7,14 @@ INTEGRANTES DA EQUIPE & IDENTIFICAÇÃO:
 - Nicolly Florencio Vilela (RM 573392 | GitHub: https://github.com/ninixzzs) — Programação e montagem do Arduino físico
 - Brenda Priscila Chalco Condori (RM 571971) — Apresentação do projeto e montagem do Arduino físico
 - Samuel Eduardo Lisboa Etcheverry (RM 573715) — Simulação Wokwi (Arduino digital) e montagem do Arduino físico
-- Diego Ruffini Silva Jimenez (RM 571015) — 
+- Diego Ruffini Silva Jimenez (RM 571015) — Documentação técnica, testes e validação enológica
 
 Curso: Engenharia de Software / Edge Computing, IoT & Sistemas Distribuídos
 Projeto: Monitoramento Inteligente de Cavas Subterrâneas e Terroirs Globais
 
 Links Oficiais do Projeto:
-- Repositório GitHub: https://github.com/six01010101010101/vinheria-fiware-esp32
+- Repositório GitHub Oficial (Six): https://github.com/six01010101010101/vinheria-fiware-esp32
+- Repositório GitHub Oficial (Ninix): https://github.com/ninixzzs/vinheria-agnello-cp5-nicolly-vilela
 - Simulador Wokwi (ESP32 + DHT22 + LDR + LCD + LEDs + Buzzer D2/D4): https://wokwi.com/projects/478106752109243393
 - Deploy em Nuvem (Render): https://checkpoint5-vinheria-fiware-esp32-1.onrender.com/
 - Dashboard Local: http://localhost:8050/dashboard.html

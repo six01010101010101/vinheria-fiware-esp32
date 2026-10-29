@@ -21,7 +21,8 @@
 | :--- | :--- | :--- |
 | **🚀 Simulador Wokwi (Ao Vivo)** | [Abrir no Wokwi](https://wokwi.com/projects/478106752109243393) | ESP32 + DHT22 + LDR + LCD 16x2 I2C + LEDs + Buzzer D2/D4 |
 | **☁️ Deploy na Nuvem (Render)** | [Acessar no Render](https://checkpoint5-vinheria-fiware-esp32-1.onrender.com/) | Aplicação em produção em nuvem contínua |
-| **💻 Repositório GitHub** | [GitHub Oficial](https://github.com/six01010101010101/vinheria-fiware-esp32) | Código-fonte versionado com arquitetura modular |
+| **💻 Repositório GitHub Oficial (Six)** | [GitHub six01010101010101](https://github.com/six01010101010101/vinheria-fiware-esp32) | Repositório principal com integração Wokwi, Supabase e SCADA |
+| **💻 Repositório GitHub Oficial (Ninix)** | [GitHub ninixzzs](https://github.com/ninixzzs/vinheria-agnello-cp5-nicolly-vilela) | Repositório oficial CP5 Nicolly Vilela sincronizado |
 | **📊 Dashboard SCADA Web** | [`dashboard.html`](./dashboard.html) | Painel de controle em tempo real dos 15 terroirs e cavas |
 | **🏺 Portal Barril 3D Interativo** | [`index.html`](./index.html) | Gêmeo digital 3D do barril de carvalho com tampa LCD |
 | **🤖 Bot do Telegram** | `@vinheria_agnello_bot` | Notificações a cada 5 min e alertas críticos no grupo `Admin Vinheira` |
@@ -38,8 +39,8 @@
 2. [Contextualização do Problema e Modelagem Enológica](#-2-contextualização-do-problema-e-modelagem-enológica)
 3. [Design Físico: Barril 3D e Tampa com Display LCD 16x2](#-3-design-físico-barril-3d-e-tampa-com-display-lcd-16x2)
 4. [Arquitetura Cyber-Física e Fluxo Bidirecional (`< 20ms`)](#️-4-arquitetura-cyber-física-e-fluxo-bidirecional--20ms)
-5. [Hardware Embarcado (ESP32 DevKit V1) e Pinout Oficial](#-5-hardware-embarcado-esp32-devkit-v1-e-pinout-oficial)
-6. [Matriz de Diagnóstico dos 3 Estados e Acionamento do Buzzer (`GPIO 4`)](#-6-matriz-de-diagnóstico-dos-3-estados-e-acionamento-do-buzzer-gpio-4)
+5. [Hardware Embarcado (Arduino Uno & ESP32 DevKit V1) e Pinout Oficial](#-5-hardware-embarcado-arduino-uno--esp32-devkit-v1-e-pinout-oficial)
+6. [Matriz de Diagnóstico dos 3 Estados e Sonata ao Luar no Buzzer](#-6-matriz-de-diagnóstico-dos-3-estados-e-sonata-ao-luar-no-buzzer)
 7. [Catálogo Enológico: 8 Estilos de Vinho, 15 Lotes de Cava e 15 Terroirs WMO](#-7-catálogo-enológico-8-estilos-de-vinho-15-lotes-de-cava-e-15-terroirs-wmo)
 8. [Integração e Notificações em Tempo Real no Telegram (@vinheria_agnello_bot)](#-8-integração-e-notificações-em-tempo-real-no-telegram-vinheria_agnello_bot)
 9. [Banco de Dados Relacional em Nuvem: Supabase PostgreSQL 17](#️-9-banco-de-dados-relacional-em-nuvem-supabase-postgresql-17)
@@ -59,7 +60,7 @@
 | **Nicolly Florencio Vilela** | **RM 573392** | [`@ninixzzs`](https://github.com/ninixzzs) | **FIAP** — *Engenharia de Software & IoT* | Programação e montagem do Arduino físico |
 | **Brenda Priscila Chalco Condori** | **RM 571971** | — | **FIAP** — *Engenharia de Software & IoT* | Apresentação do projeto e montagem do Arduino físico |
 | **Samuel Eduardo Lisboa Etcheverry** | **RM 573715** | — | **FIAP** — *Engenharia de Software & IoT* | Simulação Wokwi (Arduino digital) e montagem do Arduino físico |
-| **Diego Ruﬃni Silva Jimenez** | **RM 571015** | — | **FIAP** — *Engenharia de Software & IoT* | |
+| **Diego Ruﬃni Silva Jimenez** | **RM 571015** | — | **FIAP** — *Engenharia de Software & IoT* | Documentação técnica, testes e validação enológica |
 
 ### 📋 Checklist de Critérios de Avaliação (Check Point 5)
 
@@ -201,50 +202,64 @@ sequenceDiagram
 
 ---
 
-## 🔌 5. Hardware Embarcado (ESP32 DevKit V1) e Pinout Oficial
+## 🔌 5. Hardware Embarcado (Arduino Uno & ESP32 DevKit V1) e Pinout Oficial
 
-O firmware embarcado ([`sketch.ino`](./sketch.ino) / [`sketch_wokwi_dht22.ino`](./hardware/wokwi_dht22/sketch_wokwi_dht22.ino)) opera com leitura não-bloqueante, filtro *anti-glitch* e decodificação de comandos remotos.
+O projeto foi projetado com uma camada de abstração de hardware que permite operação idêntica em duas plataformas físicas:
+1. **ESP32 DevKit V1 (Wi-Fi + MQTT + Serial)**: Usado no simulador Wokwi e bancada avançada ([`sketch.ino`](./sketch.ino) / [`hardware/handson_dht11/sketch_handson_dht11.ino`](./hardware/handson_dht11/sketch_handson_dht11.ino)).
+2. **Arduino Uno / Nano / Mega (USB Serial Bridge)**: Usado na bancada de laboratório de montagem presencial com cabo USB ([`hardware/arduino_uno_physical/arduino_uno_physical.ino`](./hardware/arduino_uno_physical/arduino_uno_physical.ino)).
 
-### 📌 Tabela Oficial de Pinagem
+Ambos os firmwares operam com leitura não-bloqueante (`millis()`), filtro *anti-glitch*, decodificação de comandos seriais/MQTT e partitura da Sonata ao Luar de Beethoven no Buzzer sem travar o processamento.
 
-| Componente Físico | Pino Físico | Pino ESP32 | Barramento / Modo | Função no Sistema |
+### 📌 5.1 Tabela Comparativa de Pinagem: Arduino Uno vs ESP32
+
+| Componente Físico | Pino Arduino Uno | Pino ESP32 DevKit | Modo / Protocolo | Função no Sistema |
 | :--- | :---: | :---: | :---: | :--- |
-| **Sensor DHT22 / DHT11** | `DATA` | **`GPIO 15`** (`D15`) | Digital Single-Bus | Medição de Temperatura (`-40°C a +80°C`) e Umidade (`0–100%`) |
-| **Fotoresistor LDR** | `AO` (Analógico) | **`GPIO 34`** (`D34`) | `ADC1_CH6` (12-bit) | Leitura de luminosidade (sem conflito com rádio Wi-Fi) |
-| **Display LCD 16x2 Verde** | `SDA` / `SCL` | **`GPIO 21` / `22`** | I2C (`0x27` @ `400 kHz`) | Visualização local de dados, estilo de vinho e status de saúde |
-| **LED Verde (Tudo OK / Padrão)** | Anodo (`+`) | **`GPIO 5`** (`D5`) | Saída Digital | **Aceso fixo** quando a adega está operando normalmente (dentro do padrão) |
-| **Buzzer Alarme de Incêndio (Amarelo)** | Positivo (`+`) | **`GPIO 2` / `4`** (`D2/D4`) | Saída PWM (`tone()`) | **O Amarelo é o Buzzer**: dispara sirene de incêndio em estado crítico |
-| **LED Vermelho (Crítico)** | Anodo (`+`) | **`GPIO 18`** (`D18`) | Saída Digital | **Fica aceso fixo** sinalizando visualmente que o estado é crítico |
+| **Sensor de Temperatura & Umidade** | `D2` (DHT11/DHT22) | **`GPIO 15`** (`D15`) | Digital Single-Bus | Medição climática instantânea da cava |
+| **Sensor de Luminosidade LDR** | `A0` (Divisor 10k) | **`GPIO 34`** (`ADC1_CH6`) | Analógico (ADC) | Medição de radiação lumínica fotoativa |
+| **Display LCD 16x2 I2C** (`0x27`) | `A4` (SDA) / `A5` (SCL) | **`GPIO 21`** (SDA) / **`22`** (SCL) | I2C (`400 kHz`) | Linha 1: `T:15.8C U:68%` / Linha 2: `TINTO 1UP:100%` |
+| **LED Verde (Estado Ideal · 100%)** | `D5` | **`GPIO 5`** (`D5`) | Saída Digital | Aceso fixo quando as condições estão perfeitas |
+| **LED Amarelo (Estado Padrão · 82%)** | `D6` | **`GPIO 2`** (`D2`) | Saída Digital | Aceso fixo em operação regular de maturação |
+| **LED Vermelho (Estado Crítico · 9%)** | `D7` | **`GPIO 18`** (`D18`) | Saída Digital | Aceso fixo sinalizando desvio crítico |
+| **Buzzer Piezoelétrico (Sonata)** | `D8` | **`GPIO 4`** (`D4`) | PWM (`tone()`) | Executa a melodia da Sonata ao Luar em estado crítico |
 
 > [!TIP]
-> **Por que `GPIO 34` para o LDR?** O conversor analógico-digital `ADC2` do ESP32 é compartilhado com a pilha de rádio Wi-Fi. O canal `ADC1_CH6` (`GPIO 34`) opera de maneira totalmente independente, garantindo medições de luz sem ruído enquanto o ESP32 transmite pacotes MQTT.
+> **Por que `GPIO 34` para o LDR no ESP32?** O conversor analógico-digital `ADC2` do ESP32 é compartilhado com a pilha de rádio Wi-Fi. O canal `ADC1_CH6` (`GPIO 34`) opera de maneira totalmente independente, garantindo leituras analógicas precisas enquanto pacotes MQTT e HTTP são transmitidos.
 
 ---
 
-## 🚨 6. Matriz de Diagnóstico dos 3 Estados e Alarme de Incêndio no Buzzer (`GPIO 2` / `D2`)
+## 🚨 6. Matriz de Diagnóstico dos 3 Estados e Sonata ao Luar no Buzzer
 
 ### 6.1 Os 3 Estados de Saúde Operacional
 
-| Estado | Faixa de Saúde | LED Verde (`D5`) | LED Vermelho (`D18`) | Buzzer / Amarelo (`D2/D4`) | Barra no Site | Comportamento do Sistema |
-| :---: | :---: | :---: | :---: | :---: | :---: | :--- |
-| 🟢 **TUDO OK / IDEAL** | **`95% a 100%`** | **ACESO** | APAGADO | Silenciado (`noTone`) | 🟢 Verde (`#22c55e`) | Operação perfeita de guarda. Preservação ótima. |
-| 🟡 **PADRÃO** | **`75% a 94%`** | **ACESO** | APAGADO | Silenciado (`noTone`) | 🟡 Amarelo (`#f59e0b`) | Faixa de operação padrão. Sem risco às garrafas. |
-| 🔴 **CRÍTICO** | **`< 75%`** | APAGADO | **ACESO FIXO** | **DISPARANDO SIRENE** | 🔴 Vermelho (`#e11d48`) | **Emergência!** Alarme de incêndio no Buzzer e alerta Telegram. |
+O sistema calibra rigorosamente cada lote e terroir em uma escala de integridade bioclimática de 3 níveis, garantindo que a barra de status no Dashboard SCADA, os LEDs do hardware e o display LCD 16x2 operem com absoluta concordância:
 
-### 6.2 Modulação de Frequência (Hertz) por Grau de Criticidade (Alarme de Incêndio)
+| Estado Operacional | Integridade (Score) | LED Verde (`D5`) | LED Amarelo (`D6`/`D2`) | LED Vermelho (`D7`/`D18`) | Buzzer (`D8`/`D4`) | Display LCD 16x2 (Linha 2) | Barra SCADA Web |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 🟢 **IDEAL** | **`100%`** | **ACESO** | Apagado | Apagado | Silenciado (`noTone`) | `TINTO 1UP:100%` | 🟢 Verde (`#22c55e`) |
+| 🟡 **PADRÃO** | **`82%`** | Apagado | **ACESO** | Apagado | Silenciado (`noTone`) | `TINTO PAD:82%` | 🟡 Amarelo (`#f59e0b`) |
+| 🔴 **CRÍTICO** | **`9%`** | Apagado | Apagado | **ACESO FIXO** | **TOCANDO SONATA AO LUAR** | `TINTO CRT:9%` | 🔴 Vermelho (`#e11d48`) |
 
-O som do buzzer foi projetado para soar como um **alarme de incêndio predial harmônico** (*Slow Whoop* NFPA), sem ser estridente ou irritante. A frequência (Hertz) e a cadência aceleram conforme a severidade do desvio:
+### 6.2 Partitura Musical da Sonata ao Luar de Beethoven no Buzzer (`BTHV_MELODY`)
 
-1. **Pouco Crítico ($60\% \le \text{Saúde} < 75\%$):**
-   - *Frequências:* **$580\text{ Hz} \rightarrow 660\text{ Hz} \rightarrow 740\text{ Hz} \rightarrow 820\text{ Hz}$** (timbre suave e grave).
-   - *Cadência:* ciclos de $130\text{ ms}$ por degrau.
-2. **Médio Crítico ($40\% \le \text{Saúde} < 60\%$):**
-   - *Frequências:* **$720\text{ Hz} \rightarrow 840\text{ Hz} \rightarrow 960\text{ Hz} \rightarrow 1080\text{ Hz}$** (sirene de alarme clássico).
-   - *Cadência:* ciclos de $85\text{ ms}$ por degrau.
-3. **Muito Crítico / Alerta Máximo ($\text{Saúde} < 40\%$):**
-   - *Frequências:* **$880\text{ Hz} \rightarrow 1040\text{ Hz} \rightarrow 1200\text{ Hz} \rightarrow 1380\text{ Hz}$** (emergência de alta prioridade).
-   - *Cadência:* ciclos rápidos de $60\text{ ms}$ por degrau.
-4. **Retorno ao Padrão:** O buzzer é imediatamente silenciado (`stopToneDual()`), o LED Vermelho apaga e o **LED Verde acende**.
+Em estado **CRÍTICO**, tanto o sintetizador de áudio Web Audio API do dashboard quanto o firmware C++ embarcado no Arduino e ESP32 executam a introdução polifônica do primeiro movimento da **Sonata ao Luar (Op. 27 Nº 2 em Dó sustenido menor)** de Ludwig van Beethoven:
+
+```cpp
+// Matriz de Frequência (Hz) e Duração (ms) em execução não-bloqueante (millis)
+const uint16_t BTHV_MELODY[][2] = {
+  {208, 160}, {277, 160}, {330, 160},  // G#3, C#4, E4 (Tresquiáltera 1)
+  {208, 160}, {277, 160}, {330, 160},  // G#3, C#4, E4 (Tresquiáltera 2)
+  {208, 160}, {277, 160}, {330, 160},  // G#3, C#4, E4 (Tresquiáltera 3)
+  {208, 160}, {277, 160}, {330, 160},  // G#3, C#4, E4 (Tresquiáltera 4)
+  {247, 170}, {294, 170}, {370, 170},  // B3, D4, F#4
+  {220, 170}, {277, 170}, {330, 170},  // A3, C#4, E4
+  {415, 360}, {415, 180}, {415, 180},  // Tema melódico G#4
+  {440, 420}, {415, 260}, {392, 220},  // A4, G#4, F##4
+  {415, 480}, {330, 300}, {277, 300}, {208, 480} // Resolução harmônica
+};
+```
+
+- **Cancelamento Ativo de Áudio**: Ao clicar em outro lote ou terroir, o áudio que estava tocando anteriormente é cancelado de forma limpa e imediata, evitando sobreposição sonora.
+- **Retorno Imediato**: Ao restaurar os limites para Ideal ou Padrão, o buzzer é silenciado no mesmo instante (`noTone()`), o LED Vermelho se apaga e o display LCD reflete a nova pontuação em tempo real.
 
 ---
 
@@ -416,6 +431,10 @@ A API REST v1 disponibiliza tanto interface gráfica amigável quanto respostas 
 | Método | Endpoint / Tópico | Protocolo | Resposta | Descrição |
 | :---: | :--- | :---: | :---: | :--- |
 | `GET` | [`/api/v1/status`](./api/v1/status/index.html) | REST (HTTP) | `JSON / HTML` | Diagnóstico ao vivo do ESP32, broker MQTT, sensores e atuadores |
+| `GET` | `/api/v1/hardware/status` | REST (HTTP) | `JSON` | Snapshot em tempo real dos atuadores físicos (LEDs, Buzzer, LCD, Score) |
+| `GET` | `/api/v1/hardware/serial` | REST (HTTP) | `Plain Text` | Linha otimizada para streaming USB Serial (`CMD:IDEAL;SCORE:100;...`) |
+| `POST` | `/api/v1/hardware/telemetry` | REST (HTTP) | `JSON` | Recebe telemetria do Arduino físico e salva no Supabase PostgreSQL |
+| `POST` | `/api/v1/command` | REST (HTTP) | `JSON` | Disparo e sincronização de comandos de estado (Ideal, Padrão, Crítico) |
 | `GET` | [`/api/v1/lots`](./api/v1/lots/index.html) | REST (HTTP) | `JSON / HTML` | Catálogo completo dos 15 Lotes de Cava e seus scores |
 | `GET` | `/api/v1/vineyards` | REST (HTTP) | `JSON / HTML` | Clima em tempo real dos 15 Terroirs via satélite Open-Meteo |
 | `GET` | `/api/v1/telemetry/history` | REST (HTTP) | `JSON` | Séries temporais históricas de Temperatura, Umidade e Luz |
@@ -463,6 +482,7 @@ vinheria-fiware-esp32/
 │   │   └── dashboard_scada.js             # Controlador central do dashboard
 │   ├── src/
 │   │   └── services/
+│   │       ├── hardware_bridge_service.js # Ponte de hardware físico, serial e atuadores
 │   │       ├── telegram_live_service.js   # Daemon do ciclo periódico de 5 minutos do Telegram
 │   │       └── webhook_service.js         # Handler otimizado com idempotência Supabase e Telegram
 │   └── tests/                             # Suíte de testes automatizados TDD (31/31)
@@ -478,7 +498,11 @@ vinheria-fiware-esp32/
 ├── supabase/
 │   └── functions/webhook-handler/index.ts # Supabase Edge Function (Deno) com índices GIN/B-Tree
 └── hardware/
+    ├── arduino_uno_physical/              # Firmware dedicado para Arduino Uno/Nano/Mega físico
+    │   └── arduino_uno_physical.ino       # Firmware C++ com Sonata ao Luar, LEDs D5/D6/D7 e LCD
     ├── handson_dht11/                     # Firmware para montagem física em bancada (ESP32 + DHT11)
+    │   └── sketch_handson_dht11.ino       # Firmware C++ ESP32 com Sonata ao Luar e parser serial
+    ├── serial_bridge_pc.js                # Ponte bidirecional USB Serial (PC <-> Arduino físico)
     └── wokwi_dht22/                       # Firmware e diagrama espelhados para o simulador Wokwi
 ```
 
@@ -492,13 +516,14 @@ vinheria-fiware-esp32/
 
 ---
 
-### Método 2: Execução com Servidor Node.js (Recomendado com Telegram)
+### Método 2: Execução com Servidor Node.js (Recomendado com Telegram & Hardware)
 ```bash
 # 1. Inicie o servidor local Node.js
 node server.js
 ```
 - Acesse no navegador: **`http://localhost:8050/dashboard.html`**
 - O servidor ativa automaticamente o despacho periódico de **5 minutos** para o bot **`@vinheria_agnello_bot`** no grupo **`Admin Vinheira`**.
+- Os endpoints de hardware físico (`/api/v1/hardware/status`, `/api/v1/hardware/serial`) ficam imediatamente disponíveis.
 
 ---
 
@@ -511,6 +536,51 @@ pip install -r dashboard/requirements.txt
 python dashboard/app.py
 ```
 - Acesse no navegador: **`http://127.0.0.1:8050`**
+
+---
+
+### Método 4: Teste de Bancada Físico com Arduino Uno / ESP32 e Ponte Serial USB
+Para validar fisicamente os atuadores (LED Verde, LED Amarelo, LED Vermelho, Buzzer com a Sonata ao Luar e Display LCD 16x2) integrados ao site e ao banco de dados Supabase:
+
+1. **Montagem do Circuito**:
+   - Conecte o **LED Verde** ao pino **`D5`** (com resistor de 220Ω ou 330Ω).
+   - Conecte o **LED Amarelo** ao pino **`D6`** no Arduino Uno (ou **`D2`** no ESP32).
+   - Conecte o **LED Vermelho** ao pino **`D7`** no Arduino Uno (ou **`D18`** no ESP32).
+   - Conecte o **Buzzer** ao pino **`D8`** no Arduino Uno (ou **`D4`** no ESP32).
+   - Conecte o display **LCD 16x2 I2C** aos pinos **`A4` (SDA)** e **`A5` (SCL)** no Uno (ou **`D21/D22`** no ESP32), com alimentação em `5V` e `GND`.
+
+2. **Upload do Firmware**:
+   - Para Arduino Uno/Nano: abra e carregue [`hardware/arduino_uno_physical/arduino_uno_physical.ino`](./hardware/arduino_uno_physical/arduino_uno_physical.ino) na Arduino IDE.
+   - Para ESP32: abra e carregue [`hardware/handson_dht11/sketch_handson_dht11.ino`](./hardware/handson_dht11/sketch_handson_dht11.ino).
+
+3. **Iniciar o Servidor SCADA**:
+   ```bash
+   node server.js
+   ```
+
+4. **Conectar a Ponte Serial USB**:
+   Em um segundo terminal, inicie a ponte serial informando a porta COM em que o Arduino foi conectado (ex.: `COM3`, `COM4`):
+   ```bash
+   node hardware/serial_bridge_pc.js COM3
+   ```
+
+5. **Interação em Tempo Real**:
+   - Abra o painel no navegador: **`http://localhost:8050/dashboard.html`**.
+   - Ao selecionar um vinho/terroir com estado **IDEAL (100%)**:
+     - O **LED Verde (D5)** acende no Arduino.
+     - Os LEDs Amarelo e Vermelho apagam.
+     - O Buzzer permanece em silêncio.
+     - O display LCD 16x2 exibe: `1UP:100%`.
+   - Ao selecionar um vinho/terroir com estado **PADRÃO (82%)**:
+     - O **LED Amarelo (D6/D2)** acende no Arduino.
+     - Os LEDs Verde e Vermelho apagam.
+     - O Buzzer permanece em silêncio.
+     - O display LCD 16x2 exibe: `PAD:82%`.
+   - Ao selecionar um vinho/terroir com estado **CRÍTICO (9%)**:
+     - O **LED Vermelho (D7/D18)** acende no Arduino.
+     - O Buzzer toca a melodia da **Sonata ao Luar de Beethoven** (`BTHV_MELODY`) sem travar o Arduino.
+     - O display LCD 16x2 exibe: `CRT:9%`.
+   - Todas as transições são registradas na tabela `vine_telemetry` do **Supabase** e transmitidas ao grupo do **Telegram**.
 
 ---
 

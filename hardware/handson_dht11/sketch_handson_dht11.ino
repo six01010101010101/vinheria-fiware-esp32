@@ -1,20 +1,16 @@
-// CHECK POINT 5 - VINHERIA AGNELLO (PROTÓTIPO FÍSICO BARRIL ESP32 COM DHT11 & SUPABASE)
+// CHECK POINT 5 - VINHERIA AGNELLO (PROTÓTIPO FÍSICO ESP32/ARDUINO COM DHT11 & SUPABASE)
 #include <WiFi.h>
 #include <Wire.h>
 #include <math.h>
 #include "wine_presets.h"
 #include "supabase_client.h"
 
-// ============================================================================
-// CREDENCIAIS SUPABASE CLOUD & WI-FI (ALTERE AQUI AO MUDAR DE MÁQUINA/CONTA)
-// ============================================================================
 const char* WIFI_SSID_PRIMARY = "FIAP-IOT";
 const char* WIFI_PASS_PRIMARY = "senha_wifi_lab";
 const char* SUPABASE_URL = "https://slqozouuqzxwmfswyroo.supabase.co";
 const char* SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNscW96b3V1cXp4d21mc3d5cm9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyMDkxOTMsImV4cCI6MjEwNzc4NTE5M30.spwyPsi31yzG6rvh2FsSHWM8Fkv2CPLHpUx9Us8aRo4";
-const char* DEVICE_ID = "vine001";
-const char* MQTT_BROKER = "broker.hivemq.com";
-const int   MQTT_PORT = 1883;
+const char* DEVICE_ID = "vine001", *MQTT_BROKER = "broker.hivemq.com";
+const int MQTT_PORT = 1883;
 
 #define PIN_LED_YELLOW 2
 #define PIN_BUZZER     4
@@ -26,11 +22,33 @@ const int   MQTT_PORT = 1883;
 
 WiFiClient espClient;
 String curMode = "normal", curPreset = "TINTO", lastR0 = "", lastR1 = "";
-unsigned long lastDhtMs = 0, lastLdrMs = 0, lastPubMs = 0, lastBlinkMs = 0;
-unsigned long lastRetryMs = 0, lastSupaMs = 0;
-float validTemp = 16.0f, validHum = 68.0f, validLum = 12.0f;
-int curHealth = 100, soundStep = 0;
-bool ledState = false;
+unsigned long lastDhtMs = 0, lastLdrMs = 0, lastPubMs = 0, lastBlinkMs = 0, lastSupaMs = 0, noteStartMs = 0;
+float validTemp = 15.8f, validHum = 68.0f, validLum = 9.0f;
+int curHealth = 100, bthvIdx = 0;
+bool ledState = false, noteToneActive = false;
+
+// Beethoven: Sonata ao Luar (Moonlight Sonata, Op. 27 No. 2 em Dó sustenido menor)
+const uint16_t BTHV_MELODY[][2] = {
+  {208,160},{277,160},{330,160},{208,160},{277,160},{330,160},{208,160},{277,160},{330,160},{208,160},{277,160},{330,160},
+  {247,170},{294,170},{370,170},{220,170},{277,170},{330,170},{208,170},{262,170},
+  {415,360},{415,180},{415,180},{440,420},{415,260},{392,220},{415,480},{330,300},{277,300},{208,480},
+  {330,240},{415,240},{494,360},{494,200},{554,420},{494,260},{466,220},{494,480},{415,300},{330,300},{247,480},
+  {370,260},{440,260},{587,420},{554,320},{494,260},{440,260},{415,460},{277,320},{330,320},{139,600},{0,250}
+};
+const int BTHV_TOTAL = sizeof(BTHV_MELODY) / sizeof(BTHV_MELODY[0]);
+
+void playBthvNonBlock() {
+  unsigned long now = millis();
+  if (curMode != "critico") { noTone(PIN_BUZZER); bthvIdx = 0; noteToneActive = false; return; }
+  uint16_t freq = BTHV_MELODY[bthvIdx][0], dur = BTHV_MELODY[bthvIdx][1];
+  if (!noteToneActive) {
+    if (freq > 0) tone(PIN_BUZZER, freq); else noTone(PIN_BUZZER);
+    noteToneActive = true; noteStartMs = now;
+  } else if (now - noteStartMs >= dur) {
+    noTone(PIN_BUZZER); noteToneActive = false;
+    bthvIdx = (bthvIdx + 1) % BTHV_TOTAL;
+  }
+}
 
 void lcdExpWrite(uint8_t d) { Wire.beginTransmission(LCD_ADDR); Wire.write(d | 0x08); Wire.endTransmission(); }
 void lcdWrite4Bits(uint8_t v) { lcdExpWrite(v); lcdExpWrite(v | 0x04); delayMicroseconds(2); lcdExpWrite(v & ~0x04); delayMicroseconds(45); }
@@ -49,17 +67,10 @@ void lcdPrintRow(uint8_t row, String txt) {
 }
 void updateDisplay() {
   String r0 = "T:" + String(validTemp, 1) + "C U:" + String((int)validHum) + "%";
-  String tag = (curMode == "normal") ? "OK" : ((curMode == "padrao") ? "PAD" : "CRT");
-  String r1 = "L:" + String((int)validLum) + "% " + curPreset.substring(0, 4) + ":" + tag;
+  String tag = (curMode == "normal") ? "1UP" : ((curMode == "padrao") ? "PAD" : "CRT");
+  String r1 = "L:" + String((int)validLum) + "% " + curPreset.substring(0, 4) + " " + tag + ":" + String(curHealth) + "%";
   if (r0 != lastR0) { lastR0 = r0; lcdPrintRow(0, r0); }
   if (r1 != lastR1) { lastR1 = r1; lcdPrintRow(1, r1); }
-}
-
-void selfTestLedsAndBuzzer() {
-  digitalWrite(PIN_LED_GREEN, HIGH); tone(PIN_BUZZER, 1319, 120); delay(180); digitalWrite(PIN_LED_GREEN, LOW);
-  digitalWrite(PIN_LED_YELLOW, HIGH); tone(PIN_BUZZER, 784, 120); delay(180); digitalWrite(PIN_LED_YELLOW, LOW);
-  digitalWrite(PIN_LED_RED, HIGH); tone(PIN_BUZZER, 1480, 120); delay(180); digitalWrite(PIN_LED_RED, LOW);
-  noTone(PIN_BUZZER);
 }
 
 void applyWineStatusTransition(String newMode, int newHealth) {
@@ -67,13 +78,12 @@ void applyWineStatusTransition(String newMode, int newHealth) {
   curMode = newMode; curHealth = newHealth;
   if (curMode == "normal") {
     digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, LOW);
-    tone(PIN_BUZZER, 1319, 90);
+    noTone(PIN_BUZZER);
   } else if (curMode == "padrao") {
     digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, HIGH); digitalWrite(PIN_LED_RED, LOW);
-    tone(PIN_BUZZER, 784, 70); delay(80); tone(PIN_BUZZER, 784, 70);
+    noTone(PIN_BUZZER);
   } else {
     digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, HIGH);
-    tone(PIN_BUZZER, 1480, 100); delay(110); tone(PIN_BUZZER, 1760, 120);
   }
   updateDisplay();
 }
@@ -108,21 +118,22 @@ void handleActuators() {
   if (curMode == "normal") {
     digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, LOW);
     noTone(PIN_BUZZER);
-    return;
+  } else if (curMode == "padrao") {
+    digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, HIGH); digitalWrite(PIN_LED_RED, LOW);
+    noTone(PIN_BUZZER);
+  } else {
+    digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, HIGH);
+    playBthvNonBlock();
   }
-  unsigned long now = millis(), iv = (curMode == "padrao") ? 350 : 160;
-  if (lastBlinkMs == 0 || (now - lastBlinkMs >= iv)) {
-    lastBlinkMs = (now == 0) ? 1 : now; ledState = !ledState;
-    if (curMode == "padrao") {
-      digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, LOW);
-      digitalWrite(PIN_LED_YELLOW, ledState ? HIGH : LOW); noTone(PIN_BUZZER);
-    } else {
-      digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, LOW);
-      digitalWrite(PIN_LED_RED, ledState ? HIGH : LOW);
-      soundStep = (soundStep + 1) % 4;
-      if (ledState) { int f[4] = {880, 1175, 1480, 1760}; tone(PIN_BUZZER, f[soundStep], 110); } else noTone(PIN_BUZZER);
-    }
-  }
+}
+
+void handleSerialCommands() {
+  if (!Serial.available()) return;
+  String line = Serial.readStringUntil('\n'); line.trim();
+  if (line.indexOf("CMD:CRITICO") >= 0 || line.indexOf("CMD:MULTI") >= 0) applyWineStatusTransition("critico", 9);
+  else if (line.indexOf("CMD:PADRAO") >= 0) applyWineStatusTransition("padrao", 82);
+  else if (line.indexOf("CMD:NORMAL") >= 0 || line.indexOf("CMD:IDEAL") >= 0) applyWineStatusTransition("normal", 100);
+  else if (line.startsWith("SET:PRESET=")) { curPreset = line.substring(11); updateDisplay(); }
 }
 
 void readAndPubSensors() {
@@ -150,8 +161,7 @@ void setup() {
   Serial.begin(115200);
   pinMode(PIN_LED_GREEN, OUTPUT); pinMode(PIN_LED_YELLOW, OUTPUT);
   pinMode(PIN_LED_RED, OUTPUT); pinMode(PIN_BUZZER, OUTPUT); pinMode(PIN_LDR, INPUT);
-  lcdInit(); selfTestLedsAndBuzzer();
-  digitalWrite(PIN_LED_GREEN, HIGH); updateDisplay();
+  lcdInit(); digitalWrite(PIN_LED_GREEN, HIGH); updateDisplay();
   WiFi.mode(WIFI_STA); WiFi.setSleep(false); WiFi.setAutoReconnect(true);
   WiFi.begin(WIFI_SSID_PRIMARY, WIFI_PASS_PRIMARY);
   unsigned long t0 = millis();
@@ -159,4 +169,4 @@ void setup() {
   if (WiFi.status() != WL_CONNECTED) WiFi.begin("Wokwi-GUEST", "", 6);
 }
 
-void loop() { handleActuators(); readAndPubSensors(); delay(5); }
+void loop() { handleActuators(); handleSerialCommands(); readAndPubSensors(); delay(5); }

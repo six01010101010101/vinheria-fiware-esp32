@@ -9,6 +9,7 @@ const fs = require('fs');
 const path = require('path');
 const { dispatchLiveWineReport, startPeriodicTelegramReports } = require('./dashboard/src/services/telegram_live_service');
 const { handleWebhookRequest } = require('./dashboard/src/services/webhook_service');
+const { handleHardwareRequest } = require('./dashboard/src/services/hardware_bridge_service');
 
 const PORT = 8050;
 const ROOT_DIR = __dirname;
@@ -46,6 +47,7 @@ let lastTelegramAlertTime = 0;
 
 const server = http.createServer((req, res) => {
   let cleanUrl = decodeURI(req.url.split('?')[0]);
+  if (handleHardwareRequest(req, res, cleanUrl)) return;
 
   // Endpoint API Telegram com Anti-Flood 25s
   if (cleanUrl === '/api/v1/telegram/alert' && req.method === 'POST') {
