@@ -1,15 +1,11 @@
 /**
  * Motor Sonoro Polifônico & Sintetizador Enológico — Vinheria Agnello & Wokwi
- * Web Audio API Nativo com Cancelamento Ativo de Vozes (Zero Sobreposição Indesejada).
+ * Web Audio API Nativo com Barramento Desacoplável (Zero Sobreposição de Músicas).
  */
 
 class ArcadeAudioEngine {
   constructor() {
-    this.ctx = null;
-    this.enabled = true;
-    this.volume = 0.095;
-    this._lastHover = 0;
-    this.activeVoices = [];
+    this.ctx = null; this.bus = null; this.enabled = true; this.volume = 0.095; this._lastHover = 0; this.activeVoices = [];
   }
 
   ensureContext() {
@@ -17,24 +13,45 @@ class ArcadeAudioEngine {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (AudioCtx) this.ctx = new AudioCtx();
     }
+    if (this.ctx && !this.bus) {
+      this.bus = this.ctx.createGain();
+      this.bus.gain.setValueAtTime(1, this.ctx.currentTime);
+      this.bus.connect(this.ctx.destination);
+    }
     if (this.ctx && this.ctx.state === "suspended") this.ctx.resume().catch(() => {});
     return this.ctx;
   }
 
-  // Interrompe imediatamente todas as vozes e notas agendadas anteriores
+  // Interrompe imediatamente qualquer som anterior desconectando o barramento
   stopAll() {
-    if (!this.ctx || !this.activeVoices.length) return;
+    if (!this.ctx) return;
     const now = this.ctx.currentTime;
-    this.activeVoices.forEach(v => {
+    if (this.bus) {
       try {
-        v.gain.gain.cancelScheduledValues(now);
-        v.gain.gain.setValueAtTime(0, now);
-        v.osc.stop(now);
-        v.osc.disconnect();
-        v.gain.disconnect();
+        this.bus.gain.cancelScheduledValues(now);
+        this.bus.gain.setValueAtTime(0, now);
+        this.bus.disconnect();
       } catch (_) {}
-    });
-    this.activeVoices = [];
+    }
+    try {
+      this.bus = this.ctx.createGain();
+      this.bus.gain.setValueAtTime(1, now);
+      this.bus.connect(this.ctx.destination);
+    } catch (_) {}
+
+    if (this.activeVoices && this.activeVoices.length) {
+      this.activeVoices.forEach(v => {
+        try {
+          v.gain.gain.cancelScheduledValues(now);
+          v.gain.gain.setValueAtTime(0, now);
+          v.gain.disconnect();
+          const stopT = Math.max(now, v.startTime || now);
+          v.osc.stop(stopT);
+          v.osc.disconnect();
+        } catch (_) {}
+      });
+      this.activeVoices = [];
+    }
   }
 
   _cleanupVoices() {
@@ -45,7 +62,7 @@ class ArcadeAudioEngine {
     if (!this.enabled) return;
     try {
       const ctx = this.ensureContext();
-      if (!ctx) return;
+      if (!ctx || !this.bus) return;
       this._cleanupVoices();
       const t0 = ctx.currentTime + delay;
       const osc = ctx.createOscillator(), gain = ctx.createGain();
@@ -53,13 +70,14 @@ class ArcadeAudioEngine {
       osc.frequency.setValueAtTime(Math.max(20, freq), t0);
       if (endFreq) osc.frequency.exponentialRampToValueAtTime(Math.max(20, endFreq), t0 + duration);
       const peak = Math.min(0.25, this.volume * volScale);
-      gain.gain.setValueAtTime(peak, t0);
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(peak, t0 + 0.012);
       gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
       osc.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(this.bus);
       osc.start(t0);
       osc.stop(t0 + duration);
-      this.activeVoices.push({ osc, gain, stopTime: t0 + duration });
+      this.activeVoices.push({ osc, gain, startTime: t0, stopTime: t0 + duration });
     } catch (_) {}
   }
 
@@ -72,7 +90,7 @@ class ArcadeAudioEngine {
     this.playTone(1046.5, 0.05, "sine", 1318.5, 0, 0.35);
   }
 
-  // Seleção de vinho com harmonia clássica de Beethoven (Cancela o som anterior!)
+  // Seleção de vinho com harmonia clássica (Cancela o som anterior instantaneamente!)
   playWineSelect(stateKey = "ideal", style = "tinto") {
     this.stopAll();
     this.ensureContext();
@@ -112,15 +130,9 @@ class ArcadeAudioEngine {
   playScenario(sc) {
     this.stopAll();
     this.ensureContext();
-    switch (sc) {
-      case "normal": this.playWineSelect("ideal"); break;
-      case "padrao": this.playWineSelect("padrao"); break;
-      case "temp":
-      case "hum":
-      case "lum":
-      case "multi": default:
-        this.playCritical(); break;
-    }
+    if (sc === "normal") this.playWineSelect("ideal");
+    else if (sc === "padrao") this.playWineSelect("padrao");
+    else this.playCritical();
   }
 
   playThemeSwitch(mode) {
@@ -131,20 +143,12 @@ class ArcadeAudioEngine {
     else [440.0, 659.25, 880.0].forEach((f, i) => this.playTone(f, 0.09, "sine", null, i * 0.05));
   }
 
-  playCoin() {
-    this.playTone(987.77, 0.08, "square");
-    this.playTone(1318.51, 0.28, "square", null, 0.075);
-  }
-
+  playCoin() { this.playTone(987.77, 0.08, "square"); this.playTone(1318.51, 0.28, "square", null, 0.075); }
   playPowerup() { this.playWineSelect("ideal"); }
   playBlip() { this.playTone(932.33, 0.04, "sine", 1174.66, 0, 0.75); }
-  playAlert() {
-    this.ensureContext();
-    this.playTone(520, 0.13, "sawtooth", 220);
-    this.playTone(390, 0.20, "sawtooth", 150, 0.11);
-  }
+  playAlert() { this.ensureContext(); this.playTone(520, 0.13, "sawtooth", 220); this.playTone(390, 0.20, "sawtooth", 150, 0.11); }
 
-  // Beethoven: Sonata ao Luar (Cancela o som anterior e inicia a Sonata limpa)
+  // Beethoven: Sonata ao Luar (Limpa barramento anterior e inicia a Sonata solo)
   playCritical() {
     this.stopAll();
     this.ensureContext();
@@ -179,9 +183,7 @@ window.playBeep = (freq = 720, duration = 0.08, type = "sine") => {
 document.addEventListener("DOMContentLoaded", () => {
   const audio = window.arcadeAudio;
   document.addEventListener("mouseover", (e) => {
-    if (e.target.closest(".wine-pill-btn, .portal-wine-btn, .vineyard-card, .cava-card, .ecosystem-card")) {
-      audio.playWineHover();
-    }
+    if (e.target.closest(".wine-pill-btn, .portal-wine-btn, .vineyard-card, .cava-card, .ecosystem-card")) audio.playWineHover();
   });
   document.addEventListener("click", (e) => {
     audio.ensureContext();

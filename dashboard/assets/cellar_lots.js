@@ -7,11 +7,11 @@
   let lastClickedLotCode = null;
 
   function evaluateLotPreservation(lot, t, h, l, customTriggers, modeOverride) {
-    const tMin = customTriggers?.tMin ?? lot.temp[0];
-    const tMax = customTriggers?.tMax ?? lot.temp[1];
-    const hMin = customTriggers?.hMin ?? lot.hum[0];
-    const hMax = customTriggers?.hMax ?? lot.hum[1];
-    const lMax = customTriggers?.lMax ?? lot.lum;
+    const tMin = customTriggers?.tMin ?? (lot ? lot.temp[0] : 14.0);
+    const tMax = customTriggers?.tMax ?? (lot ? lot.temp[1] : 18.0);
+    const hMin = customTriggers?.hMin ?? (lot ? lot.hum[0] : 60.0);
+    const hMax = customTriggers?.hMax ?? (lot ? lot.hum[1] : 75.0);
+    const lMax = customTriggers?.lMax ?? (lot ? lot.lum : 25.0);
 
     let penalty = 0;
     if (t < tMin) penalty += (tMin - t) * 7.5;
@@ -51,48 +51,51 @@
     const lAct = typeof currentLum === "number" ? currentLum : 9;
     const activePreset = (window.PRESETS && window.PRESETS[activeStyle]) || null;
     const curMode = window.curScadaMode || "normal";
-
     const list = window.CANONICAL_LOTS;
+
     let idealCount = 0, padraoCount = 0, critCount = 0;
 
+    // Atualização em tempo real ultra-fluida dos cards já existentes no DOM
+    if (c.children && c.children.length === list.length && !lastClickedLotCode) {
+      list.forEach((lot, idx) => {
+        const col = c.children[idx], card = col ? col.firstElementChild : null;
+        if (!card) return;
+        const isSelected = lot.code === selCode;
+        const phase = (Date.now() / 2400) + idx * 0.85;
+        lot.liveT = +(lot.baseT + Math.sin(phase) * 0.12).toFixed(1);
+        lot.liveH = Math.max(10, Math.min(99, Math.round(lot.baseH + Math.cos(phase * 0.75) * 0.4)));
+        lot.liveL = Math.max(0, Math.min(100, Math.round(lot.baseL)));
+
+        const t = isSelected ? tAct : lot.liveT, h = isSelected ? hAct : lot.liveH, l = isSelected ? lAct : lot.liveL;
+        const ev = evaluateLotPreservation(lot, t, h, l, isSelected && activePreset ? activePreset : ((window.PRESETS && window.PRESETS[lot.style]) || null), isSelected ? curMode : null);
+        if (ev.stateKey === "ideal") idealCount++; else if (ev.stateKey === "padrao") padraoCount++; else critCount++;
+
+        const tEl = card.querySelector(".text-temp"), hEl = card.querySelector(".text-hum"), lEl = card.querySelector(".text-lum");
+        if (tEl) tEl.textContent = `🌡️ ${t.toFixed(1)}°C`;
+        if (hEl) hEl.textContent = `💧 ${h.toFixed(0)}%`;
+        if (lEl) lEl.textContent = `☀️ ${l.toFixed(0)}%`;
+        const vEl = card.querySelector(".lot-status-txt"), scEl = card.querySelector(".lot-score-val"), pb = card.querySelector(".progress-bar");
+        if (vEl) { vEl.textContent = `${ev.dot} ${ev.verdict}`; vEl.className = `lot-status-txt fw-bold ${ev.textClass}`; }
+        if (scEl) { scEl.textContent = `${ev.score}%`; scEl.className = `lot-score-val font-monospace fw-bold ${ev.textClass}`; }
+        if (pb) { pb.style.width = `${ev.score}%`; pb.className = `progress-bar ${ev.barColor} ${isSelected ? "progress-bar-striped progress-bar-animated" : ""}`; }
+      });
+      updateBadge(list, selCode, idealCount, padraoCount, critCount);
+      return;
+    }
+
     c.innerHTML = list.map((lot, idx) => {
-      const isSelected = lot.code === selCode;
-      const isSameStyle = lot.style === activeStyle;
-      const tr = (window.TERROIRS && lot.terroirId) ? window.TERROIRS[lot.terroirId] : null;
+      const isSelected = lot.code === selCode, isSameStyle = lot.style === activeStyle;
+      const phase = (Date.now() / 2400) + idx * 0.85;
+      lot.liveT = +(lot.baseT + Math.sin(phase) * 0.12).toFixed(1);
+      lot.liveH = Math.max(10, Math.min(99, Math.round(lot.baseH + Math.cos(phase * 0.75) * 0.4)));
+      lot.liveL = Math.max(0, Math.min(100, Math.round(lot.baseL)));
 
-      // Telemetria climática real ancorada no Terroir/Satélite Open-Meteo
-      const phase = (Date.now() / 2200) + idx * 0.9;
-      const baseT = (tr && tr.satT !== undefined) ? tr.satT : (tr && tr.t !== undefined ? tr.t : lot.baseT);
-      const baseH = (tr && tr.satH !== undefined) ? tr.satH : (tr && tr.h !== undefined ? tr.h : lot.baseH);
-      const baseL = (tr && tr.satL !== undefined) ? tr.satL : (tr && tr.l !== undefined ? tr.l : lot.baseL);
-
-      lot.liveT = +(baseT + Math.sin(phase) * 0.1).toFixed(1);
-      lot.liveH = Math.max(10, Math.min(99, Math.round(baseH + Math.cos(phase * 0.8) * 0.3)));
-      lot.liveL = Math.max(0, Math.min(100, Math.round(baseL)));
-
-      const t = isSelected ? tAct : lot.liveT;
-      const h = isSelected ? hAct : lot.liveH;
-      const l = isSelected ? lAct : lot.liveL;
-      const ev = evaluateLotPreservation(
-        lot,
-        t,
-        h,
-        l,
-        isSelected && activePreset ? activePreset : null,
-        isSelected ? curMode : null
-      );
-
-      if (ev.stateKey === "ideal") idealCount++;
-      else if (ev.stateKey === "padrao") padraoCount++;
-      else critCount++;
+      const t = isSelected ? tAct : lot.liveT, h = isSelected ? hAct : lot.liveH, l = isSelected ? lAct : lot.liveL;
+      const ev = evaluateLotPreservation(lot, t, h, l, isSelected && activePreset ? activePreset : ((window.PRESETS && window.PRESETS[lot.style]) || null), isSelected ? curMode : null);
+      if (ev.stateKey === "ideal") idealCount++; else if (ev.stateKey === "padrao") padraoCount++; else critCount++;
 
       const justClicked = lastClickedLotCode === lot.code;
-      const cardClasses = [
-        "vineyard-card h-100",
-        isSelected ? "active-vineyard border-gold" : (isSameStyle ? "lot-style-match" : "lot-dimmed"),
-        justClicked ? "lot-click-pop" : ""
-      ].filter(Boolean).join(" ");
-
+      const cardClasses = ["vineyard-card h-100", isSelected ? "active-vineyard border-gold" : (isSameStyle ? "lot-style-match" : "lot-dimmed"), justClicked ? "lot-click-pop" : ""].filter(Boolean).join(" ");
       const topTag = isSelected ? "● SELECIONADO" : (isSameStyle ? `★ ${lot.code}` : lot.code);
 
       return `
@@ -109,8 +112,8 @@
             <span class="text-lum">☀️ ${l.toFixed(0)}%</span>
           </div>
           <div class="d-flex justify-content-between align-items-center small mb-1" style="font-size:0.71rem;">
-            <span class="fw-bold ${ev.textClass}">${ev.dot} ${ev.verdict}</span>
-            <span class="font-monospace fw-bold ${ev.textClass}">${ev.score}%</span>
+            <span class="lot-status-txt fw-bold ${ev.textClass}">${ev.dot} ${ev.verdict}</span>
+            <span class="lot-score-val font-monospace fw-bold ${ev.textClass}">${ev.score}%</span>
           </div>
           <div class="progress mb-2 rounded-pill" style="height:5px;">
             <div class="progress-bar ${ev.barColor} ${isSelected ? "progress-bar-striped progress-bar-animated" : ""}" style="width:${ev.score}%;"></div>
@@ -124,14 +127,7 @@
     }).join("");
     lastClickedLotCode = null;
 
-    const badge = document.getElementById("cellar-lots-live-badge");
-    if (badge) {
-      const selLot = list.find(x => x.code === selCode) || list[0];
-      const badgeCls = critCount > 0 ? "border-danger text-danger bg-danger" : (padraoCount > 0 ? "border-warning text-warning bg-warning" : "border-success text-success bg-success");
-      badge.className = `badge font-monospace ${badgeCls} bg-opacity-25 border border-opacity-50`;
-      badge.innerHTML = `<span class="status-dot"></span>ATIVO: ${selLot.winery.toUpperCase()} · 🟢 ${idealCount} IDEAL · 🟡 ${padraoCount} PADRÃO · 🔴 ${critCount} CRÍTICO`;
-    }
-
+    updateBadge(list, selCode, idealCount, padraoCount, critCount);
     const handler = onSelectCallback || window.onLotSelect;
     c.querySelectorAll(".vineyard-card").forEach(card => {
       card.addEventListener("click", () => {
@@ -143,6 +139,15 @@
     });
   }
 
-  window.renderCellarLots = renderCellarLots;
+  function updateBadge(list, selCode, idealCount, padraoCount, critCount) {
+    const badge = document.getElementById("cellar-lots-live-badge");
+    if (!badge) return;
+    const selLot = list.find(x => x.code === selCode) || list[0];
+    const badgeCls = critCount > 0 ? "border-danger text-danger bg-danger" : (padraoCount > 0 ? "border-warning text-warning bg-warning" : "border-success text-success bg-success");
+    badge.className = `badge font-monospace ${badgeCls} bg-opacity-25 border border-opacity-50`;
+    badge.innerHTML = `<span class="status-dot"></span>ATIVO: ${selLot.winery.toUpperCase()} · 🟢 ${idealCount} IDEAL · 🟡 ${padraoCount} PADRÃO · 🔴 ${critCount} CRÍTICO`;
+  }
+
   window.evaluateLotPreservation = evaluateLotPreservation;
+  window.renderCellarLots = renderCellarLots;
 })();

@@ -31,12 +31,8 @@
     }
 
     const wShort = (p.name || "Tinto").replace("Espumante ", "");
-    if (score >= 95) {
-      return { score, stateKey: "ideal", txt: `🟢 IDEAL (${wShort})`, cls: "text-success", bar: "bg-success" };
-    }
-    if (score >= 75) {
-      return { score, stateKey: "padrao", txt: `🟡 PADRÃO (${wShort})`, cls: "text-warning", bar: "bg-warning" };
-    }
+    if (score >= 95) return { score, stateKey: "ideal", txt: `🟢 IDEAL (${wShort})`, cls: "text-success", bar: "bg-success" };
+    if (score >= 75) return { score, stateKey: "padrao", txt: `🟡 PADRÃO (${wShort})`, cls: "text-warning", bar: "bg-warning" };
     return { score, stateKey: "critico", txt: `🔴 CRÍTICO p/ ${wShort}`, cls: "text-danger", bar: "bg-danger" };
   }
 
@@ -56,9 +52,7 @@
             tItem.satT = +Number(c.temperature_2m).toFixed(1);
             tItem.satH = c.relative_humidity_2m !== undefined ? Math.round(Number(c.relative_humidity_2m)) : tItem.h;
             tItem.satL = c.shortwave_radiation !== undefined ? Math.min(100, Math.max(0, Math.round(c.shortwave_radiation / 10))) : (c.is_day ? 25 : 0);
-            tItem.t = tItem.satT;
-            tItem.h = tItem.satH;
-            tItem.l = tItem.satL;
+            tItem.t = tItem.satT; tItem.h = tItem.satH; tItem.l = tItem.satL;
             tItem.local_time = (c.time || "").split("T")[1] || new Date().toLocaleTimeString().slice(0, 5);
             tItem.source = "Open-Meteo Satélite WMO";
             updated = true;
@@ -67,7 +61,6 @@
       }
     } catch (_) {}
 
-    // Sincroniza áreas atualizadas com o Supabase Cloud e re-renderiza lotes da cava
     window.SupabaseCloud?.syncLotsAndAreas?.(window.curPr || "tinto", true);
     window.renderCellarLots?.();
     return updated;
@@ -84,38 +77,43 @@
 
     let idealCount = 0, padraoCount = 0, critCount = 0;
 
-    c.innerHTML = list.map((v, idx) => {
+    if (c.children && c.children.length === list.length && !lastClickedTerroir) {
+      list.forEach((v, idx) => {
+        const col = c.children[idx], card = col ? col.firstElementChild : null;
+        if (!card) return;
+        const isAct = v.id === act;
+        const t = (isAct && typeof liveTemp === "number" && window.manualOverride) ? liveTemp : (v.satT !== undefined ? v.satT : v.t);
+        const h = (isAct && typeof liveHum === "number" && window.manualOverride) ? liveHum : (v.satH !== undefined ? v.satH : v.h);
+        const l = (isAct && typeof liveLum === "number" && window.manualOverride) ? liveLum : (v.satL !== undefined ? v.satL : v.l);
+        const dew = calcDewPoint(t, h);
+        const targetPr = isAct ? activePr : ((window.PRESETS && window.PRESETS[v.style]) || activePr);
+        const ev = evalTerroirForWine(t, h, l, targetPr, isAct ? curMode : null);
+        if (ev.stateKey === "ideal") idealCount++; else if (ev.stateKey === "padrao") padraoCount++; else critCount++;
+
+        const tEl = card.querySelector(".text-temp"), hEl = card.querySelector(".text-hum"), lEl = card.querySelector(".text-lum"), dEl = card.querySelector(".text-dew");
+        if (tEl) tEl.textContent = `🌡️ ${t.toFixed(1)}°C`; if (hEl) hEl.textContent = `💧 ${h.toFixed(0)}%`;
+        if (lEl) lEl.textContent = `☀️ ${l.toFixed(0)}%`; if (dEl) dEl.textContent = `💨 ${dew}°C`;
+        const vEl = card.querySelector(".terroir-status-txt"), scEl = card.querySelector(".terroir-score-val"), pb = card.querySelector(".progress-bar");
+        if (vEl) { vEl.textContent = ev.txt; vEl.className = `terroir-status-txt fw-bold ${ev.cls}`; }
+        if (scEl) { scEl.textContent = `${ev.score}%`; scEl.className = `terroir-score-val font-monospace fw-bold ${ev.cls}`; }
+        if (pb) { pb.style.width = `${ev.score}%`; pb.className = `progress-bar ${ev.bar} ${isAct ? "progress-bar-striped progress-bar-animated" : ""}`; }
+      });
+      updateBadge(list, activePr, idealCount, padraoCount, critCount);
+      return;
+    }
+
+    c.innerHTML = list.map((v) => {
       const isAct = v.id === act;
-      // Utiliza a leitura real do satélite
       const t = (isAct && typeof liveTemp === "number" && window.manualOverride) ? liveTemp : (v.satT !== undefined ? v.satT : v.t);
       const h = (isAct && typeof liveHum === "number" && window.manualOverride) ? liveHum : (v.satH !== undefined ? v.satH : v.h);
       const l = (isAct && typeof liveLum === "number" && window.manualOverride) ? liveLum : (v.satL !== undefined ? v.satL : v.l);
       const dew = calcDewPoint(t, h);
-
-      // Avalia a área selecionada contra o preset ativo, e as demais contra o estilo nativo da própria cave
       const targetPr = isAct ? activePr : ((window.PRESETS && window.PRESETS[v.style]) || activePr);
       const ev = evalTerroirForWine(t, h, l, targetPr, isAct ? curMode : null);
-      if (ev.stateKey === "ideal") idealCount++;
-      else if (ev.stateKey === "padrao") padraoCount++;
-      else {
-        critCount++;
-        // Se a área ativa está em estado crítico, aciona o buzzer e o Telegram
-        if (isAct) {
-          window.TelegramNotifier?.sendTelegramAlert({
-            terroir: v.name, country: v.country, temp: t, hum: h, lum: l,
-            stateKey: "critico", score: ev.score, style: targetPr.key || "tinto"
-          });
-        }
-      }
+      if (ev.stateKey === "ideal") idealCount++; else if (ev.stateKey === "padrao") padraoCount++; else critCount++;
 
-      const justClicked = lastClickedTerroir === v.id;
-      const isStyleMatch = v.style === (window.curPr || "tinto");
-      const cls = [
-        "vineyard-card h-100",
-        isAct ? "active-vineyard border-gold" : (isStyleMatch ? "lot-style-match" : "lot-dimmed"),
-        justClicked ? "lot-click-pop" : ""
-      ].filter(Boolean).join(" ");
-
+      const justClicked = lastClickedTerroir === v.id, isStyleMatch = v.style === (window.curPr || "tinto");
+      const cls = ["vineyard-card h-100", isAct ? "active-vineyard border-gold" : (isStyleMatch ? "lot-style-match" : "lot-dimmed"), justClicked ? "lot-click-pop" : ""].filter(Boolean).join(" ");
       const timeBadge = v.local_time ? `🛰️ ${v.local_time}` : "🛰️ SAT WMO";
 
       return `
@@ -138,8 +136,8 @@
             <span class="text-dew" title="Ponto de Orvalho (Magnus-Tetens)">💨 ${dew}°C</span>
           </div>
           <div class="d-flex justify-content-between align-items-center small mb-1" style="font-size:0.70rem;">
-            <span class="fw-bold ${ev.cls}">${ev.txt}</span>
-            <span class="font-monospace fw-bold ${ev.cls}">${ev.score}%</span>
+            <span class="terroir-status-txt fw-bold ${ev.cls}">${ev.txt}</span>
+            <span class="terroir-score-val font-monospace fw-bold ${ev.cls}">${ev.score}%</span>
           </div>
           <div class="progress rounded-pill" style="height:4px;">
             <div class="progress-bar ${ev.bar} ${isAct ? "progress-bar-striped progress-bar-animated" : ""}" style="width:${ev.score}%;"></div>
@@ -149,13 +147,7 @@
     }).join("");
     lastClickedTerroir = null;
 
-    const badge = document.getElementById("satellite-live-badge");
-    if (badge) {
-      const bColor = critCount > 0 ? "border-danger text-danger bg-danger" : (padraoCount > 0 ? "border-warning text-warning bg-warning" : "border-success text-success bg-success");
-      badge.className = `badge font-monospace ${bColor} bg-opacity-25 border border-opacity-50`;
-      badge.innerHTML = `<span class="status-dot"></span>${list.length} ÁREAS WMO · ${activePr.badge || "🍷 VINHO"} (🟢 ${idealCount} · 🟡 ${padraoCount} · 🔴 ${critCount})`;
-    }
-
+    updateBadge(list, activePr, idealCount, padraoCount, critCount);
     if (handler) {
       c.querySelectorAll(".vineyard-card").forEach(card => card.addEventListener("click", () => {
         const vid = card.dataset.vid;
@@ -163,6 +155,14 @@
         handler(vid);
       }));
     }
+  }
+
+  function updateBadge(list, activePr, idealCount, padraoCount, critCount) {
+    const badge = document.getElementById("satellite-live-badge");
+    if (!badge) return;
+    const bColor = critCount > 0 ? "border-danger text-danger bg-danger" : (padraoCount > 0 ? "border-warning text-warning bg-warning" : "border-success text-success bg-success");
+    badge.className = `badge font-monospace ${bColor} bg-opacity-25 border border-opacity-50`;
+    badge.innerHTML = `<span class="status-dot"></span>${list.length} ÁREAS WMO · ${activePr.badge || "🍷 VINHO"} (🟢 ${idealCount} · 🟡 ${padraoCount} · 🔴 ${critCount})`;
   }
 
   function startSatelliteLiveLoop(getActiveId, onSelectCallback) {
