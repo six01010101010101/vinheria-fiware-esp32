@@ -100,15 +100,8 @@
     const p = PRESETS[curPr] || {};
     window.ScadaUIController?.syncPresetControls(p, curPr);
 
-    const realT = (tr.satT !== undefined) ? tr.satT : (tr.baseT !== undefined ? tr.baseT : 15.8);
-    const realH = (tr.satH !== undefined) ? tr.satH : (tr.baseH !== undefined ? tr.baseH : 68.0);
-    const realL = (tr.satL !== undefined) ? tr.satL : (tr.baseL !== undefined ? tr.baseL : 9.0);
-    let targetMode = "normal";
-
-    if (curArea !== "wokwi_esp32") {
-      const ev = window.evalTerroirForWine ? window.evalTerroirForWine(realT, realH, realL, p) : { stateKey: "ideal" };
-      targetMode = ev.stateKey === "critico" ? "critico" : (ev.stateKey === "padrao" ? "padrao" : "normal");
-      setSimBase(realT, realH, realL, targetMode);
+    if (curArea !== "wokwi_esp32" && matchLot) {
+      setSimBase(matchLot.baseT, matchLot.baseH, matchLot.baseL, "normal");
     } else {
       const vals = window.ScadaDispatcher?.getScenarioValues("normal", curPr, PRESETS) || [15.8, 68, 9];
       setSimBase(vals[0], vals[1], vals[2], "normal");
@@ -150,9 +143,9 @@
     if (document.hidden) return;
     const phase = Date.now() / 2000;
     if (curArea !== "wokwi_esp32") {
-      sim.t = +(sim.baseT + Math.sin(phase) * 0.15).toFixed(1);
-      sim.h = Math.max(20, Math.min(99, Math.round(sim.baseH + Math.cos(phase * 0.8) * 0.4)));
-      sim.l = sim.baseL;
+      sim.t = +(sim.baseT + Math.sin(phase) * 0.25).toFixed(1);
+      sim.h = Math.max(20, Math.min(99, Math.round(sim.baseH + Math.cos(phase * 0.75) * 1.2)));
+      sim.l = Math.max(0, Math.min(100, Math.round(sim.baseL + Math.sin(phase * 0.5) * 0.6)));
     }
     updateHardwarePlaque(sim.t, sim.h, sim.l, false);
     if (!isScrolling) window.ScadaCharts?.renderAllCharts?.(sim.t, sim.h, sim.l, PRESETS[curPr], getActiveLot(), false);

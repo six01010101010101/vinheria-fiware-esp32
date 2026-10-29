@@ -13,12 +13,8 @@
 
   function getViticultureLimits(styleKey) {
     const k = (styleKey || "").toLowerCase();
-    if (k.includes("branco") || k.includes("espumante") || k.includes("sobremesa")) {
-      return { tMin: 8, tMax: 23, tOptMin: 11, tOptMax: 20 };
-    }
-    if (k.includes("rose") || k.includes("pinot") || k.includes("laranja")) {
-      return { tMin: 10, tMax: 25, tOptMin: 13, tOptMax: 22 };
-    }
+    if (k.includes("branco") || k.includes("espumante") || k.includes("sobremesa")) return { tMin: 8, tMax: 23, tOptMin: 11, tOptMax: 20 };
+    if (k.includes("rose") || k.includes("pinot") || k.includes("laranja")) return { tMin: 10, tMax: 25, tOptMin: 13, tOptMax: 22 };
     return { tMin: 12, tMax: 27, tOptMin: 15, tOptMax: 24 };
   }
 
@@ -93,13 +89,21 @@
         const col = c.children[idx], card = col ? col.firstElementChild : null;
         if (!card) return;
         const isAct = v.id === act;
-        const t = (isAct && typeof liveTemp === "number" && window.manualOverride) ? liveTemp : (v.satT !== undefined ? v.satT : v.t);
-        const h = (isAct && typeof liveHum === "number" && window.manualOverride) ? liveHum : (v.satH !== undefined ? v.satH : v.h);
-        const l = (isAct && typeof liveLum === "number" && window.manualOverride) ? liveLum : (v.satL !== undefined ? v.satL : v.l);
+        const isStyleMatch = v.style === (window.curPr || "tinto");
+        const t = v.satT !== undefined ? v.satT : v.t;
+        const h = v.satH !== undefined ? v.satH : v.h;
+        const l = v.satL !== undefined ? v.satL : v.l;
         const dew = calcDewPoint(t, h);
         const targetPr = isAct ? activePr : ((window.PRESETS && window.PRESETS[v.style]) || activePr);
         const ev = evalTerroirForWine(t, h, l, targetPr, (isAct && window.manualOverride) ? curMode : null);
         if (ev.stateKey === "ideal") idealCount++; else if (ev.stateKey === "padrao") padraoCount++; else critCount++;
+
+        card.className = ["vineyard-card h-100", isAct ? "active-vineyard border-gold" : (isStyleMatch ? "lot-style-match" : "lot-dimmed")].filter(Boolean).join(" ");
+        const tagEl = card.querySelector(".sommelier-tag");
+        if (tagEl) {
+          tagEl.className = `sommelier-tag ${isAct ? "sommelier-tag-active" : ""}`;
+          tagEl.textContent = isAct ? "● SELECIONADO" : (v.local_time ? `🛰️ ${v.local_time}` : "🛰️ SAT WMO");
+        }
 
         const tEl = card.querySelector(".text-temp"), hEl = card.querySelector(".text-hum"), lEl = card.querySelector(".text-lum"), dEl = card.querySelector(".text-dew");
         if (tEl) tEl.textContent = `🌡️ ${t.toFixed(1)}°C`; if (hEl) hEl.textContent = `💧 ${h.toFixed(0)}%`;
@@ -115,9 +119,9 @@
 
     c.innerHTML = list.map((v) => {
       const isAct = v.id === act;
-      const t = (isAct && typeof liveTemp === "number" && window.manualOverride) ? liveTemp : (v.satT !== undefined ? v.satT : v.t);
-      const h = (isAct && typeof liveHum === "number" && window.manualOverride) ? liveHum : (v.satH !== undefined ? v.satH : v.h);
-      const l = (isAct && typeof liveLum === "number" && window.manualOverride) ? liveLum : (v.satL !== undefined ? v.satL : v.l);
+      const t = v.satT !== undefined ? v.satT : v.t;
+      const h = v.satH !== undefined ? v.satH : v.h;
+      const l = v.satL !== undefined ? v.satL : v.l;
       const dew = calcDewPoint(t, h);
       const targetPr = isAct ? activePr : ((window.PRESETS && window.PRESETS[v.style]) || activePr);
       const ev = evalTerroirForWine(t, h, l, targetPr, (isAct && window.manualOverride) ? curMode : null);
@@ -161,9 +165,8 @@
     updateBadge(list, activePr, idealCount, padraoCount, critCount);
     if (handler) {
       c.querySelectorAll(".vineyard-card").forEach(card => card.addEventListener("click", () => {
-        const vid = card.dataset.vid;
-        lastClickedTerroir = vid;
-        handler(vid);
+        lastClickedTerroir = card.dataset.vid;
+        handler(lastClickedTerroir);
       }));
     }
   }
@@ -177,22 +180,18 @@
   }
 
   function startSatelliteLiveLoop(getActiveId, onSelectCallback) {
-    fetchSatelliteData().then(() => {
+    const sync = () => fetchSatelliteData().then(() => {
       renderRealVineyards(getActiveId?.(), onSelectCallback);
       window.renderCellarLots?.();
     });
-    setInterval(() => {
-      if (document.hidden) return;
-      fetchSatelliteData().then(() => {
-        renderRealVineyards(getActiveId?.(), onSelectCallback);
-        window.renderCellarLots?.();
-      });
-    }, 30000);
+    sync();
+    setInterval(() => { if (!document.hidden) sync(); }, 30000);
   }
 
-  window.renderRealVineyards = renderRealVineyards;
-  window.fetchSatelliteData = fetchSatelliteData;
-  window.startSatelliteLiveLoop = startSatelliteLiveLoop;
-  window.calcDewPoint = calcDewPoint;
-  window.evalTerroirForWine = evalTerroirForWine;
+  const root = typeof window !== "undefined" ? window : globalThis;
+  root.renderRealVineyards = renderRealVineyards;
+  root.fetchSatelliteData = fetchSatelliteData;
+  root.startSatelliteLiveLoop = startSatelliteLiveLoop;
+  root.calcDewPoint = calcDewPoint;
+  root.evalTerroirForWine = evalTerroirForWine;
 })();

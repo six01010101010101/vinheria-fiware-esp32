@@ -3,7 +3,8 @@
  * 3 Estados Enológicos: 🟢 IDEAL (95–100%) | 🔵 PADRÃO (75–94%) | 🔴 CRÍTICO (<75% · Apito).
  */
 (function () {
-  window.curLotCode = window.curLotCode || "LOTE-FR-MARGAUX-01";
+  const root = typeof window !== "undefined" ? window : globalThis;
+  root.curLotCode = root.curLotCode || "LOTE-FR-MARGAUX-01";
   let lastClickedLotCode = null;
 
   function evaluateLotPreservation(lot, t, h, l, customTriggers, modeOverride) {
@@ -61,15 +62,27 @@
         const col = c.children[idx], card = col ? col.firstElementChild : null;
         if (!card) return;
         const isSelected = lot.code === selCode;
+        const isSameStyle = lot.style === activeStyle;
         const phase = (Date.now() / 2400) + idx * 0.85;
         lot.liveT = +(lot.baseT + Math.sin(phase) * 0.12).toFixed(1);
         lot.liveH = Math.max(10, Math.min(99, Math.round(lot.baseH + Math.cos(phase * 0.75) * 0.4)));
         lot.liveL = Math.max(0, Math.min(100, Math.round(lot.baseL)));
 
-        const t = isSelected ? tAct : lot.liveT, h = isSelected ? hAct : lot.liveH, l = isSelected ? lAct : lot.liveL;
+        const t = lot.liveT, h = lot.liveH, l = lot.liveL;
         const lotPreset = (activePreset && (activePreset.key === lot.style || activePreset.style === lot.style)) ? activePreset : ((window.PRESETS && window.PRESETS[lot.style]) || null);
         const ev = evaluateLotPreservation(lot, t, h, l, lotPreset, (isSelected && window.manualOverride) ? curMode : null);
         if (ev.stateKey === "ideal") idealCount++; else if (ev.stateKey === "padrao") padraoCount++; else critCount++;
+
+        card.className = ["vineyard-card h-100", isSelected ? "active-vineyard border-gold" : (isSameStyle ? "lot-style-match" : "lot-dimmed")].filter(Boolean).join(" ");
+        const tagEl = card.querySelector(".sommelier-tag");
+        if (tagEl) {
+          tagEl.className = `sommelier-tag ${isSelected ? "sommelier-tag-active" : ""}`;
+          tagEl.textContent = isSelected ? "● SELECIONADO" : (isSameStyle ? `★ ${lot.code}` : lot.code);
+        }
+        const bEl = card.querySelector(".d-flex.justify-content-between > span.badge");
+        if (bEl) {
+          bEl.className = `badge ${isSelected || isSameStyle ? "bg-wine-pill" : "bg-secondary bg-opacity-25 text-secondary border border-secondary border-opacity-25"}`;
+        }
 
         const tEl = card.querySelector(".text-temp"), hEl = card.querySelector(".text-hum"), lEl = card.querySelector(".text-lum");
         if (tEl) tEl.textContent = `🌡️ ${t.toFixed(1)}°C`;
@@ -91,7 +104,7 @@
       lot.liveH = Math.max(10, Math.min(99, Math.round(lot.baseH + Math.cos(phase * 0.75) * 0.4)));
       lot.liveL = Math.max(0, Math.min(100, Math.round(lot.baseL)));
 
-      const t = isSelected ? tAct : lot.liveT, h = isSelected ? hAct : lot.liveH, l = isSelected ? lAct : lot.liveL;
+      const t = lot.liveT, h = lot.liveH, l = lot.liveL;
       const lotPreset = (activePreset && (activePreset.key === lot.style || activePreset.style === lot.style)) ? activePreset : ((window.PRESETS && window.PRESETS[lot.style]) || null);
       const ev = evaluateLotPreservation(lot, t, h, l, lotPreset, (isSelected && window.manualOverride) ? curMode : null);
       if (ev.stateKey === "ideal") idealCount++; else if (ev.stateKey === "padrao") padraoCount++; else critCount++;
@@ -150,6 +163,6 @@
     badge.innerHTML = `<span class="status-dot"></span>ATIVO: ${selLot.winery.toUpperCase()} · 🟢 ${idealCount} IDEAL · 🟡 ${padraoCount} PADRÃO · 🔴 ${critCount} CRÍTICO`;
   }
 
-  window.evaluateLotPreservation = evaluateLotPreservation;
-  window.renderCellarLots = renderCellarLots;
+  root.evaluateLotPreservation = evaluateLotPreservation;
+  root.renderCellarLots = renderCellarLots;
 })();
