@@ -2,9 +2,12 @@
 FIAP — CHECK POINT 5 — VINHERIA AGNELLO (IOT, FIWARE & ESP32)
 ===================================================================
 
-Integrantes:
-- Ken Kobayashi (GitHub: https://github.com/six01010101010101)
-- Nicolly Vilela (GitHub: https://github.com/ninixzzs)
+INTEGRANTES DA EQUIPE & IDENTIFICAÇÃO:
+- Ken Kobayashi (GitHub: https://github.com/six01010101010101) — Arquitetura Full-Stack, Firmware C++ ESP32, Sincronismo Supabase/Telegram, Modelagem 3D, Servidor Local e SCADA
+- Nicolly Florencio Vilela (RM 573392 | GitHub: https://github.com/ninixzzs) — Programação e montagem do Arduino físico
+- Brenda Priscila Chalco Condori (RM 571971) — Apresentação do projeto e montagem do Arduino físico
+- Samuel Eduardo Lisboa Etcheverry (RM 573715) — Simulação Wokwi (Arduino digital) e montagem do Arduino físico
+- Diego Ruffini Silva Jimenez (RM 571015) — 
 
 Curso: Engenharia de Software / Edge Computing, IoT & Sistemas Distribuídos
 Projeto: Monitoramento Inteligente de Cavas Subterrâneas e Terroirs Globais

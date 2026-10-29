@@ -5,7 +5,7 @@
     "version": "1.5.0",
     "description": "Especificação OpenAPI 3.1 para telemetria de precisão, 15 terroirs via satélite, 15 cavas de guarda subterrâneas, hardware ESP32 DevKit V1 (Buzzer GPIO 4 + LEDs) e despacho de alertas ao Telegram @vinheria_agnello_bot.",
     "contact": {
-      "name": "Ken Kobayashi & Nicolly Vilela",
+      "name": "Ken Kobayashi, Nicolly Florencio Vilela, Brenda Priscila Chalco Condori, Samuel Eduardo Lisboa Etcheverry, Diego Ruffini Silva Jimenez",
       "url": "https://github.com/six01010101010101/vinheria-fiware-esp32"
     }
   },

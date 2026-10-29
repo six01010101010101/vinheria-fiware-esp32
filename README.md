@@ -3,7 +3,7 @@
 <div align="center">
 
 ![FIAP](https://img.shields.io/badge/FIAP-Engenharia%20de%20Software%20%26%20IoT-be123c?style=for-the-badge)
-![Autores](https://img.shields.io/badge/Autores-Ken%20Kobayashi%20%7C%20Nicolly%20Vilela-e2b86b?style=for-the-badge&logo=github)
+![Autores](https://img.shields.io/badge/Equipe%20FIAP-5%20Integrantes-e2b86b?style=for-the-badge&logo=github)
 ![ESP32](https://img.shields.io/badge/Hardware-ESP32%20%7C%20DHT22%20%7C%20LDR%20%7C%20LCD%2016x2%20%7C%20Buzzer%20D2%2FD4-00979D?style=for-the-badge&logo=espressif)
 ![FIWARE](https://img.shields.io/badge/Middleware-FIWARE%20Orion%20%2B%20IoT%20Agent%20MQTT-2496ED?style=for-the-badge&logo=docker)
 ![Supabase](https://img.shields.io/badge/Database-Supabase%20PostgreSQL%2017-3ECF8E?style=for-the-badge&logo=supabase)
@@ -19,7 +19,7 @@
 
 | Recurso Oficial | Link de Acesso | Descrição |
 | :--- | :--- | :--- |
-| **🚀 Simulador Wokwi (Ao Vivo)** | [Abrir no Wokwi](https://wokwi.com/projects/478106752109243393) | ESP32 + DHT22 + LDR + LCD 16x2 I2C + 3 LEDs + Buzzer no GPIO 4 |
+| **🚀 Simulador Wokwi (Ao Vivo)** | [Abrir no Wokwi](https://wokwi.com/projects/478106752109243393) | ESP32 + DHT22 + LDR + LCD 16x2 I2C + LEDs + Buzzer D2/D4 |
 | **☁️ Deploy na Nuvem (Render)** | [Acessar no Render](https://checkpoint5-vinheria-fiware-esp32-1.onrender.com/) | Aplicação em produção em nuvem contínua |
 | **💻 Repositório GitHub** | [GitHub Oficial](https://github.com/six01010101010101/vinheria-fiware-esp32) | Código-fonte versionado com arquitetura modular |
 | **📊 Dashboard SCADA Web** | [`dashboard.html`](./dashboard.html) | Painel de controle em tempo real dos 15 terroirs e cavas |
@@ -51,10 +51,15 @@
 
 ## 👩‍🎓 1. Identificação Acadêmica e Requisitos Atendidos
 
-| Integrante | Perfil GitHub | Instituição & Curso | Responsabilidade Técnica Principal |
-| :--- | :---: | :--- | :--- |
-| **Ken Kobayashi** | [`@six01010101010101`](https://github.com/six01010101010101) | **FIAP** — *Engenharia de Software & IoT* | Arquitetura Full-Stack, Firmware C++ ESP32 ([`sketch.ino`](./sketch.ino)), Acionamento Sonoro Buzzer D4, Integração Telegram Bot, Banco Supabase PostgreSQL 17 e Servidor Local SCADA |
-| **Nicolly Vilela** | [`@ninixzzs`](https://github.com/ninixzzs) | **FIAP** — *Engenharia de Software & IoT* | Arquitetura IoT, Suíte de Testes TDD Pytest (31/31), Modelagem 3D do Barril de Carvalho, Integração Mecânica Tampa LCD e Endpoints REST v1 |
+### 👥 Integrantes da Equipe & Identificação
+
+| Integrante | RM | Perfil GitHub | Instituição & Curso | Responsabilidade Técnica no Projeto |
+| :--- | :---: | :---: | :--- | :--- |
+| **Ken Kobayashi** | — | [`@six01010101010101`](https://github.com/six01010101010101) | **FIAP** — *Engenharia de Software & IoT* | Arquitetura Full-Stack, Firmware C++ ESP32 ([`sketch.ino`](./sketch.ino)), Sincronismo Supabase/Telegram, Modelagem 3D, Servidor Local e SCADA |
+| **Nicolly Florencio Vilela** | **RM 573392** | [`@ninixzzs`](https://github.com/ninixzzs) | **FIAP** — *Engenharia de Software & IoT* | Programação e montagem do Arduino físico |
+| **Brenda Priscila Chalco Condori** | **RM 571971** | — | **FIAP** — *Engenharia de Software & IoT* | Apresentação do projeto e montagem do Arduino físico |
+| **Samuel Eduardo Lisboa Etcheverry** | **RM 573715** | — | **FIAP** — *Engenharia de Software & IoT* | Simulação Wokwi (Arduino digital) e montagem do Arduino físico |
+| **Diego Ruﬃni Silva Jimenez** | **RM 571015** | — | **FIAP** — *Engenharia de Software & IoT* | |
 
 ### 📋 Checklist de Critérios de Avaliação (Check Point 5)
 
@@ -521,7 +526,7 @@ Todos os 31 testes devem passar com $100\%$ de cobertura nas regras de domínio 
 1. Abra o projeto oficial: **[https://wokwi.com/projects/478106752109243393](https://wokwi.com/projects/478106752109243393)**.
 2. Clique no botão **Play (Start Simulation)**.
 3. Altere os valores de Temperatura ou Umidade no **DHT22** ou Luminosidade no **LDR**:
-   - Ao entrar em estado **CRÍTICO** (ex.: temperatura $> 25°C$ ou umidade $< 50\%$ para vinho tinto), o **Buzzer no GPIO 4 apita instantaneamente**, o **LED Vermelho pisca** e o **display LCD exibe `CRT: <75%`**.
+   - Ao entrar em estado **CRÍTICO** (ex.: temperatura $> 25°C$ ou umidade $< 50\%$ para vinho tinto), o **Buzzer no GPIO 2/4 dispara o alarme de incêndio modulado**, o **LED Vermelho fica aceso fixo** e o **display LCD exibe `CRT: <75%`**.
    - O alarme sonoro é transmitido simultaneamente para a web e enviado ao grupo do **Telegram**.
 
 ---
@@ -529,7 +534,7 @@ Todos os 31 testes devem passar com $100\%$ de cobertura nas regras de domínio 
 <div align="center">
 
 **Vinheria Agnello — FIAP 2026**  
-Desenvolvido por **Ken Kobayashi** ([`@six01010101010101`](https://github.com/six01010101010101)) & **Nicolly Vilela** ([`@ninixzzs`](https://github.com/ninixzzs))  
+Desenvolvido por **Ken Kobayashi** ([`@six01010101010101`](https://github.com/six01010101010101)), **Nicolly Florencio Vilela** (RM 573392), **Brenda Priscila Chalco Condori** (RM 571971), **Samuel Eduardo Lisboa Etcheverry** (RM 573715) e **Diego Ruﬃni Silva Jimenez** (RM 571015)  
 *Engenharia de Software • Edge Computing, IoT & Sistemas Distribuídos • Check Point 5*
 
 </div>
