@@ -2,12 +2,14 @@
 FIAP — CHECK POINT 5 — VINHERIA AGNELLO (IOT, FIWARE & ESP32)
 ===================================================================
 
-INTEGRANTES DA EQUIPE & IDENTIFICAÇÃO:
-- Ken Kobayashi (GitHub: https://github.com/six01010101010101) — Arquitetura Full-Stack, Firmware C++ ESP32, Sincronismo Supabase/Telegram, Modelagem 3D, Servidor Local e SCADA
+INTEGRANTES OFICIAIS DA TURMA (AVALIAÇÃO CP5):
 - Nicolly Florencio Vilela (RM 573392 | GitHub: https://github.com/ninixzzs) — Programação e montagem do Arduino físico, Arquitetura IoT, Suíte de Testes TDD Pytest (31/31), Modelagem 3D do Barril de Carvalho, Integração Mecânica Tampa LCD e Endpoints REST v1
 - Brenda Priscila Chalco Condori (RM 571971) — Apresentação do projeto, montagem dos circuitos na protoboard física, testes de bancada dos LEDs Verde/Amarelo/Vermelho e documentação executiva
 - Samuel Eduardo Lisboa Etcheverry (RM 573715) — Simulação Wokwi digital (Arduino e ESP32), diagramação do circuito elétrico (diagram.json), montagem do Arduino físico e testes de comunicação serial
 - Diego Ruffini Silva Jimenez (RM 571015) — Documentação técnica, levantamento de requisitos enológicos, parametrização dos 8 estilos de vinho e validação dos limiares térmicos
+
+COLABORAÇÃO TÉCNICA INTERDISCIPLINAR:
+- Ken Kobayashi (FIAP - ADS • Análise e Desenvolvimento de Sistemas | GitHub: https://github.com/six01010101010101) — Apoio na Arquitetura Full-Stack, Firmware C++ ESP32, Sincronismo Supabase/Telegram, Modelagem 3D, Servidor Local e SCADA
 
 Curso: Engenharia de Software / Edge Computing, IoT & Sistemas Distribuídos
 Projeto: Monitoramento Inteligente de Cavas Subterrâneas e Terroirs Globais

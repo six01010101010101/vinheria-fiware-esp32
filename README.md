@@ -19,10 +19,12 @@
 
 | Recurso Oficial | Link de Acesso | Descrição |
 | :--- | :--- | :--- |
+| **🌐 Site Oficial Online (GitHub Pages)** | [Acessar Dashboard SCADA](https://ninixzzs.github.io/vinheria-agnello-cp5-nicolly-vilela/dashboard.html) | Painel SCADA em nuvem pública sempre online (com Wokwi e Supabase) |
+| **🏺 Portal Barril 3D Online** | [Acessar Portal 3D](https://ninixzzs.github.io/vinheria-agnello-cp5-nicolly-vilela/) | Gêmeo digital 3D interativo do barril de carvalho e tampa LCD |
 | **🚀 Simulador Wokwi (Ao Vivo)** | [Abrir no Wokwi](https://wokwi.com/projects/478106752109243393) | ESP32 + DHT22 + LDR + LCD 16x2 I2C + LEDs + Buzzer D2/D4 |
 | **☁️ Deploy na Nuvem (Render)** | [Acessar no Render](https://checkpoint5-vinheria-fiware-esp32-1.onrender.com/) | Aplicação em produção em nuvem contínua |
-| **💻 Repositório GitHub Oficial (Six)** | [GitHub six01010101010101](https://github.com/six01010101010101/vinheria-fiware-esp32) | Repositório principal com integração Wokwi, Supabase e SCADA |
 | **💻 Repositório GitHub Oficial (Ninix)** | [GitHub ninixzzs](https://github.com/ninixzzs/vinheria-agnello-cp5-nicolly-vilela) | Repositório oficial CP5 Nicolly Vilela sincronizado |
+| **💻 Repositório GitHub Oficial (Six)** | [GitHub six01010101010101](https://github.com/six01010101010101/vinheria-fiware-esp32) | Repositório parceiro da equipe com integração Wokwi e SCADA |
 | **📊 Dashboard SCADA Web** | [`dashboard.html`](./dashboard.html) | Painel de controle em tempo real dos 15 terroirs e cavas |
 | **🏺 Portal Barril 3D Interativo** | [`index.html`](./index.html) | Gêmeo digital 3D do barril de carvalho com tampa LCD |
 | **🤖 Bot do Telegram** | `@vinheria_agnello_bot` | Notificações a cada 5 min e alertas críticos no grupo `Admin Vinheira` |
@@ -54,15 +56,20 @@
 
 ## 👩‍🎓 1. Identificação Acadêmica e Requisitos Atendidos
 
-### 👥 Integrantes da Equipe & Identificação
+### 👥 Integrantes Oficiais da Turma (Avaliação CP5)
 
 | Integrante | RM | Perfil GitHub | Instituição & Curso | Responsabilidade Técnica no Projeto |
 | :--- | :---: | :---: | :--- | :--- |
-| **Ken Kobayashi** | — | [`@six01010101010101`](https://github.com/six01010101010101) | **FIAP** — *Engenharia de Software & IoT* | Arquitetura Full-Stack, Firmware C++ ESP32 ([`sketch.ino`](./sketch.ino)), Sincronismo Supabase/Telegram, Modelagem 3D, Servidor Local e SCADA |
 | **Nicolly Florencio Vilela** | **RM 573392** | [`@ninixzzs`](https://github.com/ninixzzs) | **FIAP** — *Engenharia de Software & IoT* | Programação e montagem do Arduino físico, Arquitetura IoT, Suíte de Testes TDD Pytest (31/31), Modelagem 3D do Barril de Carvalho, Integração Mecânica Tampa LCD e Endpoints REST v1 |
 | **Brenda Priscila Chalco Condori** | **RM 571971** | — | **FIAP** — *Engenharia de Software & IoT* | Apresentação do projeto, montagem dos circuitos na protoboard física, testes de bancada dos LEDs Verde/Amarelo/Vermelho e documentação executiva |
 | **Samuel Eduardo Lisboa Etcheverry** | **RM 573715** | — | **FIAP** — *Engenharia de Software & IoT* | Simulação Wokwi digital (Arduino e ESP32), diagramação do circuito elétrico (`diagram.json`), montagem do Arduino físico e testes de comunicação serial |
 | **Diego Ruﬃni Silva Jimenez** | **RM 571015** | — | **FIAP** — *Engenharia de Software & IoT* | Documentação técnica, levantamento de requisitos enológicos, parametrização dos 8 estilos de vinho e validação dos limiares térmicos |
+
+### 🤝 Colaborador & Apoio Técnico Interdisciplinar
+
+| Colaborador | Perfil GitHub | Instituição & Curso | Contribuição Técnica no Projeto |
+| :--- | :---: | :--- | :--- |
+| **Ken Kobayashi** | [`@six01010101010101`](https://github.com/six01010101010101) | **FIAP** — *Análise e Desenvolvimento de Sistemas (ADS)* | Apoio na Arquitetura Full-Stack, Firmware C++ ESP32 ([`sketch.ino`](./sketch.ino)), Sincronismo Supabase/Telegram, Modelagem 3D, Servidor Local e SCADA |
 
 ### 📋 Checklist de Critérios de Avaliação (Check Point 5)
 
@@ -712,7 +719,8 @@ Durante a concepção, desenvolvimento e integração do ecossistema enológico 
 <div align="center">
 
 **Vinheria Agnello — FIAP 2026**  
-Desenvolvido por **Ken Kobayashi** ([`@six01010101010101`](https://github.com/six01010101010101)), **Nicolly Florencio Vilela** (RM 573392), **Brenda Priscila Chalco Condori** (RM 571971), **Samuel Eduardo Lisboa Etcheverry** (RM 573715) e **Diego Ruﬃni Silva Jimenez** (RM 571015)  
+Desenvolvido por **Nicolly Florencio Vilela** (RM 573392), **Brenda Priscila Chalco Condori** (RM 571971), **Samuel Eduardo Lisboa Etcheverry** (RM 573715) e **Diego Ruﬃni Silva Jimenez** (RM 571015)  
+*Colaboração Técnica Interdisciplinar:* **Ken Kobayashi** (FIAP - ADS • [`@six01010101010101`](https://github.com/six01010101010101))  
 *Engenharia de Software • Edge Computing, IoT & Sistemas Distribuídos • Check Point 5*
 
 </div>
