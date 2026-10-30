@@ -44,7 +44,9 @@ void lcdInit() {
 void updateLcd() {
   lcdSend(0x80, 0); String tStr = "T:" + String(validTemp, 1) + (char)223 + "C U:" + String((int)validHum) + "%" + (remoteSync ? "*" : " ");
   while (tStr.length() < 16) tStr += " "; for (int i = 0; i < 16; i++) lcdSend((uint8_t)tStr[i], 1);
-  lcdSend(0xC0, 0); String bStr = "L:" + String((int)validLum) + "% " + curPreset.substring(0, 4) + " " + ((curMode == "critico") ? "CRT:" : "OK:") + String(curHealth) + "%";
+  lcdSend(0xC0, 0);
+  String tag = (curMode == "critico") ? "CRT:" : ((curMode == "padrao") ? "PAD:" : "1UP:");
+  String bStr = "L:" + String((int)validLum) + "% " + curPreset.substring(0, 4) + " " + tag + String(curHealth) + "%";
   while (bStr.length() < 16) bStr += " "; for (int i = 0; i < 16; i++) lcdSend((uint8_t)bStr[i], 1);
 }
 void selfTestLedsAndBuzzer() {
@@ -59,8 +61,13 @@ void applyWineStatusTransition(String newMode, int newHealth) {
   curMode = newMode; curHealth = newHealth;
   if (modeChanged) {
     bthvIdx = 0; noteStartMs = 0; noteToneActive = false;
-    if (curMode != "critico") { digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_RED, LOW); stopToneAlert(); }
-    else { digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH); }
+    if (curMode == "normal" || curMode == "ideal") {
+      digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, LOW); stopToneAlert();
+    } else if (curMode == "padrao") {
+      digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, HIGH); digitalWrite(PIN_LED_RED, LOW); stopToneAlert();
+    } else {
+      digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, HIGH);
+    }
   }
   updateLcd();
 }
@@ -139,8 +146,12 @@ void mqttLoop() {
 }
 
 void handleActuators() {
-  if (curMode != "critico") {
+  if (curMode == "normal" || curMode == "ideal") {
     digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, LOW);
+    stopToneAlert(); bthvIdx = 0; noteStartMs = 0; noteToneActive = false; return;
+  }
+  if (curMode == "padrao") {
+    digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, HIGH); digitalWrite(PIN_LED_RED, LOW);
     stopToneAlert(); bthvIdx = 0; noteStartMs = 0; noteToneActive = false; return;
   }
   digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH);
