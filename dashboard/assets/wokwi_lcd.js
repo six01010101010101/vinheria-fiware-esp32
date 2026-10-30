@@ -114,10 +114,10 @@
 
     const ledG = document.getElementById("led-green"), ledR = document.getElementById("led-red"), ledB = document.getElementById("led-yellow") || document.getElementById("led-blue");
     const lblG = document.getElementById("led-green-lbl"), lblR = document.getElementById("led-red-lbl"), lblB = document.getElementById("led-yellow-lbl") || document.getElementById("led-blue-lbl");
-    if (ledG) ledG.className = !isCrit ? "led-indicator led-green-on" : "led-indicator led-green-off";
-    if (lblG) lblG.textContent = !isCrit ? "D5: OK (PADRÃO)" : "D5: OFF";
-    if (ledB) ledB.className = isCrit ? "led-indicator led-yellow-on led-yellow-blinking" : "led-indicator led-yellow-off";
-    if (lblB) lblB.textContent = isCrit ? "D2: BUZZER INCÊNDIO" : "D2: MUDO";
+    if (ledG) ledG.className = isIdeal ? "led-indicator led-green-on" : "led-indicator led-green-off";
+    if (lblG) lblG.textContent = isIdeal ? "D5: IDEAL (ACESO)" : "D5: OFF";
+    if (ledB) ledB.className = isPadrao ? "led-indicator led-yellow-on" : (isCrit ? "led-indicator led-yellow-on led-yellow-blinking" : "led-indicator led-yellow-off");
+    if (lblB) lblB.textContent = isPadrao ? "D2: PADRÃO (ACESO)" : (isCrit ? "D2: ALERTA (PISCANDO)" : "D2: OFF");
     if (ledR) ledR.className = isCrit ? "led-indicator led-red-on" : "led-indicator led-red-off";
     if (lblR) lblR.textContent = isCrit ? "D18: CRÍTICO (ACESO)" : "D18: OFF";
 
