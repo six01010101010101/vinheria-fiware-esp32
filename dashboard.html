@@ -213,18 +213,7 @@
   <script src="dashboard/assets/dashboard_scada.js?v=20261029_styles_v3"></script>
   <script>
     document.getElementById("btn-telegram-alert")?.addEventListener("click", () => {
-      const tr = (window.TERROIRS && window.TERROIRS[window.curArea || "fr_margaux"]) || { name: "Adega Central", country: "Brasil" };
-      window.TelegramNotifier?.sendTelegramAlert({
-        terroir: tr.name, country: tr.country,
-        temp: (typeof window.simT === "number" ? window.simT : (tr.satT || 15.8)),
-        hum: (typeof window.simH === "number" ? window.simH : (tr.satH || 68)),
-        lum: (typeof window.simL === "number" ? window.simL : (tr.satL || 9)),
-        stateKey: window.curScadaMode || "critico",
-        score: window.curHealthScore || 45,
-        style: window.curPr || "tinto",
-        force: true,
-        details: "Teste manual disparado pelo operador no Dashboard SCADA"
-      });
+      window.TelegramNotifier?.triggerDetailedBulletin?.();
     });
   </script>
 </body>

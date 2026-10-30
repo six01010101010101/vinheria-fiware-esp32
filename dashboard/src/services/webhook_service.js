@@ -129,16 +129,9 @@ async function handleWebhookRequest(req, res) {
       return;
     }
 
-    // 3. PERSISTÊNCIA NO SUPABASE & NOTIFICAÇÃO NO TELEGRAM
+    // 3. PERSISTÊNCIA NO SUPABASE (sem spam no Telegram)
     await insertSupabaseEvent(SUPABASE_URL, SUPABASE_SERVICE_KEY, eventId, payload);
-
-    const title = payload.title || payload.event || 'Notificação Externa de Webhook';
-    const terroir = payload.terroir || payload.lot_code || 'Geral';
-    const status = payload.status || 'INFO';
-    const msg = `🔔 *WEBHOOK RECEBIDO · VINHERIA AGNELLO*\n━━━━━━━━━━━━━━━━━━━━━━\n📌 *Evento:* \`${title}\`\n🆔 *ID:* \`${eventId}\`\n📍 *Origem/Terroir:* ${terroir}\n⚡ *Status:* \`${status}\`\n⏰ *Data:* \`${new Date().toLocaleString('pt-BR')}\`\n━━━━━━━━━━━━━━━━━━━━━━\n📲 _Grupo Admin Vinheira (${TELEGRAM_CHAT_ID})_`;
-
-    await sendTelegram(TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, msg);
-    console.log(`[Webhook] Evento ${eventId} processado com sucesso.`);
+    console.log(`[Webhook] Evento ${eventId} persistido no Supabase com sucesso.`);
 
   } catch (error) {
     // 4. TRATAMENTO DE FALHAS SILENCIOSO

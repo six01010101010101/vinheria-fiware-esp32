@@ -49,69 +49,14 @@ const server = http.createServer((req, res) => {
   let cleanUrl = decodeURI(req.url.split('?')[0]);
   if (handleHardwareRequest(req, res, cleanUrl)) return;
 
-  // Endpoint API Telegram com Anti-Flood 25s
+  // Endpoint API Telegram unificado: despacha exclusivamente o Boletim Detalhado da Rede
   if (cleanUrl === '/api/v1/telegram/alert' && req.method === 'POST') {
-    let body = '';
-    req.on('data', chunk => { body += chunk; });
-    req.on('end', () => {
-      try {
-        const now = Date.now();
-        if (now - lastTelegramAlertTime < 25000) {
-          res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ ok: true, throttled: true, message: 'Alerta registrado (anti-flood ativo)' }));
-          return;
-        }
-        lastTelegramAlertTime = now;
-        const data = JSON.parse(body || '{}');
-        const env = loadEnvCredentials();
-        const isCrit = data.state_key === 'critico';
-        const isPad = data.state_key === 'padrao';
-        const icon = isCrit ? '🚨 *ALERTA CRÍTICO DE ADEGA*' : (isPad ? '🟡 *STATUS ENOLÓGICO PADRÃO (ATENÇÃO)*' : '🟢 *STATUS ENOLÓGICO IDEAL*');
-        const ledInfo = isCrit ? '🔴 LED D18 + Buzzer D4 Apitando' : (isPad ? '🟡 LED Amarelo D2 Ativo' : '🟢 LED Verde D5 Ativo');
-        const msg = `${icon}\n━━━━━━━━━━━━━━━━━━━━━━\n🍇 *Vinheria Agnello · Admin Vinheira*\n📍 *Terroir:* ${data.terroir || 'Geral'} (${data.country || 'Mundo'})\n🍷 *Estilo:* ${(data.wine_style || 'Tinto').toUpperCase()} · Saúde: *${data.score || 100}%*\n\n🌡️ *Temperatura:* \`${data.temp}°C\`\n💧 *Umidade:* \`${data.hum}%\`\n☀️ *Luminosidade:* \`${data.lum}%\`\n📟 *Hardware Wokwi:* ${ledInfo}\n⏰ *Data:* \`${new Date().toLocaleString('pt-BR')}\`\n━━━━━━━━━━━━━━━━━━━━━━\n📲 _Grupo Admin Vinheira (${env.TELEGRAM_CHAT_ID || env.TELEGRAM_PHONE_ADMIN})_`;
-
-        if (env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID) {
-          const postData = JSON.stringify({ chat_id: env.TELEGRAM_CHAT_ID, text: msg, parse_mode: 'Markdown' });
-          const tgReq = https.request({
-            hostname: 'api.telegram.org',
-            path: `/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(postData) }
-          }, tgRes => {
-            let tgBody = '';
-            tgRes.on('data', c => { tgBody += c; });
-            tgRes.on('end', () => {
-              let parsed = {};
-              try { parsed = JSON.parse(tgBody); } catch (_) {}
-              if (tgRes.statusCode === 200 && parsed.ok) {
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ ok: true, message: 'Alerta enviado ao grupo Admin Vinheira no Telegram!' }));
-              } else {
-                console.error('[Telegram API Resp]:', tgRes.statusCode, tgBody);
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ ok: false, error: parsed.description || 'Erro da API do Telegram', message: `Telegram: ${parsed.description || 'Erro ao despachar'}` }));
-              }
-            });
-          });
-          tgReq.on('error', err => {
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ ok: true, message: `Alerta registrado localmente (Rede: ${err.message})` }));
-          });
-          tgReq.write(postData);
-          tgReq.end();
-        } else {
-          console.log(`[Telegram - Grupo Admin Vinheira (${env.TELEGRAM_CHAT_ID || env.TELEGRAM_PHONE_ADMIN})]:\n${msg}\n`);
-          res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({
-            ok: true,
-            chat_id: env.TELEGRAM_CHAT_ID,
-            message: `Alerta registrado para o grupo Admin Vinheira (${env.TELEGRAM_CHAT_ID})!`
-          }));
-        }
-      } catch (e) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: e.message }));
-      }
+    dispatchLiveWineReport().then(ok => {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok, message: ok ? 'Boletim detalhado transmitido ao Telegram!' : 'Falha ao despachar boletim' }));
+    }).catch(err => {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: false, error: err.message }));
     });
     return;
   }
