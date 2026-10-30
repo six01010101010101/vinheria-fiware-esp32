@@ -37,10 +37,14 @@
     const score = typeof st.score === "number" ? Math.round(st.score) : 100;
     const verdict = (st.verdict || "OK").toString().slice(0, 3).toUpperCase();
     const tag = (st.tag || "TINTO").toString().trim().toUpperCase().slice(0, 5);
+    const lot = (st.lotCode || window.curLotCode || "FR-MARGAUX-01").toString().replace("LOTE-", "").trim().toUpperCase();
+    const trName = (st.terroirName || "BORDEAUX").toString().trim().toUpperCase().slice(0, 12);
 
     // Disparo INSTANTÂNEO (Zero Delay / < 20ms) para Wokwi e ESP32 físico
-    sendPacket("/TEF/vine001/cmd", `vine001@diag|${wokwiMode}|${score}|${verdict}|${tag}`);
+    sendPacket("/TEF/vine001/cmd", `vine001@diag|${wokwiMode}|${score}|${verdict}|${tag}|${lot}`);
     sendPacket("/TEF/vine001/cmd", `vine001@preset|${tag}`);
+    sendPacket("/TEF/vine001/cmd", `vine001@lot|${lot}`);
+    sendPacket("/TEF/vine001/cmd", `vine001@terroir|${trName}`);
     sendPacket("/TEF/vine001/cmd", `vine001@sync|${t.toFixed(1)}|${h.toFixed(1)}|${l.toFixed(1)}`);
     return true;
   }

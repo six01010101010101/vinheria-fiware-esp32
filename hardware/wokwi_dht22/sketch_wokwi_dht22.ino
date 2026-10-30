@@ -15,18 +15,16 @@ const int MQTT_PORT = 1883;
 enum Pins { PIN_LED_YELLOW = 2, PIN_BUZZER = 4, PIN_LED_GREEN = 5, PIN_DHT = 15, PIN_LED_RED = 18, PIN_LDR = 34, LCD_ADDR = 0x27 };
 
 WiFiClient espClient;
-String curMode = "normal", curPreset = "TINTO";
+String curMode = "normal", curPreset = "TINTO", curLot = "FR-MARGAUX-01", curTerroir = "BORDEAUX";
 int curHealth = 100, bthvIdx = 0;
 bool remoteSync = false, noteToneActive = false;
-unsigned long lastDhtMs = 0, lastLdrMs = 0, lastPubMs = 0, noteStartMs = 0, lastPingMs = 0, lastRetryMs = 0, lastSupaMs = 0;
+unsigned long lastDhtMs = 0, lastLdrMs = 0, lastPubMs = 0, noteStartMs = 0, lastPingMs = 0, lastRetryMs = 0, lastSupaMs = 0, lotSelectedMs = 0;
 float validTemp = 15.8f, validHum = 68.0f, validLum = 9.0f, hwTemp = 15.8f, hwHum = 68.0f, hwLum = 9.0f;
 
 // Beethoven: Sonata ao Luar (Moonlight Sonata, Op. 27 No. 2 em Do sustenido menor)
 const uint16_t BTHV_MELODY[][2] = {
-  {208,160},{277,160},{330,160},{208,160},{277,160},{330,160},{208,160},{277,160},{330,160},{208,160},{277,160},{330,160},
-  {247,170},{294,170},{370,170},{220,170},{277,170},{330,170},{208,170},{262,170},
-  {415,360},{415,180},{415,180},{440,420},{415,260},{392,220},{415,480},{330,300},{277,300},{208,480},
-  {330,240},{415,240},{494,360},{494,200},{554,420},{494,260},{466,220},{494,480},{415,300},{330,300},{247,480},
+  {208,160},{277,160},{330,160},{208,160},{277,160},{330,160},{208,160},{277,160},{330,160},{208,160},{277,160},{330,160},{247,170},{294,170},{370,170},{220,170},{277,170},{330,170},{208,170},{262,170},
+  {415,360},{415,180},{415,180},{440,420},{415,260},{392,220},{415,480},{330,300},{277,300},{208,480},{330,240},{415,240},{494,360},{494,200},{554,420},{494,260},{466,220},{494,480},{415,300},{330,300},{247,480},
   {370,260},{440,260},{587,420},{554,320},{494,260},{440,260},{415,460},{277,320},{330,320},{139,600},{0,250}
 };
 const int BTHV_TOTAL = sizeof(BTHV_MELODY) / sizeof(BTHV_MELODY[0]);
@@ -36,17 +34,15 @@ void stopToneAlert() { digitalWrite(PIN_LED_YELLOW, LOW); noTone(PIN_BUZZER); }
 void lcdExpWrite(uint8_t d) { Wire.beginTransmission(LCD_ADDR); Wire.write(d | 0x08); Wire.endTransmission(); }
 void lcdWrite4(uint8_t v) { lcdExpWrite(v); lcdExpWrite(v | 0x04); delayMicroseconds(2); lcdExpWrite(v & ~0x04); delayMicroseconds(40); }
 void lcdSend(uint8_t v, uint8_t m) { lcdWrite4((v & 0xF0) | m); lcdWrite4(((v << 4) & 0xF0) | m); }
-void lcdInit() {
-  Wire.begin(21, 22); Wire.setClock(400000); delay(40); lcdExpWrite(0x00); delay(15);
-  lcdWrite4(0x30); delayMicroseconds(4500); lcdWrite4(0x30); delayMicroseconds(4500); lcdWrite4(0x30); delayMicroseconds(150); lcdWrite4(0x20); delayMicroseconds(150);
-  lcdSend(0x28, 0); lcdSend(0x0C, 0); lcdSend(0x06, 0); lcdSend(0x01, 0); delay(3);
-}
+void lcdInit() { Wire.begin(21, 22); Wire.setClock(400000); delay(40); lcdExpWrite(0x00); delay(15); lcdWrite4(0x30); delayMicroseconds(4500); lcdWrite4(0x30); delayMicroseconds(4500); lcdWrite4(0x30); delayMicroseconds(150); lcdWrite4(0x20); delayMicroseconds(150); lcdSend(0x28, 0); lcdSend(0x0C, 0); lcdSend(0x06, 0); lcdSend(0x01, 0); delay(3); }
 void updateLcd() {
   lcdSend(0x80, 0); String tStr = "T:" + String(validTemp, 1) + (char)223 + "C U:" + String((int)validHum) + "%" + (remoteSync ? "*" : " ");
   while (tStr.length() < 16) tStr += " "; for (int i = 0; i < 16; i++) lcdSend((uint8_t)tStr[i], 1);
   lcdSend(0xC0, 0);
   String tag = (curMode == "critico") ? "CRT:" : ((curMode == "padrao") ? "PAD:" : "1UP:");
-  String bStr = "L:" + String((int)validLum) + "% " + curPreset.substring(0, 4) + " " + tag + String(curHealth) + "%";
+  String bStr = ""; unsigned long now = millis();
+  if (now - lotSelectedMs < 5000) bStr = "LT:" + curLot;
+  else bStr = ((now / 3000) % 2 == 0) ? ("LT:" + curLot) : ("L:" + String((int)validLum) + "% " + curPreset.substring(0, 4) + " " + tag + String(curHealth) + "%");
   while (bStr.length() < 16) bStr += " "; for (int i = 0; i < 16; i++) lcdSend((uint8_t)bStr[i], 1);
 }
 void selfTestLedsAndBuzzer() {
@@ -61,13 +57,9 @@ void applyWineStatusTransition(String newMode, int newHealth) {
   curMode = newMode; curHealth = newHealth;
   if (modeChanged) {
     bthvIdx = 0; noteStartMs = 0; noteToneActive = false;
-    if (curMode == "normal" || curMode == "ideal") {
-      digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, LOW); stopToneAlert();
-    } else if (curMode == "padrao") {
-      digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, HIGH); digitalWrite(PIN_LED_RED, LOW); stopToneAlert();
-    } else {
-      digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, HIGH);
-    }
+    if (curMode == "normal" || curMode == "ideal") { digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, LOW); stopToneAlert(); }
+    else if (curMode == "padrao") { digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, HIGH); digitalWrite(PIN_LED_RED, LOW); stopToneAlert(); }
+    else { digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, HIGH); }
   }
   updateLcd();
 }
@@ -75,12 +67,9 @@ void applyWineStatusTransition(String newMode, int newHealth) {
 bool readDht22(float &tOut, float &hOut) {
   uint8_t d[5] = {0,0,0,0,0}; pinMode(PIN_DHT, OUTPUT); digitalWrite(PIN_DHT, LOW); delayMicroseconds(1100);
   pinMode(PIN_DHT, INPUT_PULLUP); unsigned long t0 = micros();
-  while (digitalRead(PIN_DHT) == HIGH) { if (micros() - t0 > 180) return false; }
-  t0 = micros(); while (digitalRead(PIN_DHT) == LOW)  { if (micros() - t0 > 180) return false; }
-  t0 = micros(); while (digitalRead(PIN_DHT) == HIGH) { if (micros() - t0 > 180) return false; }
+  while (digitalRead(PIN_DHT) == HIGH) { if (micros() - t0 > 180) return false; } t0 = micros(); while (digitalRead(PIN_DHT) == LOW) { if (micros() - t0 > 180) return false; } t0 = micros(); while (digitalRead(PIN_DHT) == HIGH) { if (micros() - t0 > 180) return false; }
   for (int i = 0; i < 40; i++) {
-    t0 = micros(); while (digitalRead(PIN_DHT) == LOW) { if (micros() - t0 > 120) return false; }
-    unsigned long hs = micros(); while (digitalRead(PIN_DHT) == HIGH) { if (micros() - hs > 130) return false; }
+    t0 = micros(); while (digitalRead(PIN_DHT) == LOW) { if (micros() - t0 > 120) return false; } unsigned long hs = micros(); while (digitalRead(PIN_DHT) == HIGH) { if (micros() - hs > 130) return false; }
     if ((micros() - hs) > 40) d[i / 8] |= (1 << (7 - (i % 8)));
   }
   if (((d[0] + d[1] + d[2] + d[3]) & 0xFF) != d[4] || (d[0] == 0 && d[2] == 0)) return false;
@@ -102,12 +91,9 @@ void checkMqtt() {
   unsigned long now = millis(); if (now - lastRetryMs < 2500) return; lastRetryMs = now;
   if (!espClient.connect(MQTT_BROKER, MQTT_PORT)) return;
   String cid = "esp32_v_" + String(random(10000, 99999)); uint16_t cLen = cid.length();
-  uint8_t hdr[12] = {0x10, (uint8_t)(12 + cLen), 0x00, 0x04, 'M', 'Q', 'T', 'T', 0x04, 0x02, 0x00, 0x1E};
-  espClient.write(hdr, 12); espClient.write((uint8_t)(cLen >> 8)); espClient.write((uint8_t)(cLen & 0xFF)); espClient.print(cid);
-  unsigned long t0 = millis(); while (espClient.available() < 4 && (millis() - t0) < 600) yield();
-  for (int i = 0; i < 4 && espClient.available(); i++) espClient.read();
-  uint8_t pkt[6] = {0x82, (uint8_t)(5 + strlen("/TEF/vine001/cmd")), 0x00, 0x01, 0x00, (uint8_t)strlen("/TEF/vine001/cmd")};
-  espClient.write(pkt, 6); espClient.print("/TEF/vine001/cmd"); espClient.write((uint8_t)0x00);
+  uint8_t hdr[12] = {0x10, (uint8_t)(12 + cLen), 0x00, 0x04, 'M', 'Q', 'T', 'T', 0x04, 0x02, 0x00, 0x1E}; espClient.write(hdr, 12); espClient.write((uint8_t)(cLen >> 8)); espClient.write((uint8_t)(cLen & 0xFF)); espClient.print(cid);
+  unsigned long t0 = millis(); while (espClient.available() < 4 && (millis() - t0) < 600) yield(); for (int i = 0; i < 4 && espClient.available(); i++) espClient.read();
+  uint8_t pkt[6] = {0x82, (uint8_t)(5 + strlen("/TEF/vine001/cmd")), 0x00, 0x01, 0x00, (uint8_t)strlen("/TEF/vine001/cmd")}; espClient.write(pkt, 6); espClient.print("/TEF/vine001/cmd"); espClient.write((uint8_t)0x00);
 }
 
 void mqttLoop() {
@@ -128,9 +114,20 @@ void mqttLoop() {
           if (p1 != -1) {
             String m = s.substring(0, p1); int p2 = s.indexOf('|', p1 + 1), p3 = (p2 != -1) ? s.indexOf('|', p2 + 1) : -1;
             int h = (p2 != -1) ? s.substring(p1 + 1, p2).toInt() : 100;
-            if (p3 != -1) { curPreset = s.substring(p3 + 1); curPreset.trim(); curPreset.toUpperCase(); }
+            if (p3 != -1) {
+              int p4 = s.indexOf('|', p3 + 1);
+              if (p4 != -1) { curPreset = s.substring(p3 + 1, p4); curLot = s.substring(p4 + 1); curLot.replace("LOTE-", ""); }
+              else { curPreset = s.substring(p3 + 1); }
+              curPreset.trim(); curPreset.toUpperCase(); curLot.trim(); curLot.toUpperCase();
+            }
             applyWineStatusTransition(m, h); remoteSync = true; mqttPub("/TEF/vine001/cmdexe", "diag|OK");
           }
+        } else if (msg.indexOf("lot|") != -1) {
+          curLot = msg.substring(msg.indexOf("lot|") + 4); curLot.replace("LOTE-", ""); curLot.trim(); curLot.toUpperCase();
+          lotSelectedMs = millis(); updateLcd(); mqttPub("/TEF/vine001/cmdexe", "lot|OK");
+        } else if (msg.indexOf("terroir|") != -1) {
+          curTerroir = msg.substring(msg.indexOf("terroir|") + 8); curTerroir.trim(); curTerroir.toUpperCase();
+          updateLcd(); mqttPub("/TEF/vine001/cmdexe", "tr|OK");
         } else if (msg.indexOf("sync|") != -1) {
           String s = msg.substring(msg.indexOf("sync|") + 5); int p1 = s.indexOf('|'), p2 = (p1 != -1) ? s.indexOf('|', p1 + 1) : -1;
           if (p1 != -1 && p2 != -1) {
@@ -138,7 +135,8 @@ void mqttLoop() {
             remoteSync = true; updateLcd(); mqttPub("/TEF/vine001/cmdexe", "sync|OK");
           }
         } else if (msg.indexOf("preset|") != -1) {
-          curPreset = msg.substring(msg.indexOf('|') + 1); curPreset.trim(); curPreset.toUpperCase();
+          curPreset = msg.substring(msg.indexOf("preset|") + 7); curPreset.trim(); curPreset.toUpperCase();
+          updateLcd(); mqttPub("/TEF/vine001/cmdexe", "preset|OK");
         }
       }
     }
@@ -156,16 +154,13 @@ void handleActuators() {
   }
   digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH);
   unsigned long now = millis();
-  uint16_t curFreq = BTHV_MELODY[bthvIdx][0], curDur = BTHV_MELODY[bthvIdx][1];
-  uint16_t activeDur = (curDur > 60) ? (curDur * 78) / 100 : curDur;
+  uint16_t curFreq = BTHV_MELODY[bthvIdx][0], curDur = BTHV_MELODY[bthvIdx][1], activeDur = (curDur > 60) ? (curDur * 78) / 100 : curDur;
   if (noteStartMs == 0) {
     noteStartMs = (now == 0) ? 1 : now;
     if (curFreq > 0) { tone(PIN_BUZZER, curFreq); digitalWrite(PIN_LED_YELLOW, HIGH); noteToneActive = true; }
     else { noTone(PIN_BUZZER); digitalWrite(PIN_LED_YELLOW, LOW); noteToneActive = false; }
   }
-  if (noteToneActive && (now - noteStartMs >= activeDur)) {
-    noTone(PIN_BUZZER); digitalWrite(PIN_LED_YELLOW, LOW); noteToneActive = false;
-  }
+  if (noteToneActive && (now - noteStartMs >= activeDur)) { noTone(PIN_BUZZER); digitalWrite(PIN_LED_YELLOW, LOW); noteToneActive = false; }
   if (now - noteStartMs >= curDur) { bthvIdx = (bthvIdx + 1) % BTHV_TOTAL; noteStartMs = 0; }
 }
 
@@ -176,8 +171,7 @@ void readAndPubSensors() {
     lastLdrMs = now; float rl = map(analogRead(PIN_LDR), 0, 4095, 100, 0);
     if (rl >= 0.0f && rl <= 100.0f) l = (hwLum * 0.7f) + (rl * 0.3f);
   }
-  bool physMoved = (fabs(t - hwTemp) >= 1.5f) || (fabs(h - hwHum) >= 4.0f);
-  if (physMoved) {
+  if ((fabs(t - hwTemp) >= 1.5f) || (fabs(h - hwHum) >= 4.0f)) {
     hwTemp = t; hwHum = h; hwLum = l;
     if (!remoteSync) { validTemp = hwTemp; validHum = hwHum; validLum = hwLum; }
   }
@@ -187,23 +181,19 @@ void readAndPubSensors() {
     applyWineStatusTransition(evalMode, evalHealth);
   }
   if (now - lastPubMs >= 1500) {
-    lastPubMs = now;
-    mqttPub("/TEF/vine001/attrs", "t|" + String(validTemp, 1) + "|h|" + String(validHum, 1) + "|l|" + String(validLum, 1));
+    lastPubMs = now; mqttPub("/TEF/vine001/attrs", "t|" + String(validTemp, 1) + "|h|" + String(validHum, 1) + "|l|" + String(validLum, 1));
     updateLcd();
   }
-  if (now - lastSupaMs >= 15000) {
-    lastSupaMs = now;
-    if (curMode != "critico") postTelemetryToSupabase(SUPABASE_URL, SUPABASE_KEY, DEVICE_ID, validTemp, validHum, validLum, curMode, curHealth, curPreset);
+  if (now - lastSupaMs >= 15000 && curMode != "critico") {
+    lastSupaMs = now; postTelemetryToSupabase(SUPABASE_URL, SUPABASE_KEY, DEVICE_ID, validTemp, validHum, validLum, curMode, curHealth, curPreset);
   }
 }
 
 void setup() {
   Serial.begin(115200);
-  pinMode(PIN_LED_GREEN, OUTPUT); pinMode(PIN_LED_YELLOW, OUTPUT); pinMode(PIN_LED_RED, OUTPUT);
-  pinMode(PIN_BUZZER, OUTPUT); pinMode(PIN_LDR, INPUT);
+  pinMode(PIN_LED_GREEN, OUTPUT); pinMode(PIN_LED_YELLOW, OUTPUT); pinMode(PIN_LED_RED, OUTPUT); pinMode(PIN_BUZZER, OUTPUT); pinMode(PIN_LDR, INPUT);
   lcdInit(); selfTestLedsAndBuzzer(); digitalWrite(PIN_LED_GREEN, HIGH); updateLcd();
   WiFi.mode(WIFI_STA); WiFi.setSleep(false); WiFi.setAutoReconnect(true); WiFi.begin(WIFI_SSID, WIFI_PASS, 6);
   unsigned long t0 = millis(); while (WiFi.status() != WL_CONNECTED && (millis() - t0) < 4000) delay(50);
 }
-
 void loop() { checkMqtt(); mqttLoop(); handleActuators(); readAndPubSensors(); delay(1); }

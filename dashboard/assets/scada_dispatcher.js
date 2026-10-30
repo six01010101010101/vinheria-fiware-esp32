@@ -38,7 +38,13 @@
     window.ScadaUIController?.renderCommandBadge(stKey, "WOKWI /cmd", ` (${tag} · ${sc}%)`);
     document.querySelectorAll(".sc-btn").forEach(b => b.classList.toggle("active", b.dataset.sc === cmd));
 
-    window.ScadaMQTT?.publishState?.({ t, h, l, cmd, stateKey: stKey, score: sc, verdict: v, tag });
+    const activeLot = lot || (window.CANONICAL_LOTS || []).find(l => l.code === window.curLotCode);
+    const lotCode = activeLot?.code || window.curLotCode || "LOTE-FR-MARGAUX-01";
+    const trName = (tr?.country ? `${tr.country}-${tr.name}` : tr?.name) || "FR-BORDEAUX";
+
+    window.ScadaMQTT?.publishState?.({
+      t, h, l, cmd, stateKey: stKey, score: sc, verdict: v, tag, lotCode, terroirName: trName
+    });
 
     window.SupabaseCloud?.syncTelemetry?.({
       t, h, l, cmd, score: sc, source: `${tr.name || "Adega"} · ${pr.name || "Vinho"}`, force: userTriggered

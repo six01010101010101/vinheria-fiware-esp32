@@ -177,7 +177,7 @@
   function startSatelliteLiveLoop(getActiveId, onSelectCallback) {
     const sync = () => fetchSatelliteData().then(() => {
       renderRealVineyards(getActiveId?.(), onSelectCallback);
-      window.renderCellarLots?.();
+      window.renderCellarLots?.(window.curPr, window.simT, window.simH, window.simL, window.onLotSelect, window.curLotCode);
     });
     sync();
     setInterval(() => { if (!document.hidden) sync(); }, 30000);

@@ -45,7 +45,7 @@
     const curStyle = activeStyle || window.curPr || "tinto";
     const list = window.getLotsForStyle ? window.getLotsForStyle(curStyle) : (window.CANONICAL_LOTS || []);
     if (activeLotOverride) window.curLotCode = activeLotOverride;
-    else if (!window.curLotCode || !list.some(x => x.code === window.curLotCode)) {
+    else if (!window.curLotCode) {
       window.curLotCode = list[0]?.code || "LOTE-FR-MARGAUX-01";
     }
     const selCode = window.curLotCode;
