@@ -97,9 +97,13 @@
   }
 
   function findLotByTerroir(terroirId, style) {
-    const s = (style || "tinto").toLowerCase();
-    return CANONICAL_LOTS.find(l => l.terroirId === terroirId && l.style === s) ||
-           CANONICAL_LOTS.find(l => l.terroirId === terroirId) || null;
+    const s = (style || "").toLowerCase();
+    if (s) {
+      const match = CANONICAL_LOTS.find(l => l.terroirId === terroirId && l.style === s);
+      if (match) return match;
+      return CANONICAL_LOTS.find(l => l.style === s) || CANONICAL_LOTS[0] || null;
+    }
+    return CANONICAL_LOTS.find(l => l.terroirId === terroirId) || CANONICAL_LOTS[0] || null;
   }
 
   root.CANONICAL_LOTS = CANONICAL_LOTS;

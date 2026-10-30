@@ -57,6 +57,14 @@
     })();
 
     const statTag = isIdeal ? "1UP" : (isCrit ? "CRT" : "PAD");
+    const activeLot = lot || (window.CANONICAL_LOTS || []).find(l => l.code === window.curLotCode && l.style === preset.key) || (window.CANONICAL_LOTS || []).find(l => l.style === preset.key);
+    const lotCode = activeLot?.code || (preset.defaultLot || "LOTE-01");
+    const lotShort = lotCode.replace("LOTE-", "");
+    const lotVintage = activeLot?.vintage || 2020;
+    const trName = terroir.name || activeLot?.winery || "Adega Central";
+    const trCountry = terroir.country || activeLot?.country || "Cava";
+    const trFlag = terroir.flag || activeLot?.flag || "🍷";
+
     const l1Text = `🪙 ${t.toFixed(1)}°C 💧${h.toFixed(0)}%${!isWokwi ? " *" : ""}`;
     const l2Text = `⭐ ${l.toFixed(0)}% ${prTag} ${statTag}:${score}%`;
 
@@ -64,15 +72,18 @@
     if (elL1) elL1.textContent = formatLcd16(l1Text);
     if (elL2) elL2.textContent = formatLcd16(l2Text);
 
-    const t1 = document.getElementById("barrel-mini-t1"), t2 = document.getElementById("barrel-mini-t2");
-    if (t1) t1.textContent = `T:${t.toFixed(1)}°C U:${h.toFixed(0)}%`;
-    if (t2) t2.textContent = `${prTag} ${statTag}:${score}%`;
+    const t1 = document.getElementById("barrel-mini-t1"), t2 = document.getElementById("barrel-mini-t2"), t3 = document.getElementById("barrel-mini-t3");
+    if (t1) t1.textContent = `T:${t.toFixed(1)}°C U:${h.toFixed(0)}% L:${l.toFixed(0)}%`;
+    if (t2) t2.textContent = t3 ? `${prTag} · ${lotShort}` : `${prTag} · ${lotShort} · ${score}%`;
+    if (t3) t3.textContent = `${trFlag} ${trName.slice(0, 12)} · ${statTag}:${score}%`;
 
-    const wineTitle = lot ? `${lot.winery} — ${lot.wine} (${lot.vintage})` : (preset.wine || preset.name || "Château Margaux 2015");
-    const terroirTitle = `${terroir.flag || "📟"} ${terroir.name || "ESP32 Wokwi"} (${terroir.country || "Cava"})`;
+    const wineTitle = activeLot ? `${activeLot.winery} — ${activeLot.wine} (${activeLot.vintage})` : (preset.wine || preset.name || "Château Margaux 2015");
+    const terroirTitle = `${trFlag} ${trName} (${trCountry})`;
 
     const crtTerroir = document.getElementById("crt-terroir-val");
     if (crtTerroir) crtTerroir.textContent = terroirTitle;
+    const crtLot = document.getElementById("crt-lot-val");
+    if (crtLot) crtLot.textContent = `${lotCode} (${lotVintage})`;
     const crtWine = document.getElementById("crt-wine-val");
     if (crtWine) crtWine.textContent = `${preset.badge ? preset.badge.split(" ")[0] : "🍷"} ${wineTitle}`;
 

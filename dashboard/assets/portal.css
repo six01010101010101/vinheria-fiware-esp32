@@ -71,8 +71,8 @@ body {
 .barrel-lid-mini { position: relative; width: 105px; height: 105px; flex-shrink: 0; }
 .barrel-lid-mini-img { width: 100%; height: 105px; object-fit: contain; }
 .barrel-3d-mini-img { width: 90px; height: 105px; object-fit: contain; }
-.barrel-lcd-mini-slot { position: absolute; left: 19%; top: 38%; width: 62%; height: 24%; background: radial-gradient(ellipse at center, #052610 0%, #021208 100%); border: 1px solid #15803d; border-radius: 4px; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; }
-.barrel-lcd-mini-text { color: #39ff14; font-family: "Consolas", monospace; font-weight: 700; font-size: 0.44rem; line-height: 1.2; white-space: pre; }
+.barrel-lcd-mini-slot { position: absolute; left: 18%; top: 37%; width: 64%; height: 27%; background: radial-gradient(ellipse at center, #052610 0%, #021208 100%); border: 1px solid #15803d; border-radius: 4px; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; padding: 1px 2px; }
+.barrel-lcd-mini-text { color: #39ff14; font-family: "Consolas", monospace; font-weight: 700; font-size: 0.40rem; line-height: 1.15; white-space: nowrap; text-align: center; }
 .wokwi-lcd-bezel { background: #090d0a; border: 1.5px solid #15803d; border-radius: 10px; padding: 6px 8px; }
 .wokwi-lcd-screen { background: radial-gradient(ellipse at center, #062c12 0%, #021407 100%); border: 1px solid #166534; border-radius: 6px; padding: 6px 10px; font-family: "Consolas", monospace; }
 .wokwi-lcd-line { color: #22c55e; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em; line-height: 1.45; text-shadow: 0 0 6px #22c55e; white-space: pre; text-align: left; }

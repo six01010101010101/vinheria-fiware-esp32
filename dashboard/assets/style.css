@@ -123,8 +123,8 @@ h1, h2, h3, h4, .section-title { font-family: "Plus Jakarta Sans", sans-serif; f
 .barrel-lid-mini { position: relative; width: 110px; height: 110px; flex-shrink: 0; }
 .barrel-lid-mini-img { width: 100%; height: 110px; object-fit: contain; }
 .barrel-3d-mini-img { width: 95px; height: 110px; object-fit: contain; }
-.barrel-lcd-mini-slot { position: absolute; left: 19%; top: 38%; width: 62%; height: 25%; background: radial-gradient(ellipse at center, #052610 0%, #021208 100%); border: 1px solid #15803d; border-radius: 4px; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; }
-.barrel-lcd-mini-text { color: #22c55e; font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 0.46rem; line-height: 1.25; white-space: nowrap; }
+.barrel-lcd-mini-slot { position: absolute; left: 18%; top: 37%; width: 64%; height: 27%; background: radial-gradient(ellipse at center, #052610 0%, #021208 100%); border: 1px solid #15803d; border-radius: 4px; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; padding: 1px 2px; }
+.barrel-lcd-mini-text { color: #22c55e; font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 0.40rem; line-height: 1.15; white-space: nowrap; text-align: center; }
 
 /* Grupo de Temas e Status em Caixas Simétricas */
 .btn-wine { background: var(--wine-primary) !important; color: #fff !important; border: 1px solid var(--wine-vivid) !important; font-weight: 600; border-radius: 8px; }

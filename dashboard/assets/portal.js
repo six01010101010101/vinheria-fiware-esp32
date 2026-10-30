@@ -99,10 +99,12 @@
     const hNum = parseFloat(tel.humidity_pct || p.defH || 71);
     const lNum = parseFloat(tel.luminosity_pct || p.defL || 9);
     if (window.WokwiLCD) {
+      const activeLot = (window.CANONICAL_LOTS || []).find(l => l.style === curPortalWine) || null;
       const res = window.WokwiLCD.renderWokwiTwin({
         t: tNum, h: hNum, l: lNum,
         preset: p,
         terroir: { name: "Adega Central Agnello", flag: "🍷", country: "França / Brasil" },
+        lot: activeLot,
         isWokwi: true, mode: "normal"
       });
       if (!document.hidden || forcePublish) {

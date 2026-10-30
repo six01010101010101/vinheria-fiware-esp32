@@ -17,8 +17,11 @@
 
   const getActiveLot = () => {
     const lots = window.CANONICAL_LOTS || [];
-    return (window.curLotCode ? lots.find(x => x.code === window.curLotCode) : null) ||
-           (window.findLotByTerroir ? window.findLotByTerroir(curArea, curPr) : null) || lots.find(x => x.style === curPr) || lots[0] || null;
+    const byCode = window.curLotCode ? lots.find(x => x.code === window.curLotCode && x.style === curPr) : null;
+    if (byCode) return byCode;
+    const byTerroir = window.findLotByTerroir ? window.findLotByTerroir(curArea, curPr) : null;
+    if (byTerroir && byTerroir.style === curPr) return byTerroir;
+    return lots.find(x => x.style === curPr) || lots[0] || null;
   };
   const setSimBase = (t, h, l, mode = "normal") => {
     sim.baseT = sim.t = +Number(t).toFixed(1); sim.baseH = sim.h = +Number(h).toFixed(0); sim.baseL = sim.l = +Number(l).toFixed(0);
@@ -34,18 +37,6 @@
     });
     if (res && res.score !== undefined) sim.score = res.score;
     window.simT = sim.t; window.simH = sim.h; window.simL = sim.l; window.curHealthScore = sim.score;
-
-    const stKey = res?.stateKey || explicitStateKey || "ideal";
-    const isCrit = (stKey === "critico" && lastTelegramMode !== "critico"), modeChanged = (lastTelegramMode !== null && lastTelegramMode !== stKey);
-    if (userTriggered || isCrit || modeChanged) {
-      lastTelegramMode = stKey;
-      const tr = TERROIRS[curArea] || {};
-      window.TelegramNotifier?.sendTelegramAlert({
-        terroir: `${lot?.winery || tr.name} (${lot?.wine || ""})`, country: lot?.country || tr.country,
-        wine_style: curPr, temp: sim.t, hum: sim.h, lum: sim.l,
-        stateKey: stKey, score: sim.score, style: curPr, force: userTriggered || isCrit
-      });
-    }
   }
 
   function onWinePresetChange(presetKey, keepLot = false, userTriggered = true) {
@@ -110,9 +101,13 @@
     const desc = document.getElementById("terroir-description-text");
     if (desc) desc.textContent = curArea === "wokwi_esp32" ? "Telemetria direta do hardware físico/simulado ESP32 Wokwi." : `Clima real de ${tr.country} (${tr.name} · ${tr.reg}) via satélite Open-Meteo e Supabase.`;
 
-    const matchLot = window.findLotByTerroir ? window.findLotByTerroir(curArea, curPr) :
-      (window.CANONICAL_LOTS || []).find(l => (l.terroirId === curArea && l.style === curPr) || l.code === tr.lotCode || l.terroirId === curArea);
-    if (matchLot) { window.curLotCode = matchLot.code; }
+    const matchLot = (window.CANONICAL_LOTS || []).find(l => l.terroirId === curArea && l.style === curPr);
+    if (matchLot) {
+      window.curLotCode = matchLot.code;
+    } else {
+      const defLot = (window.CANONICAL_LOTS || []).find(l => l.style === curPr);
+      if (defLot) window.curLotCode = defLot.code;
+    }
 
     const p = PRESETS[curPr] || {};
     window.ScadaUIController?.syncPresetControls(p, curPr);

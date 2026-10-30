@@ -104,7 +104,11 @@
             <div class="d-flex align-items-center justify-content-center gap-3 my-auto">
               <div class="barrel-lid-mini">
                 <img src="dashboard/assets/icons/tampa_barril_lcd.png" class="barrel-lid-mini-img" alt="Tampa com LCD" loading="lazy" decoding="async">
-                <div class="barrel-lcd-mini-slot"><div id="barrel-mini-t1" class="barrel-lcd-mini-text">T:15.2°C U:71%</div><div id="barrel-mini-t2" class="barrel-lcd-mini-text">TINTO 1UP:100%</div></div>
+                <div class="barrel-lcd-mini-slot">
+                  <div id="barrel-mini-t1" class="barrel-lcd-mini-text">T:15.2°C U:71% L:9%</div>
+                  <div id="barrel-mini-t2" class="barrel-lcd-mini-text">TINTO · FR-MARGAUX-01</div>
+                  <div id="barrel-mini-t3" class="barrel-lcd-mini-text">🇫🇷 Margaux · 1UP:100%</div>
+                </div>
               </div>
               <img src="dashboard/assets/icons/corpo_barril_3d.png" class="barrel-3d-mini-img" alt="Barril de Carvalho 225L" loading="lazy" decoding="async">
             </div>
@@ -125,6 +129,7 @@
             </div></div>
             <div class="crt-telemetry-hud p-2 rounded bg-black bg-opacity-40 border border-success border-opacity-25 small font-monospace">
               <div class="d-flex justify-content-between mb-1"><span class="text-secondary">TERROIR:</span><span id="crt-terroir-val" class="text-truncate text-wine fw-bold ms-2">🇫🇷 Château Margaux (França)</span></div>
+              <div class="d-flex justify-content-between mb-1"><span class="text-secondary">LOTE:</span><span id="crt-lot-val" class="text-truncate text-warning fw-bold ms-2">LOTE-FR-MARGAUX-01 (2015)</span></div>
               <div class="d-flex justify-content-between mb-1"><span class="text-secondary">VINHO:</span><span id="crt-wine-val" class="text-truncate text-light fw-bold ms-2">🍷 Château Margaux — Premier Grand Cru</span></div>
               <div class="d-flex justify-content-between mb-1"><span class="text-secondary">ESTADO:</span><span id="crt-status-val" class="text-success fw-bold">🟢 EQUILÍBRIO IDEAL</span></div>
               <div class="d-flex justify-content-between align-items-center"><span class="text-secondary">APOGEU:</span><span id="crt-apogee-val" class="text-success fw-bold">100% [EQUILÍBRIO IDEAL]</span></div>
