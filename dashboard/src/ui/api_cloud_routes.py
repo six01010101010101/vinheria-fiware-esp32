@@ -7,8 +7,11 @@ from datetime import datetime
 import os
 from flask import Flask, jsonify
 import requests
+from src.models.iot_models import SensorSnapshot, TriggerConfig
 from src.repositories.firebase_repository import FirebaseRepository
 from src.repositories.supabase_repository import SupabaseRepository
+from src.repositories.wokwi_mqtt_repository import WokwiMqttRepository
+from src.services.trigger_alert_service import TriggerAlertService
 from src.ui.api_firebase_routes import api_firebase_bp
 
 GITHUB_REPO_URL = "https://github.com/six01010101010101/vinheria-fiware-esp32"
@@ -76,6 +79,23 @@ def register_cloud_routes(server: Flask) -> None:
             "cloud_provider": "Render.com",
             "database_connected": supa.is_configured(),
         }), 200
+
+    @server.route("/api/v1/hardware/serial", methods=["GET"])
+    def get_hardware_serial():  # type: ignore[no-untyped-def]
+        """Endpoint de sincronização para a ponte USB Serial do Arduino físico conectado ao PC."""
+        wokwi = WokwiMqttRepository.get_instance()
+        wokwi.ensure_connected()
+        _, snap, _ = wokwi.get_realtime_series_and_snapshot(last_n=1)
+        t = snap.temperature if snap else 15.8
+        h = snap.humidity if snap else 68.0
+        l = snap.luminosity if snap else 9.0
+        evaluation = TriggerAlertService.evaluate_snapshot(snap or SensorSnapshot(t, h, l, ""), TriggerConfig())
+        st_key = "critico" if evaluation.cellar_health_score < 75 else ("padrao" if evaluation.cellar_health_score < 95 else "ideal")
+        g, y, r, buzz = (1 if st_key == "ideal" else 0), (1 if st_key == "padrao" else 0), (1 if st_key == "critico" else 0), (1 if st_key == "critico" else 0)
+        l1 = f"T:{t:.1f}C U:{h:.0f}% L:{l:.0f}%"[:16]
+        l2 = f"TINTO {st_key[:3].upper()}:{evaluation.cellar_health_score}%"[:16]
+        line = f"CMD:{st_key.upper()};SCORE:{evaluation.cellar_health_score};T:{t:.1f};H:{h:.0f};L:{l:.0f};G:{g};Y:{y};R:{r};BUZZ:{buzz};LCD1:{l1};LCD2:{l2}\n"
+        return line, 200, {"Content-Type": "text/plain; charset=utf-8"}
 
     @server.route("/api/v1/cloud/trigger-deploy", methods=["POST"])
     def trigger_cloud_deploy():  # type: ignore[no-untyped-def]

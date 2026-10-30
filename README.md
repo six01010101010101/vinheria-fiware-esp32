@@ -519,8 +519,17 @@ vinheria-fiware-esp32/
 
 ## 🚀 12. Como Executar, Simular e Testar o Projeto (Passo a Passo)
 
-### Método 1: Inicialização Plug-and-Play com 1 Clique (Windows)
-1. Dê duplo clique no executável **[`INICIAR_PROJETO.bat`](./INICIAR_PROJETO.bat)**.
+### 🌟 Método 0: Acesso Imediato 100% em Nuvem (Render.com) — Sem Instalar Nada nem Comandos
+> [!TIP]
+> **O projeto já está 100% rodando e ativo na nuvem via Render.com.** Você pode simplesmente enviar os links abaixo para qualquer pessoa: basta clicar no navegador (celular, tablet ou PC) para acessar todas as telas, funções, gráficos em tempo real, seleção dos 8 vinhos e sincronização Supabase, **sem precisar abrir portas ou executar `npm run dev`**:
+> - 🏺 **Portal do Barril 3D & Tampa LCD:** [`https://checkpoint5-vinheria-fiware-esp32-1.onrender.com/`](https://checkpoint5-vinheria-fiware-esp32-1.onrender.com/)
+> - 📊 **Dashboard SCADA Completo:** [`https://checkpoint5-vinheria-fiware-esp32-1.onrender.com/dashboard.html`](https://checkpoint5-vinheria-fiware-esp32-1.onrender.com/dashboard.html)
+> - 🛰️ **Diagnóstico de API REST:** [`https://checkpoint5-vinheria-fiware-esp32-1.onrender.com/api/v1/status`](https://checkpoint5-vinheria-fiware-esp32-1.onrender.com/api/v1/status)
+
+---
+
+### Método 1: Inicialização Plug-and-Play Local com 1 Clique (Windows)
+1. Dê duplo clique no executável **[`INICIAR_PROJETO.bat`](./INICIAR_PROJETO.bat)** ou **[`SITE_NUVEM.bat`](./SITE_NUVEM.bat)**.
 2. O script inicializa o servidor local na porta `8050`, abre o **Dashboard SCADA** no seu navegador padrão e abre a aba do **Simulador Wokwi**.
 
 ---

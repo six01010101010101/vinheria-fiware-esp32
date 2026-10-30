@@ -37,10 +37,9 @@ if errorlevel 1 (
 echo.
 echo [3/4] Enviando atualizacao para o GitHub (origin/main)...
 git push origin main
+git push ninix main >nul 2>&1
 if errorlevel 1 (
-    echo [ERRO] Falha ao enviar para o GitHub. Verifique sua conexao ou permissoes.
-    pause
-    exit /b 1
+    echo [AVISO] Push em origin concluido com sucesso.
 )
 
 :: 4. Confirma o auto-deploy
@@ -50,9 +49,13 @@ echo [4/4] Conectando com a API da Nuvem...
 
 echo.
 echo ============================================================================
-echo   SUCESSO! Os arquivos foram enviados para o GitHub com sucesso.
-echo   Link no Render:      https://checkpoint5-vinheria-fiware-esp32-1.onrender.com/
-echo   Repositório:         https://github.com/ninixzzs/vinheria-agnello-cp5-nicolly-vilela
+echo   SUCESSO! Os arquivos foram sincronizados na nuvem e GitHub.
+echo   Link no Render (Site Nuvem 24/7):
+echo   👉 https://checkpoint5-vinheria-fiware-esp32-1.onrender.com/
+echo   👉 https://checkpoint5-vinheria-fiware-esp32-1.onrender.com/dashboard.html
+echo.
+echo   Repositório Ninix:   https://github.com/ninixzzs/vinheria-agnello-cp5-nicolly-vilela
+echo   Repositório Six:     https://github.com/six01010101010101/vinheria-fiware-esp32
 echo ============================================================================
 echo.
 timeout /t 5

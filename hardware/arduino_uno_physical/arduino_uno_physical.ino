@@ -51,16 +51,16 @@ void applyState(String mode, int health, String l1 = "", String l2 = "") {
   if (curMode == "normal") {
     digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, LOW);
     noTone(PIN_BUZZER);
-    if (l1 == "") l1 = "T:15.8C U:68%";
+    if (l1 == "") l1 = "T:15.8C U:68% L:9%";
     if (l2 == "") l2 = curPreset + " 1UP:" + String(health) + "%";
   } else if (curMode == "padrao") {
     digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, HIGH); digitalWrite(PIN_LED_RED, LOW);
     noTone(PIN_BUZZER);
-    if (l1 == "") l1 = "T:17.5C U:63%";
+    if (l1 == "") l1 = "T:17.5C U:63% L:9%";
     if (l2 == "") l2 = curPreset + " PAD:" + String(health) + "%";
   } else {
     digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, HIGH);
-    if (l1 == "") l1 = "T:22.5C U:40%";
+    if (l1 == "") l1 = "T:22.5C U:40% L:45%";
     if (l2 == "") l2 = curPreset + " CRT:" + String(health) + "%";
   }
   updateLcd(l1, l2);

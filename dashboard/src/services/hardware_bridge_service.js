@@ -39,8 +39,8 @@ function computeActuators(stateKey, score, preset = "TINTO", t = 15.8, h = 68, l
   const tag = (preset || "TINTO").slice(0, 5).toUpperCase();
   const statTag = isIdeal ? "1UP" : (isCrit ? "CRT" : "PAD");
   const lcd = {
-    line1: `T:${Number(t).toFixed(1)}C U:${Math.round(h)}%`,
-    line2: `${tag} ${statTag}:${Math.round(score)}%`
+    line1: `T:${Number(t).toFixed(1)}C U:${Math.round(h)}% L:${Math.round(l)}%`.slice(0, 16),
+    line2: `${tag} ${statTag}:${Math.round(score)}%`.slice(0, 16)
   };
 
   return { leds, buzzer: { active: isCrit, melody: "Sonata ao Luar (Beethoven)", pin: 4 }, lcd, isCrit, isPad, isIdeal };
