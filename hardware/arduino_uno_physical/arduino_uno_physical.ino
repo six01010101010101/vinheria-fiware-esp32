@@ -12,8 +12,8 @@
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
-String curMode = "normal", curPreset = "TINTO";
-int curHealth = 100, bthvIdx = 0;
+String curMode = "padrao", curPreset = "TINTO", curWine = "MIOLO 43";
+int curHealth = 92, bthvIdx = 0;
 unsigned long noteStartMs = 0;
 bool noteActive = false;
 
@@ -48,20 +48,20 @@ void updateLcd(String line1, String line2) {
 
 void applyState(String mode, int health, String l1 = "", String l2 = "") {
   curMode = mode; curHealth = health;
-  if (curMode == "normal") {
+  if (curMode == "normal" || curMode == "ideal") {
     digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, LOW);
     noTone(PIN_BUZZER);
-    if (l1 == "") l1 = "T:15.8C U:68% L:9%";
-    if (l2 == "") l2 = curPreset + " 1UP:" + String(health) + "%";
+    if (l1 == "") l1 = "15.6C 68% L:5%";
+    if (l2 == "") l2 = "MARGAUX  IDE:99%";
   } else if (curMode == "padrao") {
     digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, HIGH); digitalWrite(PIN_LED_RED, LOW);
     noTone(PIN_BUZZER);
-    if (l1 == "") l1 = "T:17.5C U:63% L:9%";
-    if (l2 == "") l2 = curPreset + " PAD:" + String(health) + "%";
+    if (l1 == "") l1 = "18.0C 60% L:9%";
+    if (l2 == "") l2 = "MIOLO 43 PAD:92%";
   } else {
     digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, HIGH);
-    if (l1 == "") l1 = "T:22.5C U:40% L:45%";
-    if (l2 == "") l2 = curPreset + " CRT:" + String(health) + "%";
+    if (l1 == "") l1 = "24.0C 28% L:35%";
+    if (l2 == "") l2 = "KANONKOP CRT:42%";
   }
   updateLcd(l1, l2);
 }
@@ -77,9 +77,9 @@ void parseSerialCommand(String line) {
   }
   if (idxL2 >= 0) { l2 = line.substring(idxL2 + 5); l2.replace(";", ""); }
 
-  if (line.indexOf("CMD:CRITICO") >= 0 || line.indexOf("R:1") >= 0) applyState("critico", 9, l1, l2);
-  else if (line.indexOf("CMD:PADRAO") >= 0 || line.indexOf("Y:1") >= 0) applyState("padrao", 82, l1, l2);
-  else if (line.indexOf("CMD:IDEAL") >= 0 || line.indexOf("CMD:NORMAL") >= 0 || line.indexOf("G:1") >= 0) applyState("normal", 100, l1, l2);
+  if (line.indexOf("CMD:CRITICO") >= 0 || line.indexOf("R:1") >= 0) applyState("critico", 42, l1, l2);
+  else if (line.indexOf("CMD:PADRAO") >= 0 || line.indexOf("Y:1") >= 0) applyState("padrao", 92, l1, l2);
+  else if (line.indexOf("CMD:IDEAL") >= 0 || line.indexOf("CMD:NORMAL") >= 0 || line.indexOf("G:1") >= 0) applyState("normal", 99, l1, l2);
 }
 
 void setup() {
@@ -87,7 +87,7 @@ void setup() {
   pinMode(PIN_LED_GREEN, OUTPUT); pinMode(PIN_LED_YELLOW, OUTPUT);
   pinMode(PIN_LED_RED, OUTPUT); pinMode(PIN_BUZZER, OUTPUT);
   lcd.init(); lcd.backlight();
-  applyState("normal", 100, "VINHERIA AGNELLO", "PRONTO SERIAL");
+  applyState("padrao", 92, "18.0C 60% L:9%", "MIOLO 43 PAD:92%");
 }
 
 void loop() {

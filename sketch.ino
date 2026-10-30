@@ -15,17 +15,16 @@ const int MQTT_PORT = 1883;
 enum Pins { PIN_LED_YELLOW = 2, PIN_BUZZER = 4, PIN_LED_GREEN = 5, PIN_DHT = 15, PIN_LED_RED = 18, PIN_LDR = 34, LCD_ADDR = 0x27 };
 
 WiFiClient espClient;
-String curMode = "normal", curPreset = "TINTO", curLot = "FR-MARGAUX-01", curTerroir = "BORDEAUX";
-int curHealth = 100, bthvIdx = 0;
+String curMode = "padrao", curPreset = "TINTO", curLot = "BR-MIOLO-01", curTerroir = "V.VINHEDOS", curWine = "MIOLO 43", curRegion = "V.VINHEDOS";
+int curHealth = 92, bthvIdx = 0;
 bool remoteSync = false, noteToneActive = false;
 unsigned long lastDhtMs = 0, lastLdrMs = 0, lastPubMs = 0, noteStartMs = 0, lastPingMs = 0, lastRetryMs = 0, lastSupaMs = 0, lotSelectedMs = 0;
-float validTemp = 15.8f, validHum = 68.0f, validLum = 9.0f, hwTemp = 15.8f, hwHum = 68.0f, hwLum = 9.0f;
+float validTemp = 18.0f, validHum = 60.0f, validLum = 9.0f, hwTemp = 18.0f, hwHum = 60.0f, hwLum = 9.0f;
 
 // Beethoven: Sonata ao Luar (Moonlight Sonata, Op. 27 No. 2 em Do sustenido menor)
 const uint16_t BTHV_MELODY[][2] = {
-  {208,160},{277,160},{330,160},{208,160},{277,160},{330,160},{208,160},{277,160},{330,160},{208,160},{277,160},{330,160},{247,170},{294,170},{370,170},{220,170},{277,170},{330,170},{208,170},{262,170},
-  {415,360},{415,180},{415,180},{440,420},{415,260},{392,220},{415,480},{330,300},{277,300},{208,480},{330,240},{415,240},{494,360},{494,200},{554,420},{494,260},{466,220},{494,480},{415,300},{330,300},{247,480},
-  {370,260},{440,260},{587,420},{554,320},{494,260},{440,260},{415,460},{277,320},{330,320},{139,600},{0,250}
+  {208,160},{277,160},{330,160},{208,160},{277,160},{330,160},{208,160},{277,160},{330,160},{208,160},{277,160},{330,160},{247,170},{294,170},{370,170},{220,170},{277,170},{330,170},{208,170},{262,170},{415,360},{415,180},{415,180},{440,420},{415,260},{392,220},{415,480},{330,300},{277,300},{208,480},
+  {330,240},{415,240},{494,360},{494,200},{554,420},{494,260},{466,220},{494,480},{415,300},{330,300},{247,480},{370,260},{440,260},{587,420},{554,320},{494,260},{440,260},{415,460},{277,320},{330,320},{139,600},{0,250}
 };
 const int BTHV_TOTAL = sizeof(BTHV_MELODY) / sizeof(BTHV_MELODY[0]);
 
@@ -35,16 +34,23 @@ void lcdExpWrite(uint8_t d) { Wire.beginTransmission(LCD_ADDR); Wire.write(d | 0
 void lcdWrite4(uint8_t v) { lcdExpWrite(v); lcdExpWrite(v | 0x04); delayMicroseconds(2); lcdExpWrite(v & ~0x04); delayMicroseconds(40); }
 void lcdSend(uint8_t v, uint8_t m) { lcdWrite4((v & 0xF0) | m); lcdWrite4(((v << 4) & 0xF0) | m); }
 void lcdInit() { Wire.begin(21, 22); Wire.setClock(400000); delay(40); lcdExpWrite(0x00); delay(15); lcdWrite4(0x30); delayMicroseconds(4500); lcdWrite4(0x30); delayMicroseconds(4500); lcdWrite4(0x30); delayMicroseconds(150); lcdWrite4(0x20); delayMicroseconds(150); lcdSend(0x28, 0); lcdSend(0x0C, 0); lcdSend(0x06, 0); lcdSend(0x01, 0); delay(3); }
+
 void updateLcd() {
-  lcdSend(0x80, 0); String tStr = "T:" + String(validTemp, 1) + (char)223 + "C U:" + String((int)validHum) + "%" + (remoteSync ? "*" : " ");
-  while (tStr.length() < 16) tStr += " "; for (int i = 0; i < 16; i++) lcdSend((uint8_t)tStr[i], 1);
+  lcdSend(0x80, 0);
+  String tStr = String(validTemp, 1) + (char)223 + "C " + String((int)validHum) + "% L:" + String((int)validLum) + "%";
+  if (tStr.length() > 16) tStr = String((int)round(validTemp)) + (char)223 + "C " + String((int)validHum) + "% L:" + String((int)validLum) + "%";
+  while (tStr.length() < 16) tStr += " ";
+  for (int i = 0; i < 16; i++) lcdSend((uint8_t)tStr[i], 1);
   lcdSend(0xC0, 0);
-  String tag = (curMode == "critico") ? "CRT:" : ((curMode == "padrao") ? "PAD:" : "1UP:");
-  String bStr = ""; unsigned long now = millis();
-  if (now - lotSelectedMs < 5000) bStr = "LT:" + curLot;
-  else bStr = ((now / 3000) % 2 == 0) ? ("LT:" + curLot) : ("L:" + String((int)validLum) + "% " + curPreset.substring(0, 4) + " " + tag + String(curHealth) + "%");
-  while (bStr.length() < 16) bStr += " "; for (int i = 0; i < 16; i++) lcdSend((uint8_t)bStr[i], 1);
+  String tag = (curMode == "critico") ? "CRT:" : ((curMode == "padrao") ? "PAD:" : "1UP:"), bStr = "";
+  int cyc = ((millis() - lotSelectedMs) / 3000) % 3;
+  if (cyc == 0) { String w = curWine; while (w.length() < 8) w += " "; bStr = w.substring(0, 8) + " " + tag + String(curHealth) + "%"; }
+  else if (cyc == 1) { String r = curRegion; while (r.length() < 10) r += " "; bStr = r.substring(0, 10) + " " + curPreset.substring(0, 5); }
+  else { bStr = "LT:" + curLot; }
+  while (bStr.length() < 16) bStr += " ";
+  for (int i = 0; i < 16; i++) lcdSend((uint8_t)bStr[i], 1);
 }
+
 void selfTestLedsAndBuzzer() {
   digitalWrite(PIN_LED_GREEN, HIGH); tone(PIN_BUZZER, 880, 100); delay(140); digitalWrite(PIN_LED_GREEN, LOW);
   digitalWrite(PIN_LED_YELLOW, HIGH); tone(PIN_BUZZER, 1040, 100); delay(140); digitalWrite(PIN_LED_YELLOW, LOW);
@@ -53,14 +59,11 @@ void selfTestLedsAndBuzzer() {
 
 void applyWineStatusTransition(String newMode, int newHealth) {
   if (newMode == curMode && newHealth == curHealth) return;
-  bool modeChanged = (newMode != curMode);
   curMode = newMode; curHealth = newHealth;
-  if (modeChanged) {
-    bthvIdx = 0; noteStartMs = 0; noteToneActive = false;
-    if (curMode == "normal" || curMode == "ideal") { digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, LOW); stopToneAlert(); }
-    else if (curMode == "padrao") { digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, HIGH); digitalWrite(PIN_LED_RED, LOW); stopToneAlert(); }
-    else { digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, HIGH); }
-  }
+  bthvIdx = 0; noteStartMs = 0; noteToneActive = false;
+  if (curMode == "normal" || curMode == "ideal") { digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, LOW); stopToneAlert(); }
+  else if (curMode == "padrao") { digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, HIGH); digitalWrite(PIN_LED_RED, LOW); stopToneAlert(); }
+  else { digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, HIGH); }
   updateLcd();
 }
 
@@ -122,6 +125,12 @@ void mqttLoop() {
             }
             applyWineStatusTransition(m, h); remoteSync = true; mqttPub("/TEF/vine001/cmdexe", "diag|OK");
           }
+        } else if (msg.indexOf("wine|") != -1) {
+          curWine = msg.substring(msg.indexOf("wine|") + 5); curWine.trim(); curWine.toUpperCase();
+          lotSelectedMs = millis(); updateLcd(); mqttPub("/TEF/vine001/cmdexe", "wine|OK");
+        } else if (msg.indexOf("reg|") != -1) {
+          curRegion = msg.substring(msg.indexOf("reg|") + 4); curRegion.trim(); curRegion.toUpperCase();
+          updateLcd(); mqttPub("/TEF/vine001/cmdexe", "reg|OK");
         } else if (msg.indexOf("lot|") != -1) {
           curLot = msg.substring(msg.indexOf("lot|") + 4); curLot.replace("LOTE-", ""); curLot.trim(); curLot.toUpperCase();
           lotSelectedMs = millis(); updateLcd(); mqttPub("/TEF/vine001/cmdexe", "lot|OK");
@@ -144,22 +153,12 @@ void mqttLoop() {
 }
 
 void handleActuators() {
-  if (curMode == "normal" || curMode == "ideal") {
-    digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, LOW);
-    stopToneAlert(); bthvIdx = 0; noteStartMs = 0; noteToneActive = false; return;
-  }
-  if (curMode == "padrao") {
-    digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, HIGH); digitalWrite(PIN_LED_RED, LOW);
-    stopToneAlert(); bthvIdx = 0; noteStartMs = 0; noteToneActive = false; return;
-  }
+  if (curMode == "normal" || curMode == "ideal") { digitalWrite(PIN_LED_GREEN, HIGH); digitalWrite(PIN_LED_YELLOW, LOW); digitalWrite(PIN_LED_RED, LOW); stopToneAlert(); bthvIdx = 0; noteStartMs = 0; noteToneActive = false; return; }
+  if (curMode == "padrao") { digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_YELLOW, HIGH); digitalWrite(PIN_LED_RED, LOW); stopToneAlert(); bthvIdx = 0; noteStartMs = 0; noteToneActive = false; return; }
   digitalWrite(PIN_LED_GREEN, LOW); digitalWrite(PIN_LED_RED, HIGH);
   unsigned long now = millis();
   uint16_t curFreq = BTHV_MELODY[bthvIdx][0], curDur = BTHV_MELODY[bthvIdx][1], activeDur = (curDur > 60) ? (curDur * 78) / 100 : curDur;
-  if (noteStartMs == 0) {
-    noteStartMs = (now == 0) ? 1 : now;
-    if (curFreq > 0) { tone(PIN_BUZZER, curFreq); digitalWrite(PIN_LED_YELLOW, HIGH); noteToneActive = true; }
-    else { noTone(PIN_BUZZER); digitalWrite(PIN_LED_YELLOW, LOW); noteToneActive = false; }
-  }
+  if (noteStartMs == 0) { noteStartMs = (now == 0) ? 1 : now; if (curFreq > 0) { tone(PIN_BUZZER, curFreq); digitalWrite(PIN_LED_YELLOW, HIGH); noteToneActive = true; } else { noTone(PIN_BUZZER); digitalWrite(PIN_LED_YELLOW, LOW); noteToneActive = false; } }
   if (noteToneActive && (now - noteStartMs >= activeDur)) { noTone(PIN_BUZZER); digitalWrite(PIN_LED_YELLOW, LOW); noteToneActive = false; }
   if (now - noteStartMs >= curDur) { bthvIdx = (bthvIdx + 1) % BTHV_TOTAL; noteStartMs = 0; }
 }
@@ -167,32 +166,17 @@ void handleActuators() {
 void readAndPubSensors() {
   unsigned long now = millis(); float t = hwTemp, h = hwHum, l = hwLum;
   if (now - lastDhtMs >= 1200) { lastDhtMs = now; readDht22(t, h); }
-  if (now - lastLdrMs >= 150) {
-    lastLdrMs = now; float rl = map(analogRead(PIN_LDR), 0, 4095, 100, 0);
-    if (rl >= 0.0f && rl <= 100.0f) l = (hwLum * 0.7f) + (rl * 0.3f);
-  }
-  if ((fabs(t - hwTemp) >= 1.5f) || (fabs(h - hwHum) >= 4.0f)) {
-    hwTemp = t; hwHum = h; hwLum = l;
-    if (!remoteSync) { validTemp = hwTemp; validHum = hwHum; validLum = hwLum; }
-  }
-  if (!remoteSync) {
-    String evalMode; int evalHealth;
-    evaluateWineStatus(validTemp, validHum, validLum, curPreset, evalMode, evalHealth);
-    applyWineStatusTransition(evalMode, evalHealth);
-  }
-  if (now - lastPubMs >= 1500) {
-    lastPubMs = now; mqttPub("/TEF/vine001/attrs", "t|" + String(validTemp, 1) + "|h|" + String(validHum, 1) + "|l|" + String(validLum, 1));
-    updateLcd();
-  }
-  if (now - lastSupaMs >= 15000 && curMode != "critico") {
-    lastSupaMs = now; postTelemetryToSupabase(SUPABASE_URL, SUPABASE_KEY, DEVICE_ID, validTemp, validHum, validLum, curMode, curHealth, curPreset);
-  }
+  if (now - lastLdrMs >= 150) { lastLdrMs = now; float rl = map(analogRead(PIN_LDR), 0, 4095, 100, 0); if (rl >= 0.0f && rl <= 100.0f) l = (hwLum * 0.7f) + (rl * 0.3f); }
+  if ((fabs(t - hwTemp) >= 1.5f) || (fabs(h - hwHum) >= 4.0f)) { hwTemp = t; hwHum = h; hwLum = l; if (!remoteSync) { validTemp = hwTemp; validHum = hwHum; validLum = hwLum; } }
+  if (!remoteSync) { String evalMode; int evalHealth; evaluateWineStatus(validTemp, validHum, validLum, curPreset, evalMode, evalHealth); applyWineStatusTransition(evalMode, evalHealth); }
+  if (now - lastPubMs >= 1500) { lastPubMs = now; mqttPub("/TEF/vine001/attrs", "t|" + String(validTemp, 1) + "|h|" + String(validHum, 1) + "|l|" + String(validLum, 1)); updateLcd(); }
+  if (now - lastSupaMs >= 15000 && curMode != "critico") { lastSupaMs = now; postTelemetryToSupabase(SUPABASE_URL, SUPABASE_KEY, DEVICE_ID, validTemp, validHum, validLum, curMode, curHealth, curPreset); }
 }
 
 void setup() {
   Serial.begin(115200);
   pinMode(PIN_LED_GREEN, OUTPUT); pinMode(PIN_LED_YELLOW, OUTPUT); pinMode(PIN_LED_RED, OUTPUT); pinMode(PIN_BUZZER, OUTPUT); pinMode(PIN_LDR, INPUT);
-  lcdInit(); selfTestLedsAndBuzzer(); digitalWrite(PIN_LED_GREEN, HIGH); updateLcd();
+  lcdInit(); selfTestLedsAndBuzzer(); digitalWrite(PIN_LED_YELLOW, HIGH); updateLcd();
   WiFi.mode(WIFI_STA); WiFi.setSleep(false); WiFi.setAutoReconnect(true); WiFi.begin(WIFI_SSID, WIFI_PASS, 6);
   unsigned long t0 = millis(); while (WiFi.status() != WL_CONNECTED && (millis() - t0) < 4000) delay(50);
 }

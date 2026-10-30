@@ -4,7 +4,7 @@
  */
 (function () {
   const root = typeof window !== "undefined" ? window : globalThis;
-  root.curLotCode = root.curLotCode || "LOTE-FR-MARGAUX-01";
+  root.curLotCode = root.curLotCode || "LOTE-BR-MIOLO-01";
   let lastClickedLotCode = null;
 
   function evaluateLotPreservation(lot, t, h, l, customTriggers) {
@@ -26,7 +26,7 @@
 
     const tEdge = Math.abs(t - tMid) / tHalf;
     const hEdge = Math.abs(h - hMid) / hHalf;
-    const edgePen = Math.max(0, (tEdge - 0.5) * 10.0) + Math.max(0, (hEdge - 0.6) * 5.0);
+    const edgePen = Math.max(0, (tEdge - 0.5) * 10.0) + Math.max(0, (hEdge - 0.5) * 6.0);
 
     let score = Math.max(9, Math.min(100, Math.round(100 - penalty - edgePen)));
 
@@ -46,7 +46,7 @@
     const list = window.getLotsForStyle ? window.getLotsForStyle(curStyle) : (window.CANONICAL_LOTS || []);
     if (activeLotOverride) window.curLotCode = activeLotOverride;
     else if (!window.curLotCode) {
-      window.curLotCode = list[0]?.code || "LOTE-FR-MARGAUX-01";
+      window.curLotCode = list[0]?.code || "LOTE-BR-MIOLO-01";
     }
     const selCode = window.curLotCode;
     const activePreset = (window.PRESETS && window.PRESETS[curStyle]) || null;
@@ -59,10 +59,9 @@
         const col = c.children[idx], card = col ? col.firstElementChild : null;
         if (!card) return;
         const isSelected = lot.code === selCode;
-        const phase = (Date.now() / 2400) + idx * 0.85;
-        lot.liveT = +(lot.baseT + Math.sin(phase) * 0.12).toFixed(1);
-        lot.liveH = Math.max(10, Math.min(99, Math.round(lot.baseH + Math.cos(phase * 0.75) * 0.4)));
-        lot.liveL = Math.max(0, Math.min(100, Math.round(lot.baseL)));
+        lot.liveT = lot.baseT;
+        lot.liveH = Math.round(lot.baseH);
+        lot.liveL = Math.round(lot.baseL);
 
         const ev = evaluateLotPreservation(lot, lot.liveT, lot.liveH, lot.liveL, activePreset);
         if (ev.stateKey === "ideal") idealCount++; else if (ev.stateKey === "padrao") padraoCount++; else critCount++;
@@ -88,10 +87,9 @@
 
     c.innerHTML = list.map((lot, idx) => {
       const isSelected = lot.code === selCode;
-      const phase = (Date.now() / 2400) + idx * 0.85;
-      lot.liveT = +(lot.baseT + Math.sin(phase) * 0.12).toFixed(1);
-      lot.liveH = Math.max(10, Math.min(99, Math.round(lot.baseH + Math.cos(phase * 0.75) * 0.4)));
-      lot.liveL = Math.max(0, Math.min(100, Math.round(lot.baseL)));
+      lot.liveT = lot.baseT;
+      lot.liveH = Math.round(lot.baseH);
+      lot.liveL = Math.round(lot.baseL);
 
       const ev = evaluateLotPreservation(lot, lot.liveT, lot.liveH, lot.liveL, activePreset);
       if (ev.stateKey === "ideal") idealCount++; else if (ev.stateKey === "padrao") padraoCount++; else critCount++;
@@ -145,10 +143,9 @@
   function updateBadge(list, selCode, idealCount, padraoCount, critCount, curStyle) {
     const badge = document.getElementById("cellar-lots-live-badge");
     if (!badge) return;
-    const pr = (window.PRESETS && window.PRESETS[curStyle]) || {};
     const badgeCls = critCount > 0 ? "border-danger text-danger bg-danger" : (padraoCount > 0 ? "border-warning text-warning bg-warning" : "border-success text-success bg-success");
     badge.className = `badge font-monospace ${badgeCls} bg-opacity-25 border border-opacity-50`;
-    badge.innerHTML = `<span class="status-dot"></span>${list.length} LOTES · ${pr.badge || "🍷 CAVA"} (🟢 ${idealCount} · 🟡 ${padraoCount} · 🔴 ${critCount})`;
+    badge.textContent = `Rede: ${idealCount} Ideal · ${padraoCount} Padrão · ${critCount} Crítico`;
   }
 
   root.evaluateLotPreservation = evaluateLotPreservation;

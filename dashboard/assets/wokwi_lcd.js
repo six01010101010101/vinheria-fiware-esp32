@@ -11,7 +11,7 @@
     else if (h > p.hMax) pen += (h - p.hMax) * 1.5;
     if (l > p.lMax) pen += (l - p.lMax) * 1.0;
     const tEdge = Math.abs(t - tMid) / tHalf, hEdge = Math.abs(h - hMid) / hHalf;
-    const edgePen = Math.max(0, (tEdge - 0.5) * 10.0) + Math.max(0, (hEdge - 0.6) * 5.0);
+    const edgePen = Math.max(0, (tEdge - 0.5) * 10.0) + Math.max(0, (hEdge - 0.5) * 6.0);
     return Math.max(9, Math.min(100, Math.round(100 - pen - edgePen)));
   }
 
@@ -30,12 +30,12 @@
 
   function formatLcd16(str) {
     const chars = Array.from(str || "");
-    while (chars.length < 18) chars.push(" ");
-    return chars.slice(0, 19).join("");
+    while (chars.length < 16) chars.push(" ");
+    return chars.slice(0, 16).join("");
   }
 
   function renderWokwiTwin(opts) {
-    const { t = 15.8, h = 68, l = 9, preset = {}, terroir = {}, lot = null, isWokwi = true, mode = "normal" } = opts || {};
+    const { t = 18.0, h = 60, l = 9, preset = {}, terroir = {}, lot = null, isWokwi = true } = opts || {};
     const st = evalStatus(t, h, l, preset, isWokwi);
     let score = opts.score !== undefined ? opts.score : st.score;
     let stateKey = opts.stateKey || (score < 75 ? "critico" : (score < 95 ? "padrao" : "ideal"));
@@ -57,16 +57,40 @@
     })();
 
     const statTag = isIdeal ? "1UP" : (isCrit ? "CRT" : "PAD");
-    const activeLot = lot || (window.CANONICAL_LOTS || []).find(l => l.code === window.curLotCode && l.style === preset.key) || (window.CANONICAL_LOTS || []).find(l => l.style === preset.key);
-    const lotCode = activeLot?.code || (preset.defaultLot || "LOTE-01");
+    const activeLot = lot || (window.CANONICAL_LOTS || []).find(l => l.code === window.curLotCode && l.style === preset.key) || (window.CANONICAL_LOTS || []).find(l => l.code === window.curLotCode) || (window.CANONICAL_LOTS || []).find(l => l.style === preset.key);
+    const lotCode = activeLot?.code || (preset.defaultLot || "LOTE-BR-MIOLO-01");
     const lotShort = lotCode.replace("LOTE-", "");
     const lotVintage = activeLot?.vintage || 2020;
-    const trName = terroir.name || activeLot?.winery || "Adega Central";
-    const trCountry = terroir.country || activeLot?.country || "Cava";
-    const trFlag = terroir.flag || activeLot?.flag || "🍷";
 
-    const l1Text = `🪙 ${t.toFixed(1)}°C 💧${h.toFixed(0)}%${!isWokwi ? " *" : ""}`;
-    const l2Text = `⭐ ${l.toFixed(0)}% ${prTag} ${statTag}:${score}%`;
+    let wShort = "MIOLO 43", regShort = "V.VINHEDOS";
+    if (lotCode.includes("MIOLO-01")) { wShort = "MIOLO 43"; regShort = "V.VINHEDOS"; }
+    else if (lotCode.includes("MIOLO-02")) { wShort = "MIOLO CH"; regShort = "V.VINHEDOS"; }
+    else if (lotCode.includes("MIOLO-03")) { wShort = "MIOLO RS"; regShort = "CAMPANHA"; }
+    else if (lotCode.includes("MIOLO-04")) { wShort = "MIOLO BR"; regShort = "V.VINHEDOS"; }
+    else if (lotCode.includes("MARGAUX-01")) { wShort = "MARGAUX"; regShort = "BORDEAUX"; }
+    else if (lotCode.includes("BLANC-01")) { wShort = "PAV.BLNC"; regShort = "BORDEAUX"; }
+    else if (lotCode.includes("CATENA")) { wShort = "CATENA"; regShort = "MENDOZA"; }
+    else if (lotCode.includes("ANTINORI")) { wShort = "TIGNANEL"; regShort = "TOSCANA"; }
+    else if (lotCode.includes("VEGA")) { wShort = "VEGA SIC"; regShort = "R.DUERO"; }
+    else if (lotCode.includes("CONCHA")) { wShort = "DON MELC"; regShort = "V.MAIPO"; }
+    else if (lotCode.includes("BAROSSA")) { wShort = "PENFOLDS"; regShort = "BAROSSA"; }
+    else if (lotCode.includes("KANONKOP")) { wShort = "KANONKOP"; regShort = "STELLENB"; }
+    else if (lotCode.includes("PRUM")) { wShort = "PRUM RSL"; regShort = "MOSEL"; }
+    else if (lotCode.includes("CLOUDY")) { wShort = "CLOUDY B"; regShort = "MARLBORO"; }
+    else if (activeLot) {
+      wShort = (activeLot.winery.replace("Vinícola ", "").replace("Château ", "").split(" ")[0] || prTag).slice(0, 8).toUpperCase();
+      regShort = (activeLot.region ? activeLot.region.split("(")[0].split(",")[0].trim() : "ADEGA").slice(0, 10).toUpperCase();
+    }
+
+    const trName = terroir.name || activeLot?.winery || "Vale dos Vinhedos";
+    const trCountry = terroir.country || activeLot?.country || "Brasil";
+    const trFlag = terroir.flag || activeLot?.flag || "🇧🇷";
+
+    const l1Text = `${t.toFixed(1)}°C ${h.toFixed(0)}% L:${l.toFixed(0)}%`;
+    const cycle = Math.floor((Date.now() / 3000)) % 3;
+    let l2Text = `${wShort.padEnd(8, " ").slice(0, 8)} ${statTag}:${score}%`;
+    if (cycle === 1) l2Text = `${regShort.padEnd(10, " ").slice(0, 10)} ${prTag.slice(0, 5)}`;
+    else if (cycle === 2) l2Text = `LT:${lotShort}`;
 
     const elL1 = document.getElementById("wokwi-lcd-l1"), elL2 = document.getElementById("wokwi-lcd-l2");
     if (elL1) elL1.textContent = formatLcd16(l1Text);
@@ -74,10 +98,10 @@
 
     const t1 = document.getElementById("barrel-mini-t1"), t2 = document.getElementById("barrel-mini-t2"), t3 = document.getElementById("barrel-mini-t3");
     if (t1) t1.textContent = `T:${t.toFixed(1)}°C U:${h.toFixed(0)}% L:${l.toFixed(0)}%`;
-    if (t2) t2.textContent = t3 ? `${prTag} · ${lotShort}` : `${prTag} · ${lotShort} · ${score}%`;
-    if (t3) t3.textContent = `${trFlag} ${trName.slice(0, 12)} · ${statTag}:${score}%`;
+    if (t2) t2.textContent = `${wShort} · ${statTag}:${score}%`;
+    if (t3) t3.textContent = `LT:${lotShort} · ${regShort}`;
 
-    const wineTitle = activeLot ? `${activeLot.winery} — ${activeLot.wine} (${activeLot.vintage})` : (preset.wine || preset.name || "Château Margaux 2015");
+    const wineTitle = activeLot ? `${activeLot.winery} — ${activeLot.wine} (${activeLot.vintage})` : (preset.wine || preset.name || "Vinícola Miolo — Lote 43 Gran Reserva");
     const terroirTitle = `${trFlag} ${trName} (${trCountry})`;
 
     const crtTerroir = document.getElementById("crt-terroir-val");

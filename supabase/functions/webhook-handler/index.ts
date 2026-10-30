@@ -62,16 +62,8 @@ serve(async (req: Request) => {
       processed: true,
     });
 
-    // 4. ENVIO PARA O TELEGRAM (Grupo Admin Vinheira)
-    const title = payload.title || payload.event || "Notificação de Webhook";
-    const terroir = payload.terroir || payload.lot_code || "Geral";
-    const status = payload.status || "INFO";
-    const msg = `🔔 *WEBHOOK RECEBIDO (EDGE FUNCTION)*\n━━━━━━━━━━━━━━━━━━━━━━\n📌 *Evento:* \`${title}\`\n🆔 *ID:* \`${eventId}\`\n📍 *Origem:* ${terroir}\n⚡ *Status:* \`${status}\`\n⏰ *Data:* \`${new Date().toLocaleString("pt-BR")}\`\n━━━━━━━━━━━━━━━━━━━━━━\n📲 _Grupo Admin Vinheira (${TELEGRAM_CHAT_ID})_`;
-
-    // Processamento assíncrono de envio (não bloqueia resposta ao gateway)
-    sendTelegramMessage(TELEGRAM_CHAT_ID, msg);
-
-    // Retorno HTTP 200 com confirmação de recebimento
+    // 4. PERSISTÊNCIA SILENCIOSA (Boletins consolidados a cada 5 min via telegram_live_service)
+    // Retorno HTTP 200 com confirmação de recebimento sem envio duplicado
     return new Response(JSON.stringify({ received: true, event_id: eventId }), {
       headers: { "Content-Type": "application/json" },
       status: 200,
